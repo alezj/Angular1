@@ -1,0 +1,8 @@
+<p>search.component works!</p>
+
+<input [value]="searchTerm()" (input)="searchTerm.set($event.target.value)" />
+<ul>
+  @for (item of filteredItems(); track $index) {
+    <li>{{ item }}</li>
+  }
+</ul>
