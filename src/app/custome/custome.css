@@ -1,0 +1,15 @@
+ .layout {
+  display: grid;
+  grid:
+    "span12 span12 span12 span12 span12 span12 span12 span12 span12 span12 span12 span12" 1fr
+    "span6 span6 span6 span6 span6 span6 . . . . . ." 1fr
+    ". . . . . span3 span3 span3 . . . ." 1fr
+    ". . . . span1 . . . . . . ." 1fr
+    / 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.span12 { grid-area: span12; }
+.span6 { grid-area: span6; }
+.span3 { grid-area: span3; }
+.span1 { grid-area: span1; }

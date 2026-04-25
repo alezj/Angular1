@@ -3,11 +3,12 @@ import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Pruebas } from "./pruebas/pruebas";
 import { SearchComponent } from './search.component/search.component';
-
+import { Custome } from './custome/custome';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Pruebas, SearchComponent],
+  imports: [RouterOutlet, Pruebas
+    , SearchComponent , Custome],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
