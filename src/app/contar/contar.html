@@ -1,0 +1,8 @@
+<p>contar: {{cantidad()}}</p>
+<p>es: {{isPositive()}}</p>
+<p>es doble {{doubled()}}</p>
+
+<button (click)="fnsumarUno()" >Sumar</button>
+<button [disabled]="cantidad()===0" (click)="fnRestarUno()" >Restar</button>
+
+
