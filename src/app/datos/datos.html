@@ -1,0 +1,20 @@
+<div>
+  <h2>Datos de la hoja</h2>
+
+  <p *ngIf="cargando">Cargando...</p>
+  <p *ngIf="error">{{ error }}</p>
+<input [value]="searchTerm()" (input)="searchTerm.set($event.target.value)" />
+
+  <table *ngIf="!cargando && !error">
+    <thead>
+      <tr>
+        <th *ngFor="let encabezado of datos[0]">{{ encabezado }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let fila of datos.slice(1)">
+        <td *ngFor="let celda of fila">{{ celda }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
