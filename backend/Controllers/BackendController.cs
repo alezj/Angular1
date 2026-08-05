@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using backend.Models;
 
 namespace backend.Controllers
 {
@@ -6,6 +8,15 @@ namespace backend.Controllers
     [Route("api/[controller]")]
     public class BackendController : ControllerBase
     {
+        private readonly HttpClient _httpClient;
+        private readonly AppsScriptSettings _appsScriptSettings;
+
+        public BackendController(HttpClient httpClient, IOptions<AppsScriptSettings> appsScriptOptions)
+        {
+            _httpClient = httpClient;
+            _appsScriptSettings = appsScriptOptions.Value;
+        }
+
         [HttpGet("status")]
         public IActionResult GetStatus()
         {
@@ -41,6 +52,27 @@ namespace backend.Controllers
             });
 
             return Ok(forecast);
+        }
+
+        [HttpGet("apps-script")]
+        public async Task<IActionResult> GetAppsScriptData()
+        {
+            var scriptUrl = _appsScriptSettings.BaseUrl;
+            if (string.IsNullOrWhiteSpace(scriptUrl))
+            {
+                return BadRequest(new { error = "La URL de Apps Script no está configurada." });
+            }
+
+            var request = new HttpRequestMessage(HttpMethod.Get, scriptUrl);
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode, new { error = "Fallo al llamar a Google Apps Script." });
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            return Content(content, response.Content.Headers.ContentType?.ToString() ?? "application/json");
         }
     }
 }
