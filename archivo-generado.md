@@ -34,6 +34,12 @@ También se añadió un CRUD genérico de backend para `inquilinos`, `pagos`, `m
 
 Las cuatro pantallas también incluyen formularios para crear/editar y botones de eliminar. Queda pendiente compilar Angular cuando npm pueda instalar las dependencias.
 
+### Catálogo de estados
+
+Se creó `GET /api/backend/catalogos/estados` con los estados de propiedades: Disponible, Alquilada, Mantenimiento e Inactiva; y de mantenimientos: Pendiente, En proceso, Finalizado y Cancelado. Las dos tablas muestran etiquetas y sus formularios utilizan listas desplegables.
+
+El catálogo fijo fue retirado y el backend ahora consulta `GET /api/backend/estados`. La prueba de creación contra Apps Script fue rechazada porque su `doPost` todavía no admite el recurso `estados`; no se modificó ningún dato remoto.
+
 ## Validación realizada
 
 - `dotnet build` se ejecutó correctamente después de añadir cada endpoint.

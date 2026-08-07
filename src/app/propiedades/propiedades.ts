@@ -10,6 +10,7 @@ import { Propiedad, PropiedadesService } from '../propiedades.service';
   styleUrl: './propiedades.css'
 })
 export class Propiedades implements OnInit {
+  readonly estados = [{ id: 1, nombre: 'Disponible' }, { id: 2, nombre: 'Alquilada' }, { id: 3, nombre: 'Mantenimiento' }, { id: 4, nombre: 'Inactiva' }];
   propiedades: Propiedad[] = [];
   cargando = true;
   error: string | null = null;
@@ -42,4 +43,5 @@ export class Propiedades implements OnInit {
   editar(propiedad: Propiedad): void { this.editandoId = propiedad.id; this.formulario = { ...propiedad }; }
   eliminar(id: number): void { if (confirm('¿Eliminar esta propiedad?')) this.propiedadesService.eliminar(id).subscribe({ next: () => this.ngOnInit(), error: () => this.error = 'No se pudo eliminar la propiedad.' }); }
   cancelar(): void { this.editandoId = null; this.formulario = { nombre: '', direccion: '', estado: 1, precioMensual: 0, notas: '' }; }
+  nombreEstado(id: number): string { return this.estados.find(e => e.id === id)?.nombre ?? `Sin definir (${id})`; }
 }

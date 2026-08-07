@@ -77,6 +77,16 @@ namespace backend.Controllers
             return Content(content, response.Content.Headers.ContentType?.ToString() ?? "application/json");
         }
 
+        [HttpGet("estados")]
+        public async Task<IActionResult> GetEstados()
+        {
+            var baseUrl = _appsScriptSettings.BaseUrl;
+            if (string.IsNullOrWhiteSpace(baseUrl)) return BadRequest(new { error = "La URL de Apps Script no esta configurada." });
+            using var response = await _httpClient.GetAsync($"{baseUrl}{(baseUrl.Contains('?') ? "&" : "?")}resource=estados");
+            var content = await response.Content.ReadAsStringAsync();
+            return response.IsSuccessStatusCode ? Content(content, response.Content.Headers.ContentType?.ToString() ?? "application/json") : StatusCode((int)response.StatusCode, new { error = "Fallo al llamar a Google Apps Script." });
+        }
+
         [HttpGet("pagos")]
         public async Task<IActionResult> GetPagos()
         {
@@ -139,7 +149,7 @@ namespace backend.Controllers
 
         private async Task<IActionResult> EnviarAccionGenerica(string resource, string action, string? id, JsonElement? data)
         {
-            var recursos = new[] { "inquilinos", "pagos", "mantenimientos", "alquileres" };
+            var recursos = new[] { "inquilinos", "pagos", "mantenimientos", "alquileres", "estados" };
             if (!recursos.Contains(resource)) return NotFound(new { error = "Recurso no permitido." });
             if (string.IsNullOrWhiteSpace(_appsScriptSettings.BaseUrl)) return BadRequest(new { error = "La URL de Apps Script no esta configurada." });
             using var response = await _httpClient.PostAsJsonAsync(_appsScriptSettings.BaseUrl, new { resource, action, id, data });

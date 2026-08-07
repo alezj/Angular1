@@ -4,7 +4,7 @@
     <input [(ngModel)]="formulario.nombre" name="nombre" placeholder="Nombre" required>
     <input [(ngModel)]="formulario.direccion" name="direccion" placeholder="Dirección" required>
     <input [(ngModel)]="formulario.precioMensual" name="precioMensual" type="number" min="0" placeholder="Precio mensual" required>
-    <input [(ngModel)]="formulario.estado" name="estado" type="number" placeholder="Estado">
+    <select [(ngModel)]="formulario.estado" name="estado"><option *ngFor="let estado of estados" [ngValue]="estado.id">{{ estado.nombre }}</option></select>
     <input [(ngModel)]="formulario.notas" name="notas" placeholder="Notas">
     <button type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button>
     <button type="button" *ngIf="editandoId !== null" (click)="cancelar()">Cancelar</button>
@@ -31,7 +31,7 @@
           <td>{{ propiedad.id }}</td>
           <td>{{ propiedad.nombre }}</td>
           <td>{{ propiedad.direccion }}</td>
-          <td>{{ propiedad.estado }}</td>
+          <td>{{ nombreEstado(propiedad.estado) }}</td>
           <td>{{ propiedad.precioMensual | number: '1.2-2' }}</td>
           <td>{{ propiedad.notas || '-' }}</td>
           <td><button (click)="editar(propiedad)">Editar</button> <button (click)="eliminar(propiedad.id)">Eliminar</button></td>

@@ -44,6 +44,13 @@ El mismo patrón está disponible para `inquilinos`, `pagos`, `mantenimientos` y
 
 Los estados de propiedades y mantenimientos se muestran actualmente como valores numéricos. Deben sustituirse por etiquetas legibles cuando se defina su catálogo. También se recomienda renombrar `fechaPagos` a `diaPago`, ya que representa el día mensual de cobro.
 
+## Catálogo de estados
+
+- Propiedades: `1 Disponible`, `2 Alquilada`, `3 Mantenimiento`, `4 Inactiva`.
+- Mantenimientos: `1 Pendiente`, `2 En proceso`, `3 Finalizado`, `4 Cancelado`.
+
+El catálogo debe mantenerse en la hoja `Estados`; el backend lo consulta mediante `GET /api/backend/estados`. Apps Script debe habilitar `estados` también en su `doPost` para permitir crear, actualizar y eliminar registros desde la aplicación.
+
 ## Estructura principal
 
 - `src/`: aplicación Angular.
