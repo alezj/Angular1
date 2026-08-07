@@ -1,5 +1,6 @@
 <section class="mantenimientos">
   <h2>Mantenimientos</h2>
+  <form (ngSubmit)="guardar()"><input [(ngModel)]="formulario.propiedadID" name="propiedad" type="number" placeholder="ID propiedad" required><input [(ngModel)]="formulario.descripcion" name="descripcion" placeholder="Descripción" required><input [(ngModel)]="formulario.fecha" name="fecha" type="date" required><input [(ngModel)]="formulario.costo" name="costo" type="number" min="0" placeholder="Costo" required><input [(ngModel)]="formulario.estado" name="estado" type="number" placeholder="Estado" required><button type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button><button *ngIf="editandoId !== null" type="button" (click)="cancelar()">Cancelar</button></form>
 
   <p *ngIf="cargando">Cargando mantenimientos...</p>
   <p *ngIf="error" class="error">{{ error }}</p>
@@ -14,6 +15,7 @@
           <th>Fecha</th>
           <th>Costo</th>
           <th>Estado</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -24,9 +26,10 @@
           <td>{{ mantenimiento.fecha | date: 'dd/MM/yyyy' }}</td>
           <td>{{ mantenimiento.costo | number: '1.2-2' }}</td>
           <td>{{ mantenimiento.estado }}</td>
+          <td><button (click)="editar(mantenimiento)">Editar</button> <button (click)="eliminar(mantenimiento.id)">Eliminar</button></td>
         </tr>
         <tr *ngIf="mantenimientos.length === 0">
-          <td colspan="6">No hay mantenimientos registrados.</td>
+          <td colspan="7">No hay mantenimientos registrados.</td>
         </tr>
       </tbody>
     </table>

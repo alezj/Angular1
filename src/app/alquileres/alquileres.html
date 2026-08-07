@@ -1,5 +1,6 @@
 <section class="alquileres">
   <h2>Alquileres</h2>
+  <form (ngSubmit)="guardar()"><input [(ngModel)]="formulario.propiedadID" name="propiedad" type="number" placeholder="ID propiedad" required><input [(ngModel)]="formulario.inquilinoID" name="inquilino" type="number" placeholder="ID inquilino" required><input [(ngModel)]="formulario.fechaInicio" name="inicio" type="date" required><input [(ngModel)]="formulario.fechaFin" name="fin" type="date" required><button type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button><button *ngIf="editandoId !== null" type="button" (click)="cancelar()">Cancelar</button></form>
 
   <p *ngIf="cargando">Cargando alquileres...</p>
   <p *ngIf="error" class="error">{{ error }}</p>
@@ -13,6 +14,7 @@
           <th>ID de inquilino</th>
           <th>Fecha de inicio</th>
           <th>Fecha de finalización</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -22,9 +24,10 @@
           <td>{{ alquiler.inquilinoID }}</td>
           <td>{{ alquiler.fechaInicio | date: 'dd/MM/yyyy' }}</td>
           <td>{{ alquiler.fechaFin | date: 'dd/MM/yyyy' }}</td>
+          <td><button (click)="editar(alquiler)">Editar</button> <button (click)="eliminar(alquiler.id)">Eliminar</button></td>
         </tr>
         <tr *ngIf="alquileres.length === 0">
-          <td colspan="5">No hay alquileres registrados.</td>
+          <td colspan="6">No hay alquileres registrados.</td>
         </tr>
       </tbody>
     </table>

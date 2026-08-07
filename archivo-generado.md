@@ -26,6 +26,14 @@ Desarrollar un sistema web de gestión de alquileres con Angular, ASP.NET Core y
 
 Para cada módulo se crearon el endpoint .NET, servicio Angular, componente, estilos, ruta y enlace en el menú lateral. Las tablas manejan carga, error y ausencia de registros.
 
+### CRUD de propiedades
+
+Se añadieron `POST`, `PUT` y `DELETE` en `/api/backend/propiedades`. La pantalla ahora incluye formulario de creación/edición y botones para editar o eliminar; Apps Script recibe `create`, `update` y `delete`.
+
+También se añadió un CRUD genérico de backend para `inquilinos`, `pagos`, `mantenimientos` y `alquileres`. Acepta `POST /api/backend/{recurso}`, `PUT /api/backend/{recurso}/{id}` y `DELETE /api/backend/{recurso}/{id}` y restringe los recursos permitidos.
+
+Las cuatro pantallas también incluyen formularios para crear/editar y botones de eliminar. Queda pendiente compilar Angular cuando npm pueda instalar las dependencias.
+
 ## Validación realizada
 
 - `dotnet build` se ejecutó correctamente después de añadir cada endpoint.

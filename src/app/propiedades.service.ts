@@ -25,4 +25,8 @@ export class PropiedadesService {
   obtenerPropiedades(): Observable<ApiResponse<Propiedad[]>> {
     return this.http.get<ApiResponse<Propiedad[]>>(this.apiUrl);
   }
+
+  crear(datos: Omit<Propiedad, 'id'>) { return this.http.post(this.apiUrl, datos); }
+  actualizar(id: number, datos: Omit<Propiedad, 'id'>) { return this.http.put(`${this.apiUrl}/${id}`, datos); }
+  eliminar(id: number) { return this.http.delete(`${this.apiUrl}/${id}`); }
 }

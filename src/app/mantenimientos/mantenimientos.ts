@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Mantenimiento, MantenimientosService } from '../mantenimientos.service';
 
 @Component({
   selector: 'app-mantenimientos',
-  imports: [CommonModule, DatePipe, DecimalPipe],
+  imports: [CommonModule, DatePipe, DecimalPipe, FormsModule],
   templateUrl: './mantenimientos.html',
   styleUrl: './mantenimientos.css'
 })
@@ -12,6 +13,8 @@ export class Mantenimientos implements OnInit {
   mantenimientos: Mantenimiento[] = [];
   cargando = true;
   error: string | null = null;
+  editandoId: number | null = null;
+  formulario: Omit<Mantenimiento, 'id'> = { propiedadID: 0, descripcion: '', fecha: '', costo: 0, estado: 1 };
 
   constructor(private readonly mantenimientosService: MantenimientosService) {}
 
@@ -31,4 +34,8 @@ export class Mantenimientos implements OnInit {
       }
     });
   }
+  guardar(): void { const r = this.editandoId === null ? this.mantenimientosService.crear(this.formulario) : this.mantenimientosService.actualizar(this.editandoId, this.formulario); r.subscribe({ next: () => { this.cancelar(); this.ngOnInit(); }, error: () => this.error = 'No se pudo guardar.' }); }
+  editar(x: Mantenimiento): void { this.editandoId = x.id; this.formulario = { ...x, fecha: x.fecha.substring(0, 10) }; }
+  eliminar(id: number): void { if (confirm('¿Eliminar este mantenimiento?')) this.mantenimientosService.eliminar(id).subscribe({ next: () => this.ngOnInit(), error: () => this.error = 'No se pudo eliminar.' }); }
+  cancelar(): void { this.editandoId = null; this.formulario = { propiedadID: 0, descripcion: '', fecha: '', costo: 0, estado: 1 }; }
 }

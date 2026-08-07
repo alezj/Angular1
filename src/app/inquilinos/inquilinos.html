@@ -1,5 +1,11 @@
 <section class="inquilinos">
   <h2>Inquilinos</h2>
+  <form (ngSubmit)="guardar()">
+    <input [(ngModel)]="formulario.nombreApellido" name="nombre" placeholder="Nombre" required>
+    <input [(ngModel)]="formulario.fechaInicioContrato" name="inicio" type="date" required>
+    <input [(ngModel)]="formulario.fechaPagos" name="dia" type="number" min="1" max="31" required>
+    <button type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button><button *ngIf="editandoId !== null" type="button" (click)="cancelar()">Cancelar</button>
+  </form>
 
   <p *ngIf="cargando">Cargando inquilinos...</p>
   <p *ngIf="error" class="error">{{ error }}</p>
@@ -12,6 +18,7 @@
           <th>Nombre y apellido</th>
           <th>Inicio de contrato</th>
           <th>Día de pago</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -20,9 +27,10 @@
           <td>{{ inquilino.nombreApellido }}</td>
           <td>{{ inquilino.fechaInicioContrato | date: 'dd/MM/yyyy' }}</td>
           <td>{{ inquilino.fechaPagos }}</td>
+          <td><button (click)="editar(inquilino)">Editar</button> <button (click)="eliminar(inquilino.id)">Eliminar</button></td>
         </tr>
         <tr *ngIf="inquilinos.length === 0">
-          <td colspan="4">No hay inquilinos registrados.</td>
+          <td colspan="5">No hay inquilinos registrados.</td>
         </tr>
       </tbody>
     </table>

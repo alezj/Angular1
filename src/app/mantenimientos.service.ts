@@ -25,4 +25,7 @@ export class MantenimientosService {
   obtenerMantenimientos(): Observable<ApiResponse<Mantenimiento[]>> {
     return this.http.get<ApiResponse<Mantenimiento[]>>(this.apiUrl);
   }
+  crear(data: Omit<Mantenimiento, 'id'>) { return this.http.post(this.apiUrl, data); }
+  actualizar(id: number, data: Omit<Mantenimiento, 'id'>) { return this.http.put(`${this.apiUrl}/${id}`, data); }
+  eliminar(id: number) { return this.http.delete(`${this.apiUrl}/${id}`); }
 }

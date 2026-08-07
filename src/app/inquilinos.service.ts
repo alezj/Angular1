@@ -23,4 +23,7 @@ export class InquilinosService {
   obtenerInquilinos(): Observable<ApiResponse<Inquilino[]>> {
     return this.http.get<ApiResponse<Inquilino[]>>(this.apiUrl);
   }
+  crear(data: Omit<Inquilino, 'id'>) { return this.http.post(this.apiUrl, data); }
+  actualizar(id: number, data: Omit<Inquilino, 'id'>) { return this.http.put(`${this.apiUrl}/${id}`, data); }
+  eliminar(id: number) { return this.http.delete(`${this.apiUrl}/${id}`); }
 }

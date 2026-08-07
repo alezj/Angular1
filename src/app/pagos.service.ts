@@ -23,4 +23,7 @@ export class PagosService {
   obtenerPagos(): Observable<ApiResponse<Pago[]>> {
     return this.http.get<ApiResponse<Pago[]>>(this.apiUrl);
   }
+  crear(data: Omit<Pago, 'id'>) { return this.http.post(this.apiUrl, data); }
+  actualizar(id: number, data: Omit<Pago, 'id'>) { return this.http.put(`${this.apiUrl}/${id}`, data); }
+  eliminar(id: number) { return this.http.delete(`${this.apiUrl}/${id}`); }
 }

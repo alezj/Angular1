@@ -28,6 +28,12 @@ Angular nunca consulta Apps Script directamente. El backend centraliza la URL ex
 
 Cada módulo incluye una ruta, un enlace en el menú lateral, un servicio HTTP Angular y una tabla con estados de carga, error y lista vacía.
 
+## CRUD de propiedades
+
+La ruta `/propiedades` permite crear, editar y eliminar registros. El backend usa las acciones de Apps Script `create`, `update` y `delete`, enviando `nombre`, `direccion`, `PrecioMensual`, `notas` y `estado`.
+
+El mismo patrón está disponible para `inquilinos`, `pagos`, `mantenimientos` y `alquileres` mediante `POST /api/backend/{recurso}`, `PUT /api/backend/{recurso}/{id}` y `DELETE /api/backend/{recurso}/{id}`. Cada una de esas rutas ya tiene formulario y acciones CRUD en Angular. El cuerpo se reenvía a Apps Script como `data`.
+
 ## Datos actuales
 
 - Inquilinos: `id`, `nombreApellido`, `fechaInicioContrato`, `fechaPagos`.

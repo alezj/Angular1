@@ -5,6 +5,8 @@
 .table-wrapper {
   overflow-x: auto;
 }
+.formulario { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .5rem; margin-bottom: 1rem; }
+.formulario input, .formulario button { padding: .55rem; }
 
 table {
   width: 100%;
