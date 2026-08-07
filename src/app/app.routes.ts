@@ -5,7 +5,7 @@ import { SearchComponent } from './search.component/search.component';
 import { Custome } from './custome/custome';
 import { Contar } from './contar/contar';
 import  {Datos } from './datos/datos';
-import { Component } from '@angular/core';
+import { Inquilinos } from './inquilinos/inquilinos';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'pruebas', pathMatch: 'full' },
@@ -13,6 +13,7 @@ export const routes: Routes = [
   { path: 'search', component: SearchComponent },
   { path: 'custom', component: Custome },
   { path: 'contar', component: Contar },
-  { path: 'datos', component: Datos }
+  { path: 'datos', component: Datos },
+  { path: 'inquilinos', component: Inquilinos }
 ];
 

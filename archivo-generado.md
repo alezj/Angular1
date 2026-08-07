@@ -1,33 +1,44 @@
 # Estado actual del proyecto
 
-Fecha: 2026-08-07
+Fecha de actualización: 2026-08-07
 
-## Resumen de acciones realizadas por el asistente
+## Objetivo
 
-- Creé el archivo archivo-generado.md en la raíz del proyecto.
-- Generé contenido inicial en el archivo (fecha y descripción).
-- Creé y actualicé una lista de tareas interna con los pasos: "Actualizar archivo Markdown" y "Confirmar contenido"; ambas marcadas como completadas desde el flujo del asistente.
+Construir un sistema web para gestionar alquileres, incluyendo inquilinos, propiedades, contratos y pagos. La solución usa Angular como interfaz, ASP.NET Core como backend y Google Apps Script como acceso a los datos.
 
-## Archivos creados por el asistente
+## Implementado en esta sesión
 
-- archivo-generado.md — creado el 2026-08-07. Contiene este estado y el historial breve de acciones.
+1. Se configuró la URL de despliegue de Google Apps Script en `backend/appsettings.json`.
+2. Se creó el endpoint `GET /api/backend/inquilinos` en `BackendController`.
+   - El endpoint consulta Apps Script con el parámetro `resource=inquilinos`.
+   - Reenvía la respuesta JSON de Apps Script al frontend.
+3. Se habilitó CORS para `http://localhost:4200` en el backend.
+4. Se añadió el servicio Angular `InquilinosService`.
+5. Se creó la pantalla Angular `/inquilinos`.
+   - Muestra una tabla con ID, nombre y apellido, inicio de contrato y día de pago.
+   - Incluye estados de carga, error y lista vacía.
+6. Se agregó un enlace "Inquilinos" al menú lateral.
 
-## Estado actual del repositorio (resumen)
+## Estado de la integración
 
-- Estructura principal existente: carpetas `backend/`, `public/`, `src/` y archivos de configuración de Angular y .NET presentes en el workspace.
-- No se han creado otros archivos por el asistente en esta sesión aparte de `archivo-generado.md`.
+```text
+Angular /inquilinos
+       ↓
+GET http://localhost:5129/api/backend/inquilinos
+       ↓
+Google Apps Script: ?resource=inquilinos
+```
 
-## Acciones realizadas (detallado)
+## Validación realizada
 
-1. Crear archivo Markdown: `archivo-generado.md`.
-	- Ruta: c:\Archivos\Johancel\Proyectos\Angular1\archivo-generado.md
-	- Contenido: estado del proyecto y lista de acciones.
-2. Gestión de tareas internas: se añadieron y marcaron como completadas los pasos relacionados con la creación y confirmación del archivo.
+- `dotnet build` en `backend/`: compilación completada sin errores ni advertencias.
+- La compilación de Angular queda pendiente hasta instalar las dependencias del proyecto con `npm install`.
 
 ## Próximos pasos sugeridos
 
-- Indícame si quieres que cambie el nombre del archivo o que añada información adicional (por ejemplo: lista completa de archivos del proyecto, dependencias, comandos para ejecutar la app, o un resumen por carpetas).
-
-## Notas
-
-- Si quieres, puedo generar un README.md más completo con instrucciones de ejecución y desarrollo.
+1. Instalar dependencias y comprobar la vista con `npm start`.
+2. Crear el endpoint y la vista de propiedades.
+3. Crear el flujo de contratos/alquileres, vinculando propiedad e inquilino.
+4. Crear pagos vinculados a un alquiler y detectar pagos pendientes.
+5. Renombrar el campo `fechaPagos` a `diaPago` para reflejar que almacena el día mensual de cobro.
+6. Añadir autenticación antes de manejar datos reales de usuarios.

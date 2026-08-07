@@ -1,83 +1,101 @@
-# Angular1
+# Sistema de gestión de alquileres
 
-Proyecto Angular con servidor .NET backend.
+Aplicación web en Angular 20 con un backend ASP.NET Core (.NET 8). El backend actúa como puente entre la interfaz y una API de Google Apps Script, evitando que Angular consuma directamente el script de Google.
 
-## Estructura del proyecto
+## Funcionalidad disponible
 
-- `src/`: código fuente de la aplicación Angular.
-- `public/`: recursos estáticos incluidos en la aplicación.
-- `backend/`: proyecto ASP.NET Core Web API con `backend.csproj`.
-- `angular.json`: configuración de compilación y SSR para Angular.
-- `package.json`: dependencias y scripts de Angular.
-- `tsconfig.json`: configuración de TypeScript.
-- `README.md`: este archivo.
+- Consulta de inquilinos desde Google Apps Script.
+- Endpoint propio para inquilinos en el backend.
+- Vista Angular con tabla de ID, nombre, fecha de inicio de contrato y día de pago.
+- Navegación a la pantalla de inquilinos mediante la ruta `/inquilinos`.
 
-## Descripción
+## Arquitectura
 
-Este repositorio contiene una aplicación Angular 20 con renderizado del lado del servidor (SSR) y un backend .NET 8.
+```text
+Angular (http://localhost:4200)
+          |
+          v
+ASP.NET Core (http://localhost:5129/api/backend/inquilinos)
+          |
+          v
+Google Apps Script (?resource=inquilinos)
+```
 
-### Frontend
+## Estructura principal
 
-- Basado en Angular 20.1.x.
-- Usa `@angular/build`, `@angular/cli`, `@angular/compiler-cli` y `@angular/ssr`.
-- El archivo de entrada principal es `src/main.ts`.
-- El servidor SSR se define en `src/server.ts`.
+- `src/`: aplicación Angular.
+- `src/app/inquilinos/`: componente y estilos de la tabla de inquilinos.
+- `src/app/inquilinos.service.ts`: servicio Angular que consulta el backend.
+- `backend/`: API ASP.NET Core.
+- `backend/Controllers/BackendController.cs`: endpoint puente hacia Apps Script.
+- `backend/appsettings.json`: URL base de Google Apps Script.
 
-### Backend
+## API disponible
 
-- Proyecto .NET 8 en `backend/`.
-- Dependencias principales:
-  - `Microsoft.AspNetCore.OpenApi`
-  - `Swashbuckle.AspNetCore`
-- Controladores y modelos se alojan bajo `backend/Controllers` y `backend/Models`.
+### Obtener inquilinos
 
-## Comandos útiles
+```http
+GET /api/backend/inquilinos
+```
 
-### Instalar dependencias
+El backend consulta internamente Apps Script usando el recurso `inquilinos` y devuelve su respuesta JSON. El formato esperado es:
 
-```bash
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "nombreApellido": "Ana",
+      "fechaInicioContrato": "2026-07-12T04:00:00.000Z",
+      "fechaPagos": 15
+    }
+  ]
+}
+```
+
+`fechaPagos` representa el día mensual de pago. En una siguiente iteración conviene renombrarlo a `diaPago` tanto en Apps Script como en el frontend.
+
+## Ejecución local
+
+Instala las dependencias de Angular desde la raíz del proyecto:
+
+```powershell
 npm install
 ```
 
-### Iniciar el frontend en desarrollo
+Inicia Angular:
 
-```bash
+```powershell
 npm start
 ```
 
-### Construir la aplicación Angular
+En otra terminal, inicia el backend:
 
-```bash
-npm run build
-```
-
-### Ejecutar pruebas unitarias
-
-```bash
-npm test
-```
-
-### Ejecutar SSR manualmente
-
-```bash
-npm run serve:ssr:Angular1
-```
-
-### Backend (.NET)
-
-Desde la carpeta `backend/`:
-
-```bash
-dotnet build
-
+```powershell
+Set-Location backend
 dotnet run
 ```
 
-## Estado actual del proyecto
+Abre `http://localhost:4200/inquilinos`.
 
-- Se generó el archivo `archivo-generado.md` con un registro de acciones realizadas por el asistente.
-- Se creó y actualizó un README con descripción del proyecto, estructura y comandos.
+## Configuración
 
-## Notas
+La URL de despliegue de Apps Script se configura en `backend/appsettings.json`, dentro de `AppsScript:BaseUrl`.
 
-- Si necesitas un README más detallado con instrucciones de despliegue o información de API, puedo ampliarlo.
+Durante el desarrollo, el backend permite solicitudes CORS desde `http://localhost:4200`.
+
+## Verificación
+
+El backend se compiló correctamente con:
+
+```powershell
+Set-Location backend
+dotnet build
+```
+
+Para comprobar Angular después de instalar dependencias:
+
+```powershell
+npm run build
+```

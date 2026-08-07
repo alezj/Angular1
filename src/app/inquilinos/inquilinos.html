@@ -1,0 +1,30 @@
+<section class="inquilinos">
+  <h2>Inquilinos</h2>
+
+  <p *ngIf="cargando">Cargando inquilinos...</p>
+  <p *ngIf="error" class="error">{{ error }}</p>
+
+  <div class="table-wrapper" *ngIf="!cargando && !error">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre y apellido</th>
+          <th>Inicio de contrato</th>
+          <th>Día de pago</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let inquilino of inquilinos">
+          <td>{{ inquilino.id }}</td>
+          <td>{{ inquilino.nombreApellido }}</td>
+          <td>{{ inquilino.fechaInicioContrato | date: 'dd/MM/yyyy' }}</td>
+          <td>{{ inquilino.fechaPagos }}</td>
+        </tr>
+        <tr *ngIf="inquilinos.length === 0">
+          <td colspan="4">No hay inquilinos registrados.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -54,6 +54,27 @@ namespace backend.Controllers
             return Ok(forecast);
         }
 
+        [HttpGet("inquilinos")]
+        public async Task<IActionResult> GetInquilinos()
+        {
+            var baseUrl = _appsScriptSettings.BaseUrl;
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                return BadRequest(new { error = "La URL de Apps Script no esta configurada." });
+            }
+
+            var scriptUrl = $"{baseUrl}{(baseUrl.Contains('?') ? "&" : "?")}resource=inquilinos";
+            using var response = await _httpClient.GetAsync(scriptUrl);
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode, new { error = "Fallo al llamar a Google Apps Script." });
+            }
+
+            return Content(content, response.Content.Headers.ContentType?.ToString() ?? "application/json");
+        }
+
         [HttpGet("apps-script")]
         public async Task<IActionResult> GetAppsScriptData()
         {
