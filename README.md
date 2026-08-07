@@ -1,86 +1,107 @@
-# Sistema de gestión de alquileres
+# Angular1
 
-Aplicación web para gestionar alquileres. Angular 20 ofrece la interfaz y ASP.NET Core (.NET 8) actúa como puente entre la aplicación y Google Apps Script.
+Proyecto Angular con servidor .NET backend.
 
-## Arquitectura
+## Estructura del proyecto
 
-```text
-Angular (http://localhost:4200)
-          |
-          v
-ASP.NET Core (http://localhost:5129/api/backend/...)
-          |
-          v
-Google Apps Script (?resource=...)
-```
+- `src/`: código fuente de la aplicación Angular.
+- `public/`: recursos estáticos incluidos en la aplicación.
+- `backend/`: proyecto ASP.NET Core Web API con `backend.csproj`.
+- `angular.json`: configuración de compilación y SSR para Angular.
+- `package.json`: dependencias y scripts de Angular.
+- `tsconfig.json`: configuración de TypeScript.
+- `README.md`: este archivo.
 
-Angular nunca consulta Apps Script directamente. El backend centraliza la URL externa, los errores de integración y la política CORS de desarrollo.
+## Descripción
+
+Este repositorio contiene una aplicación Angular 20 con renderizado del lado del servidor (SSR) y un backend .NET 8.
+
+### Frontend
+
+- Basado en Angular 20.1.x.
+- Usa `@angular/build`, `@angular/cli`, `@angular/compiler-cli` y `@angular/ssr`.
+- El archivo de entrada principal es `src/main.ts`.
+- El servidor SSR se define en `src/server.ts`.
+
+### Backend
+
+- Proyecto .NET 8 en `backend/`.
+- Dependencias principales:
+    - `Microsoft.AspNetCore.OpenApi`
+    - `Swashbuckle.AspNetCore`
+- Controladores y modelos se alojan bajo `backend/Controllers` y `backend/Models`.
 
 ## Módulos disponibles
 
-| Módulo | Ruta Angular | Endpoint backend | Recurso Apps Script |
-| --- | --- | --- | --- |
-| Inquilinos | `/inquilinos` | `GET /api/backend/inquilinos` | `inquilinos` |
-| Pagos | `/pagos` | `GET /api/backend/pagos` | `pagos` |
-| Propiedades | `/propiedades` | `GET /api/backend/propiedades` | `propiedades` |
-| Mantenimientos | `/mantenimientos` | `GET /api/backend/mantenimientos` | `mantenimientos` |
-| Alquileres | `/alquileres` | `GET /api/backend/alquileres` | `alquileres` |
+- `inquilinos`: `/inquilinos` — consulta de inquilinos.
+- `pagos`: `/pagos` — consulta de pagos.
+- `propiedades`: `/propiedades` — CRUD de propiedades.
+- `mantenimientos`: `/mantenimientos` — consulta y formularios de mantenimiento.
+- `alquileres`: `/alquileres` — consulta de contratos/alquileres.
+- `estados`: `/estados` — catálogo de estados (nuevo módulo creado).
 
-Cada módulo incluye una ruta, un enlace en el menú lateral, un servicio HTTP Angular y una tabla con estados de carga, error y lista vacía.
+## Comandos útiles
 
-## CRUD de propiedades
+### Instalar dependencias
 
-La ruta `/propiedades` permite crear, editar y eliminar registros. El backend usa las acciones de Apps Script `create`, `update` y `delete`, enviando `nombre`, `direccion`, `PrecioMensual`, `notas` y `estado`.
-
-El mismo patrón está disponible para `inquilinos`, `pagos`, `mantenimientos` y `alquileres` mediante `POST /api/backend/{recurso}`, `PUT /api/backend/{recurso}/{id}` y `DELETE /api/backend/{recurso}/{id}`. Cada una de esas rutas ya tiene formulario y acciones CRUD en Angular. El cuerpo se reenvía a Apps Script como `data`.
-
-## Datos actuales
-
-- Inquilinos: `id`, `nombreApellido`, `fechaInicioContrato`, `fechaPagos`.
-- Pagos: `id`, `idInquilino`, `fechaPago`, `monto`.
-- Propiedades: `id`, `nombre`, `direccion`, `estado`, `precioMensual`, `notas`.
-- Mantenimientos: `id`, `propiedadID`, `descripcion`, `fecha`, `costo`, `estado`.
-- Alquileres: `id`, `propiedadID`, `inquilinoID`, `fechaInicio`, `fechaFin`.
-
-Los estados de propiedades y mantenimientos se muestran actualmente como valores numéricos. Deben sustituirse por etiquetas legibles cuando se defina su catálogo. También se recomienda renombrar `fechaPagos` a `diaPago`, ya que representa el día mensual de cobro.
-
-## Catálogo de estados
-
-- Propiedades: `1 Disponible`, `2 Alquilada`, `3 Mantenimiento`, `4 Inactiva`.
-- Mantenimientos: `1 Pendiente`, `2 En proceso`, `3 Finalizado`, `4 Cancelado`.
-
-El catálogo debe mantenerse en la hoja `Estados`; el backend lo consulta mediante `GET /api/backend/estados`. Apps Script debe habilitar `estados` también en su `doPost` para permitir crear, actualizar y eliminar registros desde la aplicación.
-
-## Estructura principal
-
-- `src/`: aplicación Angular.
-- `src/app/<modulo>/`: componentes y estilos de cada tabla.
-- `src/app/<modulo>.service.ts`: servicios Angular que consumen el backend.
-- `backend/Controllers/BackendController.cs`: endpoints de integración con Apps Script.
-- `backend/appsettings.json`: URL base del despliegue de Apps Script.
-
-## Ejecución local
-
-Instala las dependencias de Angular desde la raíz:
-
-```powershell
-npm.cmd install
+```bash
+npm install
 ```
 
-Inicia Angular:
+### Iniciar el frontend en desarrollo
 
-```powershell
-npm.cmd start
+```bash
+npm start
 ```
 
-En otra terminal, inicia el backend:
+### Construir la aplicación Angular
 
-```powershell
-Set-Location backend
+```bash
+npm run build
+```
+
+### Ejecutar pruebas unitarias
+
+```bash
+npm test
+```
+
+### Ejecutar SSR manualmente
+
+```bash
+npm run serve:ssr:Angular1
+```
+
+### Backend (.NET)
+
+Desde la carpeta `backend/`:
+
+```bash
+dotnet build
+
 dotnet run
 ```
 
-Después abre una de las rutas, por ejemplo `http://localhost:4200/propiedades`.
+## Estado actual del proyecto
+
+- Se generó el archivo `archivo-generado.md` con un registro de acciones realizadas por el asistente.
+- Se añadió la pantalla `Estados` en frontend y el servicio asociado. Los archivos creados son:
+    - `src/app/estados/estados.ts`
+    - `src/app/estados/estados.html`
+    - `src/app/estados/estados.css`
+    - `src/app/estados.service.ts`
+- Se añadió la ruta `/estados` y el enlace en el menú lateral.
+- El backend ya expone `GET /api/backend/estados` y la API genérica está preparada para `create/update/delete` del recurso `estados`.
+
+## Próximos pasos sugeridos
+
+- Reemplazar arrays locales de `estados` en `propiedades` y `mantenimientos` por llamadas al servicio `EstadosService`.
+- Instalar dependencias y compilar el frontend para probar la UI en `http://localhost:4200/`.
+- Habilitar `estados` en el `doPost` de Apps Script si se desea permitir crear/editar estados desde la app.
+
+## Notas
+
+- Si deseas, puedo actualizar `propiedades.ts` y `mantenimientos.ts` para cargar `estados` desde el backend en lugar de usar valores en memoria.
 
 ## Nota sobre npm en este equipo
 

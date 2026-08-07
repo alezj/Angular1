@@ -26,6 +26,20 @@ Desarrollar un sistema web de gestión de alquileres con Angular, ASP.NET Core y
 
 Para cada módulo se crearon el endpoint .NET, servicio Angular, componente, estilos, ruta y enlace en el menú lateral. Las tablas manejan carga, error y ausencia de registros.
 
+### Pantalla `Estados` (nueva)
+
+- Se añadió la pantalla de administración de estados para catálogos de `propiedades` y `mantenimientos`.
+- Archivos creados en frontend:
+	- `src/app/estados/estados.ts` — componente Angular (lógica de carga y CRUD).
+	- `src/app/estados/estados.html` — plantilla (tabla + formulario).
+	- `src/app/estados/estados.css` — estilos básicos.
+	- `src/app/estados.service.ts` — servicio Angular para consumir `api/backend/estados`.
+- Se agregó la ruta `{ path: 'estados', component: Estados }` en `src/app/app.routes.ts`.
+- Se añadió el enlace en el menú lateral (`src/app/app.html`) para acceder a la nueva pantalla.
+
+### Backend
+
+- El backend ya exponía `GET /api/backend/estados` en `backend/Controllers/BackendController.cs` y la API genérica acepta el recurso `estados` para `create/update/delete` mediante `POST` al endpoint genérico. Por tanto la pantalla `Estados` consume el endpoint existente.
 ### CRUD de propiedades
 
 Se añadieron `POST`, `PUT` y `DELETE` en `/api/backend/propiedades`. La pantalla ahora incluye formulario de creación/edición y botones para editar o eliminar; Apps Script recibe `create`, `update` y `delete`.
@@ -45,6 +59,29 @@ El catálogo fijo fue retirado y el backend ahora consulta `GET /api/backend/est
 - `dotnet build` se ejecutó correctamente después de añadir cada endpoint.
 - La compilación de Angular está pendiente porque las dependencias no están instaladas en esta PC.
 - `npm.cmd` funciona, pero `npm.cmd install` falla con `SELF_SIGNED_CERT_IN_CHAIN`; se requiere configurar el certificado corporativo en Node/npm.
+
+## Acciones realizadas (detallado)
+
+1. Creación de la pantalla `Estados` en frontend con CRUD contra `api/backend/estados`.
+2. Registro de los archivos añadidos y actualización de rutas y menú lateral.
+3. Verificación: el backend ya tenía el endpoint `GET /api/backend/estados` y la API genérica para acciones (`create`, `update`, `delete`).
+
+## Estado actual del repositorio (resumen)
+
+- Archivos añadidos por el asistente en esta sesión:
+	- `archivo-generado.md` (registro de acciones y estado).
+	- `src/app/estados/estados.ts`
+	- `src/app/estados/estados.html`
+	- `src/app/estados/estados.css`
+	- `src/app/estados.service.ts`
+- README actualizado con la nueva pantalla y comandos clave.
+
+## Próximos pasos sugeridos (prioritarios)
+
+- Integrar el catálogo `estados` en `propiedades` y `mantenimientos` para reemplazar arrays locales y cargarlos desde el backend.
+- Instalar dependencias de Angular en una máquina con certificados correctos y compilar para probar la UI (`npm install` y `npm run build`).
+- Habilitar `estados` en el `doPost` de Apps Script si se desea permitir creación/edición remota desde la aplicación.
+
 
 ## Decisiones y pendientes técnicos
 
