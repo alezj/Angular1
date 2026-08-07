@@ -4,41 +4,44 @@ Fecha de actualización: 2026-08-07
 
 ## Objetivo
 
-Construir un sistema web para gestionar alquileres, incluyendo inquilinos, propiedades, contratos y pagos. La solución usa Angular como interfaz, ASP.NET Core como backend y Google Apps Script como acceso a los datos.
+Desarrollar un sistema web de gestión de alquileres con Angular, ASP.NET Core y Google Apps Script para administrar propiedades, inquilinos, alquileres, pagos y mantenimientos.
 
-## Implementado en esta sesión
+## Cambios implementados
 
-1. Se configuró la URL de despliegue de Google Apps Script en `backend/appsettings.json`.
-2. Se creó el endpoint `GET /api/backend/inquilinos` en `BackendController`.
-   - El endpoint consulta Apps Script con el parámetro `resource=inquilinos`.
-   - Reenvía la respuesta JSON de Apps Script al frontend.
-3. Se habilitó CORS para `http://localhost:4200` en el backend.
-4. Se añadió el servicio Angular `InquilinosService`.
-5. Se creó la pantalla Angular `/inquilinos`.
-   - Muestra una tabla con ID, nombre y apellido, inicio de contrato y día de pago.
-   - Incluye estados de carga, error y lista vacía.
-6. Se agregó un enlace "Inquilinos" al menú lateral.
+### Integración base
 
-## Estado de la integración
+1. Se configuró la URL de Google Apps Script en `backend/appsettings.json`.
+2. Se habilitó CORS para Angular en `http://localhost:4200`.
+3. El backend quedó configurado como intermediario entre Angular y Apps Script.
 
-```text
-Angular /inquilinos
-       ↓
-GET http://localhost:5129/api/backend/inquilinos
-       ↓
-Google Apps Script: ?resource=inquilinos
-```
+### Módulos de consulta
+
+| Módulo | Endpoint | Ruta | Campos mostrados |
+| --- | --- | --- | --- |
+| Inquilinos | `GET /api/backend/inquilinos` | `/inquilinos` | ID, nombre, inicio de contrato, día de pago |
+| Pagos | `GET /api/backend/pagos` | `/pagos` | ID, inquilino, fecha, monto |
+| Propiedades | `GET /api/backend/propiedades` | `/propiedades` | ID, nombre, dirección, estado, precio, notas |
+| Mantenimientos | `GET /api/backend/mantenimientos` | `/mantenimientos` | ID, propiedad, descripción, fecha, costo, estado |
+| Alquileres | `GET /api/backend/alquileres` | `/alquileres` | ID, propiedad, inquilino, inicio, finalización |
+
+Para cada módulo se crearon el endpoint .NET, servicio Angular, componente, estilos, ruta y enlace en el menú lateral. Las tablas manejan carga, error y ausencia de registros.
 
 ## Validación realizada
 
-- `dotnet build` en `backend/`: compilación completada sin errores ni advertencias.
-- La compilación de Angular queda pendiente hasta instalar las dependencias del proyecto con `npm install`.
+- `dotnet build` se ejecutó correctamente después de añadir cada endpoint.
+- La compilación de Angular está pendiente porque las dependencias no están instaladas en esta PC.
+- `npm.cmd` funciona, pero `npm.cmd install` falla con `SELF_SIGNED_CERT_IN_CHAIN`; se requiere configurar el certificado corporativo en Node/npm.
 
-## Próximos pasos sugeridos
+## Decisiones y pendientes técnicos
 
-1. Instalar dependencias y comprobar la vista con `npm start`.
-2. Crear el endpoint y la vista de propiedades.
-3. Crear el flujo de contratos/alquileres, vinculando propiedad e inquilino.
-4. Crear pagos vinculados a un alquiler y detectar pagos pendientes.
-5. Renombrar el campo `fechaPagos` a `diaPago` para reflejar que almacena el día mensual de cobro.
-6. Añadir autenticación antes de manejar datos reales de usuarios.
+1. Reemplazar los códigos numéricos de estado de propiedades y mantenimientos por etiquetas legibles cuando se defina su significado.
+2. Renombrar `fechaPagos` a `diaPago` en Apps Script y Angular.
+3. Corregir la generación del ID de alquileres: actualmente puede llegar vacío.
+4. Instalar dependencias Angular, ejecutar `npm.cmd run build` y comprobar todas las rutas visualmente.
+5. Implementar operaciones de creación, edición y cambio de estado; actualmente los módulos son de consulta.
+6. Relacionar pagos con `alquilerID`, además del inquilino, para poder detectar cuotas pendientes.
+7. Añadir autenticación antes de usar datos reales.
+
+## Skill de documentación
+
+Se solicitó una skill global para actualizar `README.md` y este archivo tras cada cambio. Su creación queda pendiente porque esta PC no tiene un intérprete de Python disponible, necesario para ejecutar la herramienta oficial de creación y validación de skills.

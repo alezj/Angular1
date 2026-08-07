@@ -1,13 +1,6 @@
 # Sistema de gestión de alquileres
 
-Aplicación web en Angular 20 con un backend ASP.NET Core (.NET 8). El backend actúa como puente entre la interfaz y una API de Google Apps Script, evitando que Angular consuma directamente el script de Google.
-
-## Funcionalidad disponible
-
-- Consulta de inquilinos desde Google Apps Script.
-- Endpoint propio para inquilinos en el backend.
-- Vista Angular con tabla de ID, nombre, fecha de inicio de contrato y día de pago.
-- Navegación a la pantalla de inquilinos mediante la ruta `/inquilinos`.
+Aplicación web para gestionar alquileres. Angular 20 ofrece la interfaz y ASP.NET Core (.NET 8) actúa como puente entre la aplicación y Google Apps Script.
 
 ## Arquitectura
 
@@ -15,59 +8,56 @@ Aplicación web en Angular 20 con un backend ASP.NET Core (.NET 8). El backend a
 Angular (http://localhost:4200)
           |
           v
-ASP.NET Core (http://localhost:5129/api/backend/inquilinos)
+ASP.NET Core (http://localhost:5129/api/backend/...)
           |
           v
-Google Apps Script (?resource=inquilinos)
+Google Apps Script (?resource=...)
 ```
+
+Angular nunca consulta Apps Script directamente. El backend centraliza la URL externa, los errores de integración y la política CORS de desarrollo.
+
+## Módulos disponibles
+
+| Módulo | Ruta Angular | Endpoint backend | Recurso Apps Script |
+| --- | --- | --- | --- |
+| Inquilinos | `/inquilinos` | `GET /api/backend/inquilinos` | `inquilinos` |
+| Pagos | `/pagos` | `GET /api/backend/pagos` | `pagos` |
+| Propiedades | `/propiedades` | `GET /api/backend/propiedades` | `propiedades` |
+| Mantenimientos | `/mantenimientos` | `GET /api/backend/mantenimientos` | `mantenimientos` |
+| Alquileres | `/alquileres` | `GET /api/backend/alquileres` | `alquileres` |
+
+Cada módulo incluye una ruta, un enlace en el menú lateral, un servicio HTTP Angular y una tabla con estados de carga, error y lista vacía.
+
+## Datos actuales
+
+- Inquilinos: `id`, `nombreApellido`, `fechaInicioContrato`, `fechaPagos`.
+- Pagos: `id`, `idInquilino`, `fechaPago`, `monto`.
+- Propiedades: `id`, `nombre`, `direccion`, `estado`, `precioMensual`, `notas`.
+- Mantenimientos: `id`, `propiedadID`, `descripcion`, `fecha`, `costo`, `estado`.
+- Alquileres: `id`, `propiedadID`, `inquilinoID`, `fechaInicio`, `fechaFin`.
+
+Los estados de propiedades y mantenimientos se muestran actualmente como valores numéricos. Deben sustituirse por etiquetas legibles cuando se defina su catálogo. También se recomienda renombrar `fechaPagos` a `diaPago`, ya que representa el día mensual de cobro.
 
 ## Estructura principal
 
 - `src/`: aplicación Angular.
-- `src/app/inquilinos/`: componente y estilos de la tabla de inquilinos.
-- `src/app/inquilinos.service.ts`: servicio Angular que consulta el backend.
-- `backend/`: API ASP.NET Core.
-- `backend/Controllers/BackendController.cs`: endpoint puente hacia Apps Script.
-- `backend/appsettings.json`: URL base de Google Apps Script.
-
-## API disponible
-
-### Obtener inquilinos
-
-```http
-GET /api/backend/inquilinos
-```
-
-El backend consulta internamente Apps Script usando el recurso `inquilinos` y devuelve su respuesta JSON. El formato esperado es:
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "nombreApellido": "Ana",
-      "fechaInicioContrato": "2026-07-12T04:00:00.000Z",
-      "fechaPagos": 15
-    }
-  ]
-}
-```
-
-`fechaPagos` representa el día mensual de pago. En una siguiente iteración conviene renombrarlo a `diaPago` tanto en Apps Script como en el frontend.
+- `src/app/<modulo>/`: componentes y estilos de cada tabla.
+- `src/app/<modulo>.service.ts`: servicios Angular que consumen el backend.
+- `backend/Controllers/BackendController.cs`: endpoints de integración con Apps Script.
+- `backend/appsettings.json`: URL base del despliegue de Apps Script.
 
 ## Ejecución local
 
-Instala las dependencias de Angular desde la raíz del proyecto:
+Instala las dependencias de Angular desde la raíz:
 
 ```powershell
-npm install
+npm.cmd install
 ```
 
 Inicia Angular:
 
 ```powershell
-npm start
+npm.cmd start
 ```
 
 En otra terminal, inicia el backend:
@@ -77,25 +67,25 @@ Set-Location backend
 dotnet run
 ```
 
-Abre `http://localhost:4200/inquilinos`.
+Después abre una de las rutas, por ejemplo `http://localhost:4200/propiedades`.
 
-## Configuración
+## Nota sobre npm en este equipo
 
-La URL de despliegue de Apps Script se configura en `backend/appsettings.json`, dentro de `AppsScript:BaseUrl`.
+PowerShell bloquea `npm.ps1`, por lo que se debe usar `npm.cmd`. La instalación también está bloqueada actualmente por el error `SELF_SIGNED_CERT_IN_CHAIN`, asociado a un certificado corporativo/autofirmado. Para resolverlo de forma segura, configura el certificado raíz corporativo en npm mediante `cafile` o la variable `NODE_EXTRA_CA_CERTS`. No se recomienda desactivar `strict-ssl`.
 
-Durante el desarrollo, el backend permite solicitudes CORS desde `http://localhost:4200`.
+## Configuración y validación
 
-## Verificación
-
-El backend se compiló correctamente con:
+- La URL de Apps Script se configura en `AppsScript:BaseUrl` de `backend/appsettings.json`.
+- CORS permite solicitudes de `http://localhost:4200` durante el desarrollo.
+- El backend se validó correctamente con:
 
 ```powershell
 Set-Location backend
 dotnet build
 ```
 
-Para comprobar Angular después de instalar dependencias:
+- La compilación de Angular queda pendiente hasta que las dependencias puedan instalarse:
 
 ```powershell
-npm run build
+npm.cmd run build
 ```
