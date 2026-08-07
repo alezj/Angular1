@@ -1,0 +1,34 @@
+<section class="propiedades">
+  <h2>Propiedades</h2>
+
+  <p *ngIf="cargando">Cargando propiedades...</p>
+  <p *ngIf="error" class="error">{{ error }}</p>
+
+  <div class="table-wrapper" *ngIf="!cargando && !error">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Dirección</th>
+          <th>Estado</th>
+          <th>Precio mensual</th>
+          <th>Notas</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let propiedad of propiedades">
+          <td>{{ propiedad.id }}</td>
+          <td>{{ propiedad.nombre }}</td>
+          <td>{{ propiedad.direccion }}</td>
+          <td>{{ propiedad.estado }}</td>
+          <td>{{ propiedad.precioMensual | number: '1.2-2' }}</td>
+          <td>{{ propiedad.notas || '-' }}</td>
+        </tr>
+        <tr *ngIf="propiedades.length === 0">
+          <td colspan="6">No hay propiedades registradas.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

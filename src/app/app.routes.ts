@@ -6,6 +6,10 @@ import { Custome } from './custome/custome';
 import { Contar } from './contar/contar';
 import  {Datos } from './datos/datos';
 import { Inquilinos } from './inquilinos/inquilinos';
+import { Pagos } from './pagos/pagos';
+import { Propiedades } from './propiedades/propiedades';
+import { Mantenimientos } from './mantenimientos/mantenimientos';
+import { Alquileres } from './alquileres/alquileres';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'pruebas', pathMatch: 'full' },
@@ -14,6 +18,10 @@ export const routes: Routes = [
   { path: 'custom', component: Custome },
   { path: 'contar', component: Contar },
   { path: 'datos', component: Datos },
-  { path: 'inquilinos', component: Inquilinos }
+  { path: 'inquilinos', component: Inquilinos },
+  { path: 'pagos', component: Pagos },
+  { path: 'propiedades', component: Propiedades },
+  { path: 'mantenimientos', component: Mantenimientos },
+  { path: 'alquileres', component: Alquileres }
 ];
 

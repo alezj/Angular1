@@ -1,0 +1,34 @@
+<section class="mantenimientos">
+  <h2>Mantenimientos</h2>
+
+  <p *ngIf="cargando">Cargando mantenimientos...</p>
+  <p *ngIf="error" class="error">{{ error }}</p>
+
+  <div class="table-wrapper" *ngIf="!cargando && !error">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>ID de propiedad</th>
+          <th>Descripción</th>
+          <th>Fecha</th>
+          <th>Costo</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let mantenimiento of mantenimientos">
+          <td>{{ mantenimiento.id }}</td>
+          <td>{{ mantenimiento.propiedadID }}</td>
+          <td>{{ mantenimiento.descripcion }}</td>
+          <td>{{ mantenimiento.fecha | date: 'dd/MM/yyyy' }}</td>
+          <td>{{ mantenimiento.costo | number: '1.2-2' }}</td>
+          <td>{{ mantenimiento.estado }}</td>
+        </tr>
+        <tr *ngIf="mantenimientos.length === 0">
+          <td colspan="6">No hay mantenimientos registrados.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

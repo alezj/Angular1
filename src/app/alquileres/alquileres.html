@@ -1,0 +1,32 @@
+<section class="alquileres">
+  <h2>Alquileres</h2>
+
+  <p *ngIf="cargando">Cargando alquileres...</p>
+  <p *ngIf="error" class="error">{{ error }}</p>
+
+  <div class="table-wrapper" *ngIf="!cargando && !error">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>ID de propiedad</th>
+          <th>ID de inquilino</th>
+          <th>Fecha de inicio</th>
+          <th>Fecha de finalización</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let alquiler of alquileres">
+          <td>{{ alquiler.id || '-' }}</td>
+          <td>{{ alquiler.propiedadID }}</td>
+          <td>{{ alquiler.inquilinoID }}</td>
+          <td>{{ alquiler.fechaInicio | date: 'dd/MM/yyyy' }}</td>
+          <td>{{ alquiler.fechaFin | date: 'dd/MM/yyyy' }}</td>
+        </tr>
+        <tr *ngIf="alquileres.length === 0">
+          <td colspan="5">No hay alquileres registrados.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
