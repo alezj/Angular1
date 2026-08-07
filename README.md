@@ -1,59 +1,83 @@
 # Angular1
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.6.
+Proyecto Angular con servidor .NET backend.
 
-## Development server
+## Estructura del proyecto
 
-To start a local development server, run:
+- `src/`: código fuente de la aplicación Angular.
+- `public/`: recursos estáticos incluidos en la aplicación.
+- `backend/`: proyecto ASP.NET Core Web API con `backend.csproj`.
+- `angular.json`: configuración de compilación y SSR para Angular.
+- `package.json`: dependencias y scripts de Angular.
+- `tsconfig.json`: configuración de TypeScript.
+- `README.md`: este archivo.
 
-```bash
-ng serve
-```
+## Descripción
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Este repositorio contiene una aplicación Angular 20 con renderizado del lado del servidor (SSR) y un backend .NET 8.
 
-## Code scaffolding
+### Frontend
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- Basado en Angular 20.1.x.
+- Usa `@angular/build`, `@angular/cli`, `@angular/compiler-cli` y `@angular/ssr`.
+- El archivo de entrada principal es `src/main.ts`.
+- El servidor SSR se define en `src/server.ts`.
 
-```bash
-ng generate component component-name
-```
+### Backend
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+- Proyecto .NET 8 en `backend/`.
+- Dependencias principales:
+  - `Microsoft.AspNetCore.OpenApi`
+  - `Swashbuckle.AspNetCore`
+- Controladores y modelos se alojan bajo `backend/Controllers` y `backend/Models`.
 
-```bash
-ng generate --help
-```
+## Comandos útiles
 
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+### Instalar dependencias
 
 ```bash
-ng test
+npm install
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+### Iniciar el frontend en desarrollo
 
 ```bash
-ng e2e
+npm start
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+### Construir la aplicación Angular
 
-## Additional Resources
+```bash
+npm run build
+```
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+### Ejecutar pruebas unitarias
+
+```bash
+npm test
+```
+
+### Ejecutar SSR manualmente
+
+```bash
+npm run serve:ssr:Angular1
+```
+
+### Backend (.NET)
+
+Desde la carpeta `backend/`:
+
+```bash
+dotnet build
+
+dotnet run
+```
+
+## Estado actual del proyecto
+
+- Se generó el archivo `archivo-generado.md` con un registro de acciones realizadas por el asistente.
+- Se creó y actualizó un README con descripción del proyecto, estructura y comandos.
+
+## Notas
+
+- Si necesitas un README más detallado con instrucciones de despliegue o información de API, puedo ampliarlo.
