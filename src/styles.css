@@ -1,1 +1,65 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global filter and form controls styling */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.filter-input,
+.filter-select,
+.filter-button {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  font: inherit;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: rgba(235, 78, 150, 0.7);
+  box-shadow: 0 0 0 4px rgba(235, 78, 150, 0.12);
+}
+
+.filter-button {
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, rgba(235, 78, 150, 0.9), rgba(102, 126, 234, 0.9));
+  color: white;
+  min-width: 120px;
+}
+
+.filter-button.secondary {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+}
+
+.filter-button:hover,
+.filter-input:hover,
+.filter-select:hover {
+  transform: translateY(-1px);
+}
+
+.filter-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-input,
+  .filter-select,
+  .filter-button {
+    width: 100%;
+  }
+}
