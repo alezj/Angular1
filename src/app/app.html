@@ -76,6 +76,12 @@
         </svg>
         <span>Mantenimientos</span>
       </a>
+      <a routerLink="/estados" routerLinkActive="active" (click)="closeMenu()" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M12 2L2 7v6c0 5 4 9 10 9s10-4 10-9V7l-10-5zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/>
+        </svg>
+        <span>Estados</span>
+      </a>
       <a routerLink="/alquileres" routerLinkActive="active" (click)="closeMenu()" class="nav-item">
         <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20">
           <path fill="currentColor" d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>

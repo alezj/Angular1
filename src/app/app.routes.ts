@@ -10,6 +10,7 @@ import { Pagos } from './pagos/pagos';
 import { Propiedades } from './propiedades/propiedades';
 import { Mantenimientos } from './mantenimientos/mantenimientos';
 import { Alquileres } from './alquileres/alquileres';
+import { Estados } from './estados/estados';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'pruebas', pathMatch: 'full' },
@@ -22,6 +23,7 @@ export const routes: Routes = [
   { path: 'pagos', component: Pagos },
   { path: 'propiedades', component: Propiedades },
   { path: 'mantenimientos', component: Mantenimientos },
+  { path: 'estados', component: Estados },
   { path: 'alquileres', component: Alquileres }
 ];
 
