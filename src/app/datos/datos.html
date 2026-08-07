@@ -3,7 +3,10 @@
 
   <p *ngIf="cargando">Cargando...</p>
   <p *ngIf="error">{{ error }}</p>
-<input [value]="searchTerm()" (input)="searchTerm.set($event.target.value)" />
+
+  <div class="filter-bar">
+    <input class="filter-input" [value]="searchTerm()" (input)="searchTerm.set($event.target.value)" placeholder="Buscar datos..." />
+  </div>
 
   <table *ngIf="!cargando && !error">
     <thead>
@@ -12,8 +15,11 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let fila of datos.slice(1)">
+      <tr *ngFor="let fila of filteredRows()">
         <td *ngFor="let celda of fila">{{ celda }}</td>
+      </tr>
+      <tr *ngIf="filteredRows().length === 0">
+        <td [attr.colspan]="datos[0]?.length || 1">No hay registros que coincidan con la búsqueda.</td>
       </tr>
     </tbody>
   </table>

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DatosService } from '../datos';
 
@@ -14,7 +14,12 @@ export class Datos implements OnInit {
   cargando = true;
   error: string | null = null;
 
-   searchTerm = signal('');
+  searchTerm = signal('');
+  filteredRows = computed(() => {
+    const query = this.searchTerm().toLowerCase().trim();
+    if (!query) return this.datos.slice(1);
+    return this.datos.slice(1).filter((fila) => fila.some((celda) => celda.toString().toLowerCase().includes(query)));
+  });
 
   constructor(private datosService: DatosService) {}
 

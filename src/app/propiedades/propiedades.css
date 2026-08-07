@@ -6,7 +6,8 @@
   overflow-x: auto;
 }
 .formulario { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .5rem; margin-bottom: 1rem; }
-.formulario input, .formulario button { padding: .55rem; }
+.formulario input, .formulario select { padding: .55rem; border-radius:8px; border:1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.02); }
+.formulario button { padding: .55rem; border-radius:8px; background: linear-gradient(90deg,#ef6, #f9c); border: none; cursor:pointer; }
 
 table {
   width: 100%;
@@ -28,3 +29,6 @@ th {
 .error {
   color: #b91c1c;
 }
+
+.filter-bar { margin-bottom: 0.75rem; }
+

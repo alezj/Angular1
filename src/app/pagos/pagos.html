@@ -1,6 +1,16 @@
 <section class="pagos">
   <h2>Pagos</h2>
-  <form (ngSubmit)="guardar()"><input [(ngModel)]="formulario.idInquilino" name="inquilino" placeholder="ID inquilino" required><input [(ngModel)]="formulario.fechaPago" name="fecha" type="date" required><input [(ngModel)]="formulario.monto" name="monto" type="number" min="0" placeholder="Monto" required><button type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button><button *ngIf="editandoId !== null" type="button" (click)="cancelar()">Cancelar</button></form>
+  <form (ngSubmit)="guardar()" class="formulario">
+    <input class="filter-input" [(ngModel)]="formulario.idInquilino" name="inquilino" placeholder="ID inquilino" required>
+    <input class="filter-input" [(ngModel)]="formulario.fechaPago" name="fecha" type="date" required>
+    <input class="filter-input" [(ngModel)]="formulario.monto" name="monto" type="number" min="0" placeholder="Monto" required>
+    <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button>
+    <button class="filter-button secondary" *ngIf="editandoId !== null" type="button" (click)="cancelar()">Cancelar</button>
+  </form>
+
+  <div class="filter-bar">
+    <input class="filter-input" [(ngModel)]="searchTerm" name="search" placeholder="Buscar pagos..." />
+  </div>
 
   <p *ngIf="cargando">Cargando pagos...</p>
   <p *ngIf="error" class="error">{{ error }}</p>
@@ -22,7 +32,7 @@
           <td>{{ pago.idInquilino || '-' }}</td>
           <td>{{ pago.fechaPago ? (pago.fechaPago | date: 'dd/MM/yyyy') : '-' }}</td>
           <td>{{ pago.monto === '' ? '-' : (pago.monto | number: '1.2-2') }}</td>
-          <td><button (click)="editar(pago)">Editar</button> <button (click)="eliminar(pago.id)">Eliminar</button></td>
+          <td><button class="filter-button" (click)="editar(pago)">Editar</button> <button class="filter-button secondary" (click)="eliminar(pago.id)">Eliminar</button></td>
         </tr>
         <tr *ngIf="pagos.length === 0">
           <td colspan="5">No hay pagos registrados.</td>

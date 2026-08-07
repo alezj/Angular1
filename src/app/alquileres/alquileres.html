@@ -1,6 +1,17 @@
 <section class="alquileres">
   <h2>Alquileres</h2>
-  <form (ngSubmit)="guardar()"><input [(ngModel)]="formulario.propiedadID" name="propiedad" type="number" placeholder="ID propiedad" required><input [(ngModel)]="formulario.inquilinoID" name="inquilino" type="number" placeholder="ID inquilino" required><input [(ngModel)]="formulario.fechaInicio" name="inicio" type="date" required><input [(ngModel)]="formulario.fechaFin" name="fin" type="date" required><button type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button><button *ngIf="editandoId !== null" type="button" (click)="cancelar()">Cancelar</button></form>
+  <form (ngSubmit)="guardar()" class="formulario">
+    <input class="filter-input" [(ngModel)]="formulario.propiedadID" name="propiedad" type="number" placeholder="ID propiedad" required>
+    <input class="filter-input" [(ngModel)]="formulario.inquilinoID" name="inquilino" type="number" placeholder="ID inquilino" required>
+    <input class="filter-input" [(ngModel)]="formulario.fechaInicio" name="inicio" type="date" required>
+    <input class="filter-input" [(ngModel)]="formulario.fechaFin" name="fin" type="date" required>
+    <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button>
+    <button class="filter-button secondary" *ngIf="editandoId !== null" type="button" (click)="cancelar()">Cancelar</button>
+  </form>
+
+  <div class="filter-bar">
+    <input class="filter-input" [(ngModel)]="searchTerm" name="search" placeholder="Buscar alquileres..." />
+  </div>
 
   <p *ngIf="cargando">Cargando alquileres...</p>
   <p *ngIf="error" class="error">{{ error }}</p>
@@ -24,7 +35,7 @@
           <td>{{ alquiler.inquilinoID }}</td>
           <td>{{ alquiler.fechaInicio | date: 'dd/MM/yyyy' }}</td>
           <td>{{ alquiler.fechaFin | date: 'dd/MM/yyyy' }}</td>
-          <td><button (click)="editar(alquiler)">Editar</button> <button (click)="eliminar(alquiler.id)">Eliminar</button></td>
+          <td><button class="filter-button" (click)="editar(alquiler)">Editar</button> <button class="filter-button secondary" (click)="eliminar(alquiler.id)">Eliminar</button></td>
         </tr>
         <tr *ngIf="alquileres.length === 0">
           <td colspan="6">No hay alquileres registrados.</td>

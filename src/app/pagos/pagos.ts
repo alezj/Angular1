@@ -15,6 +15,15 @@ export class Pagos implements OnInit {
   error: string | null = null;
   editandoId: number | null = null;
   formulario: Omit<Pago, 'id'> = { idInquilino: '', fechaPago: '', monto: '' };
+  searchTerm = '';
+
+  get filteredPagos(): Pago[] {
+    const term = this.searchTerm.toLowerCase().trim();
+    if (!term) return this.pagos;
+    return this.pagos.filter((pago) =>
+      `${pago.idInquilino} ${pago.fechaPago} ${pago.monto}`.toLowerCase().includes(term)
+    );
+  }
 
   constructor(private readonly pagosService: PagosService) {}
 

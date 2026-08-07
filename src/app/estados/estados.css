@@ -1,5 +1,9 @@
 .page { padding: 16px; }
-.form-inline { display:flex; gap:8px; margin-bottom:12px; }
+.form-inline { display:flex; gap:8px; margin-bottom:12px; align-items:center; }
+.form-inline .filter-input, .form-inline .filter-select { padding:0.5rem; border-radius:8px; border:1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.02); }
+.form-inline button { padding:0.5rem 0.75rem; border-radius:8px; cursor:pointer; }
 .table { width:100%; border-collapse:collapse; }
 .table th, .table td { border:1px solid #ddd; padding:8px; text-align:left; }
 .error { color: #b00020; }
+
+.filter-bar { margin-bottom: 0.75rem; }

@@ -318,3 +318,75 @@ body {
     padding: 1.5rem;
   }
 }
+
+/* Additional responsive tweaks */
+@media (max-width: 991px) {
+  /* Make form rows stack on mobile */
+  .form-inline { flex-direction: column; align-items: stretch; }
+  .form-inline input, .form-inline select, .form-inline button { width: 100%; }
+
+  /* Table responsiveness: allow horizontal scroll on small screens */
+  .table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table th, .table td { white-space: nowrap; }
+
+  /* Reduce sidebar item padding to fit smaller widths */
+  .nav-item { padding: 0.6rem 0.9rem; font-size: 0.95rem; }
+}
+
+@media (max-width: 599px) {
+  /* Further compact layout for narrow phones */
+  .logo-text { font-size: 1rem; }
+  .topbar-title { font-size: 1rem; }
+  .badge { font-size: 0.65rem; padding: 0.2rem 0.5rem; }
+  .card { padding: 1rem; border-radius: 16px; }
+
+  /* Make nav icons slightly smaller */
+  .nav-icon { width: 18px; height: 18px; }
+
+  /* Ensure content container has comfortable padding */
+  .content-container { padding: 0.75rem; }
+}
+
+/* Utility: responsive image and media handling */
+img, video { max-width: 100%; height: auto; }
+
+/* Filter / search bar styles (global) */
+.filter-bar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-input, .filter-select, .filter-button {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: rgba(255,255,255,0.02);
+  color: var(--text-main);
+  transition: box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+.filter-input:focus, .filter-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(var(--primary-rgb),0.08);
+  border-color: var(--border-focus);
+}
+
+.filter-button {
+  background: linear-gradient(90deg, rgba(var(--primary-rgb),0.12), rgba(var(--primary-rgb),0.06));
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.filter-button.secondary {
+  background: transparent;
+  border: 1px solid var(--border-light);
+}
+
+/* compact form row used in many components */
+.form-inline { display:flex; gap:8px; align-items:center; }
+.form-inline .filter-input, .form-inline .filter-select { min-width:160px; }
+
+

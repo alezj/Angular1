@@ -1,13 +1,13 @@
 <section class="propiedades">
   <h2>Propiedades</h2>
   <form (ngSubmit)="guardar()" class="formulario">
-    <input [(ngModel)]="formulario.nombre" name="nombre" placeholder="Nombre" required>
-    <input [(ngModel)]="formulario.direccion" name="direccion" placeholder="Dirección" required>
-    <input [(ngModel)]="formulario.precioMensual" name="precioMensual" type="number" min="0" placeholder="Precio mensual" required>
-    <select [(ngModel)]="formulario.estado" name="estado"><option *ngFor="let estado of estados" [ngValue]="estado.id">{{ estado.nombre }}</option></select>
-    <input [(ngModel)]="formulario.notas" name="notas" placeholder="Notas">
-    <button type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button>
-    <button type="button" *ngIf="editandoId !== null" (click)="cancelar()">Cancelar</button>
+    <input class="filter-input" [(ngModel)]="formulario.nombre" name="nombre" placeholder="Nombre" required>
+    <input class="filter-input" [(ngModel)]="formulario.direccion" name="direccion" placeholder="Dirección" required>
+    <input class="filter-input" [(ngModel)]="formulario.precioMensual" name="precioMensual" type="number" min="0" placeholder="Precio mensual" required>
+    <select class="filter-select" [(ngModel)]="formulario.estado" name="estado"><option *ngFor="let estado of estados" [ngValue]="estado.id">{{ estado.nombre }}</option></select>
+    <input class="filter-input" [(ngModel)]="formulario.notas" name="notas" placeholder="Notas">
+    <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button>
+    <button class="filter-button secondary" type="button" *ngIf="editandoId !== null" (click)="cancelar()">Cancelar</button>
   </form>
 
   <p *ngIf="cargando">Cargando propiedades...</p>
@@ -34,7 +34,7 @@
           <td>{{ nombreEstado(propiedad.estado) }}</td>
           <td>{{ propiedad.precioMensual | number: '1.2-2' }}</td>
           <td>{{ propiedad.notas || '-' }}</td>
-          <td><button (click)="editar(propiedad)">Editar</button> <button (click)="eliminar(propiedad.id)">Eliminar</button></td>
+          <td><button class="filter-button" (click)="editar(propiedad)">Editar</button> <button class="filter-button secondary" (click)="eliminar(propiedad.id)">Eliminar</button></td>
         </tr>
         <tr *ngIf="propiedades.length === 0">
           <td colspan="7">No hay propiedades registradas.</td>

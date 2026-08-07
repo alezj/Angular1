@@ -1,10 +1,10 @@
 <div class="page">
   <h2>Catálogo de Estados</h2>
 
-  <form (ngSubmit)="guardar()" class="form-inline">
-    <input [(ngModel)]="formulario.nombre" name="nombre" placeholder="Nombre del estado" required />
-    <button type="submit">{{ editandoId === null ? 'Crear' : 'Actualizar' }}</button>
-    <button type="button" (click)="cancelar()">Cancelar</button>
+  <form (ngSubmit)="guardar()" class="form-inline filter-bar">
+    <input class="filter-input" [(ngModel)]="formulario.nombre" name="nombre" placeholder="Nombre del estado" required />
+    <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear' : 'Actualizar' }}</button>
+    <button class="filter-button secondary" type="button" (click)="cancelar()">Cancelar</button>
   </form>
 
   <div *ngIf="cargando">Cargando...</div>
@@ -23,8 +23,8 @@
         <td>{{ e.id }}</td>
         <td>{{ e.nombre }}</td>
         <td>
-          <button (click)="editar(e)">Editar</button>
-          <button (click)="eliminar(e.id)">Eliminar</button>
+          <button class="filter-button" (click)="editar(e)">Editar</button>
+          <button class="filter-button secondary" (click)="eliminar(e.id)">Eliminar</button>
         </td>
       </tr>
     </tbody>

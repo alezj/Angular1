@@ -15,6 +15,15 @@ export class Alquileres implements OnInit {
   error: string | null = null;
   editandoId: number | string | null = null;
   formulario: Omit<Alquiler, 'id'> = { propiedadID: 0, inquilinoID: 0, fechaInicio: '', fechaFin: '' };
+  searchTerm = '';
+
+  get filteredAlquileres(): Alquiler[] {
+    const term = this.searchTerm.toLowerCase().trim();
+    if (!term) return this.alquileres;
+    return this.alquileres.filter((alquiler) =>
+      `${alquiler.propiedadID} ${alquiler.inquilinoID} ${alquiler.fechaInicio} ${alquiler.fechaFin}`.toLowerCase().includes(term)
+    );
+  }
 
   constructor(private readonly alquileresService: AlquileresService) {}
 

@@ -15,6 +15,15 @@ export class Inquilinos implements OnInit {
   error: string | null = null;
   editandoId: number | null = null;
   formulario: Omit<Inquilino, 'id'> = { nombreApellido: '', fechaInicioContrato: '', fechaPagos: 1 };
+  searchTerm = '';
+
+  get filteredInquilinos(): Inquilino[] {
+    const term = this.searchTerm.toLowerCase().trim();
+    if (!term) return this.inquilinos;
+    return this.inquilinos.filter((inquilino) =>
+      `${inquilino.nombreApellido} ${inquilino.fechaInicioContrato} ${inquilino.fechaPagos}`.toLowerCase().includes(term)
+    );
+  }
 
   constructor(private readonly inquilinosService: InquilinosService) {}
 
