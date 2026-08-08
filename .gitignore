@@ -40,3 +40,20 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Backend build artifacts
+backend/bin/
+backend/obj/
+backend/.vs/
+backend/*.user
+backend/*.suo
+backend/*.cache
+backend/*.log
+
+# Backend local settings
+backend/appsettings.Development.json
+
+# Node / Angular artifacts
+node_modules/
+dist/
+.angular/

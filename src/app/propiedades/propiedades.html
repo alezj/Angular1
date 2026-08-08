@@ -34,7 +34,7 @@
           <td>{{ nombreEstado(propiedad.estado) }}</td>
           <td>{{ propiedad.precioMensual | number: '1.2-2' }}</td>
           <td>{{ propiedad.notas || '-' }}</td>
-          <td><button class="filter-button" (click)="editar(propiedad)">Editar</button> <button class="filter-button secondary" (click)="eliminar(propiedad.id)">Eliminar</button></td>
+          <td><div class="action-buttons"><button class="filter-button" (click)="editar(propiedad)">Editar</button> <button class="filter-button secondary delete-button" (click)="eliminar(propiedad.id)">Eliminar</button></div></td>
         </tr>
         <tr *ngIf="propiedades.length === 0">
           <td colspan="7">No hay propiedades registradas.</td>

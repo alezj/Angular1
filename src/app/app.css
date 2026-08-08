@@ -378,11 +378,37 @@ img, video { max-width: 100%; height: auto; }
   background: linear-gradient(90deg, rgba(var(--primary-rgb),0.12), rgba(var(--primary-rgb),0.06));
   border: 1px solid transparent;
   cursor: pointer;
+  color: var(--text-main);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
 }
 
 .filter-button.secondary {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-light);
+  color: var(--text-main);
+}
+
+.filter-button.delete-button {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border: 1px solid #f87171;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25);
+}
+
+.filter-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
 }
 
 /* compact form row used in many components */

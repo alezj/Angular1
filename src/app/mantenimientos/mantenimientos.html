@@ -34,7 +34,7 @@
           <td>{{ mantenimiento.fecha | date: 'dd/MM/yyyy' }}</td>
           <td>{{ mantenimiento.costo | number: '1.2-2' }}</td>
           <td>{{ nombreEstado(mantenimiento.estado) }}</td>
-          <td><button class="filter-button" (click)="editar(mantenimiento)">Editar</button> <button class="filter-button secondary" (click)="eliminar(mantenimiento.id)">Eliminar</button></td>
+          <td><div class="action-buttons"><button class="filter-button" (click)="editar(mantenimiento)">Editar</button> <button class="filter-button secondary delete-button" (click)="eliminar(mantenimiento.id)">Eliminar</button></div></td>
         </tr>
         <tr *ngIf="mantenimientos.length === 0">
           <td colspan="7">No hay mantenimientos registrados.</td>

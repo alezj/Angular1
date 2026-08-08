@@ -32,7 +32,7 @@
           <td>{{ pago.idInquilino || '-' }}</td>
           <td>{{ pago.fechaPago ? (pago.fechaPago | date: 'dd/MM/yyyy') : '-' }}</td>
           <td>{{ pago.monto === '' ? '-' : (pago.monto | number: '1.2-2') }}</td>
-          <td><button class="filter-button" (click)="editar(pago)">Editar</button> <button class="filter-button secondary" (click)="eliminar(pago.id)">Eliminar</button></td>
+          <td><div class="action-buttons"><button class="filter-button" (click)="editar(pago)">Editar</button> <button class="filter-button secondary delete-button" (click)="eliminar(pago.id)">Eliminar</button></div></td>
         </tr>
         <tr *ngIf="pagos.length === 0">
           <td colspan="5">No hay pagos registrados.</td>

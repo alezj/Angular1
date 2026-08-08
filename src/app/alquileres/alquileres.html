@@ -35,7 +35,7 @@
           <td>{{ alquiler.inquilinoID }}</td>
           <td>{{ alquiler.fechaInicio | date: 'dd/MM/yyyy' }}</td>
           <td>{{ alquiler.fechaFin | date: 'dd/MM/yyyy' }}</td>
-          <td><button class="filter-button" (click)="editar(alquiler)">Editar</button> <button class="filter-button secondary" (click)="eliminar(alquiler.id)">Eliminar</button></td>
+          <td><div class="action-buttons"><button class="filter-button" (click)="editar(alquiler)">Editar</button> <button class="filter-button secondary delete-button" (click)="eliminar(alquiler.id)">Eliminar</button></div></td>
         </tr>
         <tr *ngIf="alquileres.length === 0">
           <td colspan="6">No hay alquileres registrados.</td>

@@ -23,8 +23,10 @@
         <td>{{ e.id }}</td>
         <td>{{ e.nombre }}</td>
         <td>
-          <button class="filter-button" (click)="editar(e)">Editar</button>
-          <button class="filter-button secondary" (click)="eliminar(e.id)">Eliminar</button>
+          <div class="action-buttons">
+            <button class="filter-button" (click)="editar(e)">Editar</button>
+            <button class="filter-button secondary delete-button" (click)="eliminar(e.id)">Eliminar</button>
+          </div>
         </td>
       </tr>
     </tbody>
