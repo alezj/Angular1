@@ -41,7 +41,8 @@ testem.log
 .DS_Store
 Thumbs.db
 
-# Backend build artifacts
+# .NET / ASP.NET Core build artifacts
+# Estos directorios y archivos se generan al compilar o ejecutar el backend y no deben versionarse.
 backend/bin/
 backend/obj/
 backend/.vs/
@@ -51,6 +52,7 @@ backend/*.cache
 backend/*.log
 
 # Backend local settings
+# Evita subir configuraciones locales o sensibles del entorno de desarrollo.
 backend/appsettings.Development.json
 
 # Node / Angular artifacts
