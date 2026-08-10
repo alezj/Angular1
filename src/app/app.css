@@ -411,10 +411,17 @@ img, video { max-width: 100%; height: auto; }
 }
 
 .filter-button.delete-button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  height: 2.5rem;
+  line-height: 1;
   background: linear-gradient(135deg, #ef4444, #dc2626);
   border: 1px solid #f87171;
   color: #fff;
   box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25);
+  white-space: nowrap;
 }
 
 .filter-button:hover {
@@ -425,8 +432,9 @@ img, video { max-width: 100%; height: auto; }
 .action-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.45rem;
   align-items: center;
+  justify-content: flex-start;
 }
 
 /* compact form row used in many components */

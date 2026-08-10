@@ -40,6 +40,28 @@
   color: #f8fafc;
 }
 
+.filter-button.delete-button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  height: 2.5rem;
+  line-height: 1;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  border: 1px solid #fca5a5;
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25);
+  white-space: nowrap;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  justify-content: flex-start;
+}
+
 .filter-button:hover,
 .filter-input:hover,
 .filter-select:hover {
