@@ -1,6 +1,6 @@
 # Estado actual del proyecto
 
-Fecha de actualización: 2026-08-07
+Fecha de actualización: 2026-08-11
 
 ## Objetivo
 
@@ -25,6 +25,17 @@ Desarrollar un sistema web de gestión de alquileres con Angular, ASP.NET Core y
 | Alquileres | `GET /api/backend/alquileres` | `/alquileres` | ID, propiedad, inquilino, inicio, finalización |
 
 Para cada módulo se crearon el endpoint .NET, servicio Angular, componente, estilos, ruta y enlace en el menú lateral. Las tablas manejan carga, error y ausencia de registros.
+
+### Pantalla `Inicio` (nueva)
+
+- Se añadió una página principal tipo dashboard con tarjetas de acceso rápido a los módulos más importantes.
+- Archivos creados en frontend:
+	- `src/app/inicio/inicio.ts` — componente Angular de la página de inicio.
+	- `src/app/inicio/inicio.html` — plantilla con el mensaje de bienvenida y las tarjetas.
+	- `src/app/inicio/inicio.css` — estilos del panel de inicio.
+	- `src/app/inicio/inicio.spec.ts` — prueba básica del componente.
+- Se configuró la ruta `{ path: 'inicio', component: Inicio }` y se convirtió en la ruta por defecto del proyecto.
+- Se añadió el enlace en el menú lateral (`src/app/app.html`) para acceder a la nueva pantalla.
 
 ### Pantalla `Estados` (nueva)
 
@@ -57,8 +68,8 @@ El catálogo fijo fue retirado y el backend ahora consulta `GET /api/backend/est
 ## Validación realizada
 
 - `dotnet build` se ejecutó correctamente después de añadir cada endpoint.
-- La compilación de Angular está pendiente porque las dependencias no están instaladas en esta PC.
-- `npm.cmd` funciona, pero `npm.cmd install` falla con `SELF_SIGNED_CERT_IN_CHAIN`; se requiere configurar el certificado corporativo en Node/npm.
+- La compilación de Angular se verificó correctamente con `npm run build`.
+- Se confirmó la carga de la nueva ruta `/inicio` y del menú lateral asociado.
 
 ## Acciones realizadas (detallado)
 
@@ -70,11 +81,15 @@ El catálogo fijo fue retirado y el backend ahora consulta `GET /api/backend/est
 
 - Archivos añadidos por el asistente en esta sesión:
 	- `archivo-generado.md` (registro de acciones y estado).
+	- `src/app/inicio/inicio.ts`
+	- `src/app/inicio/inicio.html`
+	- `src/app/inicio/inicio.css`
+	- `src/app/inicio/inicio.spec.ts`
 	- `src/app/estados/estados.ts`
 	- `src/app/estados/estados.html`
 	- `src/app/estados/estados.css`
 	- `src/app/estados.service.ts`
-- README actualizado con la nueva pantalla y comandos clave.
+- README actualizado con la nueva pantalla, la ruta de inicio y los comandos clave.
 
 ## Próximos pasos sugeridos (prioritarios)
 

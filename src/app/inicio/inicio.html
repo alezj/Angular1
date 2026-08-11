@@ -1,0 +1,17 @@
+<section class="inicio-page">
+  <div class="hero">
+    <div>
+      <p class="eyebrow">Panel principal</p>
+      <h2>Bienvenido a Inicio</h2>
+      <p class="hero-text">Aquí se mostrarán los dashboards y los accesos rápidos a las secciones más importantes.</p>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <a class="dashboard-card" *ngFor="let card of dashboardCards" [routerLink]="card.link">
+      <h3>{{ card.title }}</h3>
+      <p>{{ card.description }}</p>
+      <span>Ver detalles →</span>
+    </a>
+  </div>
+</section>

@@ -33,12 +33,13 @@ Este repositorio contiene una aplicación Angular 20 con renderizado del lado de
 
 ## Módulos disponibles
 
+- `inicio`: `/inicio` — página principal con dashboard y accesos rápidos.
 - `inquilinos`: `/inquilinos` — consulta de inquilinos.
 - `pagos`: `/pagos` — consulta de pagos.
 - `propiedades`: `/propiedades` — CRUD de propiedades.
 - `mantenimientos`: `/mantenimientos` — consulta y formularios de mantenimiento.
 - `alquileres`: `/alquileres` — consulta de contratos/alquileres.
-- `estados`: `/estados` — catálogo de estados (nuevo módulo creado).
+- `estados`: `/estados` — catálogo de estados.
 
 ## Comandos útiles
 
@@ -85,6 +86,8 @@ dotnet run
 ## Estado actual del proyecto
 
 - Se generó el archivo `archivo-generado.md` con un registro de acciones realizadas por el asistente.
+- Se añadió la pantalla `Inicio` como landing page del sistema, con tarjetas de acceso a los módulos principales.
+- Se incorporó la ruta `/inicio` y su enlace en el menú lateral.
 - Se añadió la pantalla `Estados` en frontend y el servicio asociado. Los archivos creados son:
     - `src/app/estados/estados.ts`
     - `src/app/estados/estados.html`
@@ -92,6 +95,7 @@ dotnet run
     - `src/app/estados.service.ts`
 - Se añadió la ruta `/estados` y el enlace en el menú lateral.
 - El backend ya expone `GET /api/backend/estados` y la API genérica está preparada para `create/update/delete` del recurso `estados`.
+- La compilación de Angular se validó correctamente con `npm run build`.
 
 ## Próximos pasos sugeridos
 

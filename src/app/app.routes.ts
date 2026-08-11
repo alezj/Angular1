@@ -11,9 +11,11 @@ import { Propiedades } from './propiedades/propiedades';
 import { Mantenimientos } from './mantenimientos/mantenimientos';
 import { Alquileres } from './alquileres/alquileres';
 import { Estados } from './estados/estados';
+import { Inicio } from './inicio/inicio';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'pruebas', pathMatch: 'full' },
+  { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+  { path: 'inicio', component: Inicio },
   { path: 'pruebas', component: Pruebas },
   { path: 'search', component: SearchComponent },
   { path: 'custom', component: Custome },

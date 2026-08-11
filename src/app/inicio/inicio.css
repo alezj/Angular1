@@ -1,0 +1,66 @@
+.inicio-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.hero {
+  padding: 1.25rem;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(235, 78, 150, 0.16), rgba(102, 126, 234, 0.16));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.eyebrow {
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.78rem;
+  color: #f8b4d2;
+}
+
+.hero h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.6rem;
+}
+
+.hero-text {
+  margin: 0;
+  color: #e2e8f0;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.dashboard-card {
+  display: block;
+  padding: 1rem;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #f8fafc;
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(235, 78, 150, 0.6);
+}
+
+.dashboard-card h3 {
+  margin: 0 0 0.4rem;
+}
+
+.dashboard-card p {
+  margin: 0 0 0.8rem;
+  color: #cbd5e1;
+}
+
+.dashboard-card span {
+  font-weight: 600;
+  color: #f8b4d2;
+}

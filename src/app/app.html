@@ -19,6 +19,13 @@
     </div>
 
     <nav class="nav-menu">
+      <a routerLink="/inicio" routerLinkActive="active" (click)="closeMenu()" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+        <span>Inicio</span>
+      </a>
+
       <a routerLink="/pruebas" routerLinkActive="active" (click)="closeMenu()" class="nav-item">
         <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20">
           <path fill="currentColor" d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3m0 14.5L5.26 14 3 15.22 12 20l9-4.78-2.26-1.22L12 17.5z"/>
