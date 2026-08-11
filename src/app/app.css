@@ -1,23 +1,29 @@
 :root {
-  --primary: oklch(62% 0.23 342); /* Vibrant magenta/pink */
+  --primary: #eb4e96;
   --primary-rgb: 235, 78, 150;
-  --primary-hover: oklch(68% 0.21 340);
-  --secondary: oklch(60% 0.16 260); /* Electric Indigo */
-  
-  --bg-app: oklch(14% 0.01 280); /* Deep dark background */
-  --bg-sidebar: oklch(17% 0.015 280 / 0.85); /* Semi-transparent sidebar */
-  --bg-card: oklch(19% 0.015 280 / 0.6); /* Glassmorphic card */
-  --bg-header: oklch(15% 0.01 280 / 0.9);
-  
-  --text-main: oklch(98% 0.005 280); /* Bright text */
-  --text-muted: oklch(75% 0.01 280); /* Grayish/secondary text */
-  
-  --border-light: oklch(28% 0.015 280 / 0.5);
-  --border-focus: oklch(62% 0.23 342 / 0.6);
+  --primary-hover: #f06ba8;
 
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --secondary: #667eea;
+
+  /* Fondo general claro */
+  --bg-app: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --bg-card: #ffffff;
+  --bg-header: rgba(255, 255, 255, 0.95);
+
+  /* Texto oscuro */
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+
+  --border-light: #e2e8f0;
+  --border-focus: rgba(235, 78, 150, 0.6);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
   --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+  --glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
 }
 
 * {
@@ -443,3 +449,235 @@ img, video { max-width: 100%; height: auto; }
 .form-inline .filter-input, .form-inline .filter-select { min-width:160px; }
 
 
+/* =========================================
+   DASHBOARD / INICIO
+   ========================================= */
+
+.dashboard {
+  width: 100%;
+  max-width: 1200px;
+}
+
+.dashboard-header {
+  background: linear-gradient(
+    135deg,
+    #fce7f3,
+    #eef2ff
+  );
+
+  border-radius: 18px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+}
+
+.dashboard-header .eyebrow {
+  color: #ec4899;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dashboard-header h1 {
+  color: #111827;
+  margin-top: 0.4rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.dashboard-header p {
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+
+
+/* Estadísticas */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+
+  box-shadow:
+    0 4px 12px rgba(15, 23, 42, 0.06);
+
+  transition: transform 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 20px rgba(15, 23, 42, 0.10);
+}
+
+.stat-label {
+  display: block;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+.stat-value {
+  display: block;
+  color: #0f172a;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.stat-card .stat-label {
+  display: block;
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.stat-card .stat-value {
+  display: block;
+  color: #0f172a;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+
+/* Sección de accesos */
+
+.dashboard-sections {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.dashboard-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.dashboard-section h2 {
+  color: #1e293b;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-section p {
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.dashboard-section a {
+  display: inline-block;
+  margin-top: 1rem;
+  color: #ec4899;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.dashboard-section a:hover {
+  color: #db2777;
+}
+
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .stats-grid,
+  .dashboard-sections {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================
+   SUMMARY CARDS
+   ========================================= */
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+  margin: 2rem 0;
+}
+
+.summary-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  min-height: 120px;
+}
+
+.summary-label {
+  display: block;
+
+  color: #64748b;
+
+  font-size: 0.95rem;
+  font-weight: 500;
+
+  margin-bottom: 0.75rem;
+}
+
+.summary-value {
+  display: block;
+
+  color: #0f172a !important;
+
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+
+/* Efecto al pasar el mouse */
+
+.summary-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.10);
+
+  transition: all 0.2s ease;
+}
+
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
