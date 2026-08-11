@@ -28,13 +28,14 @@ Para cada módulo se crearon el endpoint .NET, servicio Angular, componente, est
 
 ### Pantalla `Inicio` (nueva)
 
-- Se añadió una página principal tipo dashboard con tarjetas de acceso rápido a los módulos más importantes.
+- Se añadió una página principal tipo dashboard con métricas de propiedades disponibles, propiedades ocupadas e inquilinos, además de tarjetas de acceso rápido a los módulos más importantes.
 - Archivos creados en frontend:
 	- `src/app/inicio/inicio.ts` — componente Angular de la página de inicio.
 	- `src/app/inicio/inicio.html` — plantilla con el mensaje de bienvenida y las tarjetas.
 	- `src/app/inicio/inicio.css` — estilos del panel de inicio.
 	- `src/app/inicio/inicio.spec.ts` — prueba básica del componente.
 - Se configuró la ruta `{ path: 'inicio', component: Inicio }` y se convirtió en la ruta por defecto del proyecto.
+- El dashboard consume los servicios de propiedades e inquilinos para mostrar los totales en tiempo real.
 - Se añadió el enlace en el menú lateral (`src/app/app.html`) para acceder a la nueva pantalla.
 
 ### Pantalla `Estados` (nueva)

@@ -7,6 +7,16 @@
     </div>
   </div>
 
+  <div class="summary-grid" *ngIf="!cargando">
+    <div class="summary-card" *ngFor="let item of summaryCards">
+      <span class="summary-label">{{ item.label }}</span>
+      <strong class="summary-value">{{ item.value }}</strong>
+    </div>
+  </div>
+
+  <p class="status" *ngIf="cargando">Cargando resumen...</p>
+  <p class="status error" *ngIf="error">{{ error }}</p>
+
   <div class="dashboard-grid">
     <a class="dashboard-card" *ngFor="let card of dashboardCards" [routerLink]="card.link">
       <h3>{{ card.title }}</h3>

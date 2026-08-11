@@ -33,7 +33,7 @@ Este repositorio contiene una aplicación Angular 20 con renderizado del lado de
 
 ## Módulos disponibles
 
-- `inicio`: `/inicio` — página principal con dashboard y accesos rápidos.
+- `inicio`: `/inicio` — página principal con dashboard, métricas de propiedades e inquilinos y accesos rápidos.
 - `inquilinos`: `/inquilinos` — consulta de inquilinos.
 - `pagos`: `/pagos` — consulta de pagos.
 - `propiedades`: `/propiedades` — CRUD de propiedades.
@@ -86,7 +86,7 @@ dotnet run
 ## Estado actual del proyecto
 
 - Se generó el archivo `archivo-generado.md` con un registro de acciones realizadas por el asistente.
-- Se añadió la pantalla `Inicio` como landing page del sistema, con tarjetas de acceso a los módulos principales.
+- Se añadió la pantalla `Inicio` como landing page del sistema, con métricas de propiedades disponibles, propiedades ocupadas e inquilinos, además de tarjetas de acceso a los módulos principales.
 - Se incorporó la ruta `/inicio` y su enlace en el menú lateral.
 - Se añadió la pantalla `Estados` en frontend y el servicio asociado. Los archivos creados son:
     - `src/app/estados/estados.ts`
