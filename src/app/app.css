@@ -381,14 +381,15 @@ img, video { max-width: 100%; height: auto; }
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
   border: 1px solid var(--border-light);
-  background: rgba(255,255,255,0.02);
-  color: var(--text-main);
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
   transition: box-shadow 0.15s ease, transform 0.12s ease;
 }
 
 .filter-input:focus, .filter-select:focus {
   outline: none;
-  box-shadow: 0 0 0 4px rgba(var(--primary-rgb),0.08);
+  box-shadow: 0 0 0 4px rgba(var(--primary-rgb),0.14);
   border-color: var(--border-focus);
 }
 
