@@ -7,8 +7,9 @@
 .hero {
   padding: 1.25rem;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(235, 78, 150, 0.16), rgba(102, 126, 234, 0.16));
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(135deg, rgba(235, 78, 150, 0.14), rgba(102, 126, 234, 0.12));
+  border: 1px solid rgba(235, 78, 150, 0.2);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
 }
 
 .eyebrow {
@@ -16,17 +17,18 @@
   text-transform: uppercase;
   letter-spacing: 0.16em;
   font-size: 0.78rem;
-  color: #f8b4d2;
+  color: #be185d;
 }
 
 .hero h2 {
   margin: 0 0 0.4rem;
   font-size: 1.6rem;
+  color: #111827;
 }
 
 .hero-text {
   margin: 0;
-  color: #e2e8f0;
+  color: #475569;
 }
 
 .summary-grid {
@@ -38,29 +40,30 @@
 .summary-card {
   padding: 1rem;
   border-radius: 14px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
 }
 
 .summary-label {
   display: block;
-  color: #cbd5e1;
+  color: #475569;
   font-size: 0.9rem;
   margin-bottom: 0.45rem;
 }
 
 .summary-value {
   font-size: 1.7rem;
-  color: #ffffff;
+  color: #0f172a;
 }
 
 .status {
   margin: 0;
-  color: #e2e8f0;
+  color: #334155;
 }
 
 .status.error {
-  color: #fda4af;
+  color: #b91c1c;
 }
 
 .dashboard-grid {
@@ -73,28 +76,31 @@
   display: block;
   padding: 1rem;
   border-radius: 14px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: #f8fafc;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
   text-decoration: none;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .dashboard-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(235, 78, 150, 0.6);
+  border-color: rgba(235, 78, 150, 0.5);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
 }
 
 .dashboard-card h3 {
   margin: 0 0 0.4rem;
+  color: #111827;
 }
 
 .dashboard-card p {
   margin: 0 0 0.8rem;
-  color: #cbd5e1;
+  color: #475569;
 }
 
 .dashboard-card span {
   font-weight: 600;
-  color: #f8b4d2;
+  color: #be185d;
 }

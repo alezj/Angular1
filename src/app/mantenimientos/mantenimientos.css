@@ -6,7 +6,15 @@
   overflow-x: auto;
 }
 
-.formulario input, .formulario select { padding: .55rem; border-radius:8px; border:1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.02); }
+.formulario input,
+.formulario select {
+  padding: .65rem .75rem;
+  border-radius:10px;
+  border:1px solid #dbe3ee;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
 .formulario button { padding: .55rem; border-radius:8px; background: linear-gradient(90deg,#e0f,#cfe); border: none; cursor:pointer; }
 
 table {
@@ -19,6 +27,7 @@ td {
   padding: 0.75rem;
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
+  color: #0f172a;
 }
 
 th {
