@@ -4,6 +4,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 builder.Services.Configure<backend.Models.AppsScriptSettings>(builder.Configuration.GetSection("AppsScript"));
+builder.Services.Configure<backend.Models.SmtpSettings>(builder.Configuration.GetSection("Smtp"));
+builder.Services.AddScoped<backend.EmailServicios.IEmailServicio, backend.EmailServicios.SmtpEmailServicio>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AngularDevelopment", policy =>
