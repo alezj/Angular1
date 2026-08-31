@@ -24,9 +24,9 @@ typings/
 # Compilación
 **/bin/
 **/obj/
-*/bin/
-*/obj/
-backend/
+*/bin/**
+*/obj/**
+
 
 
 # Visual Studio
@@ -35,6 +35,8 @@ backend/
 *.userosscache
 *.suo
 *.rsuser
+*.dll
+
 
 # Logs
 *.log
