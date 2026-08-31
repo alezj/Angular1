@@ -24,6 +24,10 @@ typings/
 # Compilación
 **/bin/
 **/obj/
+*/bin/
+*/obj/
+backend/
+
 
 # Visual Studio
 .vs/
