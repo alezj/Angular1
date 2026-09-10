@@ -35,6 +35,7 @@ Este repositorio contiene una aplicación Angular 20 con renderizado del lado de
 
 - `inicio`: `/inicio` — página principal con dashboard, métricas de propiedades e inquilinos y accesos rápidos.
 - `inquilinos`: `/inquilinos` — consulta de inquilinos.
+- `correos`: `/correos` — envío de correos a inquilinos con correo registrado.
 - `pagos`: `/pagos` — consulta de pagos.
 - `propiedades`: `/propiedades` — CRUD de propiedades.
 - `mantenimientos`: `/mantenimientos` — consulta y formularios de mantenimiento.

@@ -12,10 +12,12 @@ import { Mantenimientos } from './mantenimientos/mantenimientos';
 import { Alquileres } from './alquileres/alquileres';
 import { Estados } from './estados/estados';
 import { Inicio } from './inicio/inicio';
+import { Correos } from './correos/correos';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'inicio', pathMatch: 'full' },
   { path: 'inicio', component: Inicio },
+  { path: 'correos', component: Correos },
   { path: 'pruebas', component: Pruebas },
   { path: 'search', component: SearchComponent },
   { path: 'custom', component: Custome },

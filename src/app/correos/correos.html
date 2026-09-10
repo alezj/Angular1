@@ -1,0 +1,43 @@
+<section class="correos">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">Comunicación</p>
+      <h2>Enviar correo</h2>
+      <p class="intro">Redacta un mensaje y envíalo directamente a un inquilino.</p>
+    </div>
+  </div>
+
+  <form (ngSubmit)="enviar()" class="correo-form" #correoForm="ngForm">
+    <label for="destinatario">Destinatario</label>
+    <select id="destinatario" name="destinatario" [(ngModel)]="destinatarioSeleccionado" (ngModelChange)="seleccionarDestinatario()" required>
+      <option value="" disabled>{{ cargando ? 'Cargando correos...' : 'Selecciona un inquilino' }}</option>
+      <option value="__otro__">Otro correo</option>
+      <option *ngFor="let inquilino of inquilinos" [value]="obtenerCorreo(inquilino)">
+        {{ inquilino.nombreApellido }} · {{ obtenerCorreo(inquilino) }}
+      </option>
+    </select>
+    <input
+      *ngIf="destinatarioSeleccionado === '__otro__'"
+      id="correoAlternativo"
+      name="correoAlternativo"
+      type="email"
+      [(ngModel)]="correoAlternativo"
+      (ngModelChange)="actualizarCorreoAlternativo()"
+      placeholder="correo@ejemplo.com"
+      required>
+    <p class="field-help" *ngIf="!cargando && inquilinos.length === 0">No hay inquilinos con correo registrado.</p>
+
+    <label for="asunto">Asunto</label>
+    <input id="asunto" name="asunto" [(ngModel)]="formulario.asunto" placeholder="Asunto del correo" required>
+
+    <label for="mensaje">Mensaje</label>
+    <textarea id="mensaje" name="mensaje" [(ngModel)]="formulario.mensaje" rows="8" placeholder="Escribe el mensaje..." required></textarea>
+
+    <button class="submit-button" type="submit" [disabled]="correoForm.invalid || enviando || cargando">
+      {{ enviando ? 'Enviando...' : 'Enviar correo' }}
+    </button>
+  </form>
+
+  <p *ngIf="confirmacion" class="success" role="status">{{ confirmacion }}</p>
+  <p *ngIf="error" class="error" role="alert">{{ error }}</p>
+</section>

@@ -14,14 +14,14 @@ export class Inquilinos implements OnInit {
   cargando = true;
   error: string | null = null;
   editandoId: number | null = null;
-  formulario: Omit<Inquilino, 'id'> = { nombreApellido: '', fechaInicioContrato: '', fechaPagos: 1 };
+  formulario: Omit<Inquilino, 'id'> = { nombreApellido: '', correo: '', fechaInicioContrato: '', fechaPagos: 1 };
   searchTerm = '';
 
   get filteredInquilinos(): Inquilino[] {
     const term = this.searchTerm.toLowerCase().trim();
     if (!term) return this.inquilinos;
     return this.inquilinos.filter((inquilino) =>
-      `${inquilino.nombreApellido} ${inquilino.fechaInicioContrato} ${inquilino.fechaPagos}`.toLowerCase().includes(term)
+      `${inquilino.nombreApellido} ${inquilino.correo} ${inquilino.fechaInicioContrato} ${inquilino.fechaPagos}`.toLowerCase().includes(term)
     );
   }
 
@@ -44,7 +44,7 @@ export class Inquilinos implements OnInit {
     });
   }
   guardar(): void { const r = this.editandoId === null ? this.inquilinosService.crear(this.formulario) : this.inquilinosService.actualizar(this.editandoId, this.formulario); r.subscribe({ next: () => { this.cancelar(); this.ngOnInit(); }, error: () => this.error = 'No se pudo guardar.' }); }
-  editar(x: Inquilino): void { this.editandoId = x.id; this.formulario = { nombreApellido: x.nombreApellido, fechaInicioContrato: x.fechaInicioContrato.substring(0, 10), fechaPagos: x.fechaPagos }; }
+  editar(x: Inquilino): void { this.editandoId = x.id; this.formulario = { nombreApellido: x.nombreApellido, correo: x.correo ?? x.email ?? '', fechaInicioContrato: x.fechaInicioContrato.substring(0, 10), fechaPagos: x.fechaPagos }; }
   eliminar(id: number): void { if (confirm('¿Eliminar este inquilino?')) this.inquilinosService.eliminar(id).subscribe({ next: () => this.ngOnInit(), error: () => this.error = 'No se pudo eliminar.' }); }
-  cancelar(): void { this.editandoId = null; this.formulario = { nombreApellido: '', fechaInicioContrato: '', fechaPagos: 1 }; }
+  cancelar(): void { this.editandoId = null; this.formulario = { nombreApellido: '', correo: '', fechaInicioContrato: '', fechaPagos: 1 }; }
 }

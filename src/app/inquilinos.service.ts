@@ -5,6 +5,8 @@ import { Observable } from 'rxjs';
 export interface Inquilino {
   id: number;
   nombreApellido: string;
+  correo?: string;
+  email?: string;
   fechaInicioContrato: string;
   fechaPagos: number;
 }

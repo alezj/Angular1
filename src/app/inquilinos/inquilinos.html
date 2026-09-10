@@ -2,6 +2,7 @@
   <h2>Inquilinos</h2>
   <form (ngSubmit)="guardar()" class="formulario">
     <input class="filter-input" [(ngModel)]="formulario.nombreApellido" name="nombre" placeholder="Nombre" required>
+    <input class="filter-input" [(ngModel)]="formulario.correo" name="correo" type="email" placeholder="Correo electrónico">
     <input class="filter-input" [(ngModel)]="formulario.fechaInicioContrato" name="inicio" type="date" required>
     <input class="filter-input" [(ngModel)]="formulario.fechaPagos" name="dia" type="number" min="1" max="31" required>
     <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button>
@@ -21,6 +22,7 @@
         <tr>
           <th>ID</th>
           <th>Nombre y apellido</th>
+          <th>Correo</th>
           <th>Inicio de contrato</th>
           <th>Día de pago</th>
           <th>Acciones</th>
@@ -30,6 +32,7 @@
         <tr *ngFor="let inquilino of inquilinos">
           <td>{{ inquilino.id }}</td>
           <td>{{ inquilino.nombreApellido }}</td>
+          <td>{{ inquilino.correo || inquilino.email || '-' }}</td>
           <td>{{ inquilino.fechaInicioContrato | date: 'dd/MM/yyyy' }}</td>
           <td>{{ inquilino.fechaPagos }}</td>
           <td>
@@ -40,7 +43,7 @@
           </td>
         </tr>
         <tr *ngIf="inquilinos.length === 0">
-          <td colspan="5">No hay inquilinos registrados.</td>
+          <td colspan="6">No hay inquilinos registrados.</td>
         </tr>
       </tbody>
     </table>
