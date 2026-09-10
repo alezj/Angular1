@@ -42,9 +42,9 @@ public class EmailController : ControllerBase
         {
             return Problem(statusCode: StatusCodes.Status500InternalServerError, detail: exception.Message);
         }
-        catch (SmtpException)
+        catch (SmtpException ex)
         {
-            return Problem(statusCode: StatusCodes.Status502BadGateway, detail: "No fue posible enviar el correo mediante SMTP.");
+            return Problem(statusCode: StatusCodes.Status502BadGateway, detail: "No fue posible enviar el correo mediante SMTP." + ex.Message);
         }
     }
 }
