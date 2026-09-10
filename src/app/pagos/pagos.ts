@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Pago, PagosService } from '../pagos.service';
+import { Inquilino, InquilinosService } from '../inquilinos.service';
 
 @Component({
   selector: 'app-pagos',
@@ -16,6 +17,9 @@ export class Pagos implements OnInit {
   editandoId: number | null = null;
   formulario: Omit<Pago, 'id'> = { idInquilino: '', fechaPago: '', monto: '' };
   searchTerm = '';
+  inquilinos: Inquilino[] = [];
+  facturaPago: Pago | null = null;
+  facturaInquilino: Inquilino | null = null;
 
   get filteredPagos(): Pago[] {
     const term = this.searchTerm.toLowerCase().trim();
@@ -25,9 +29,15 @@ export class Pagos implements OnInit {
     );
   }
 
-  constructor(private readonly pagosService: PagosService) {}
+  constructor(
+    private readonly pagosService: PagosService,
+    private readonly inquilinosService: InquilinosService
+  ) {}
 
   ngOnInit(): void {
+    this.inquilinosService.obtenerInquilinos().subscribe({
+      next: (respuesta) => this.inquilinos = respuesta.data ?? []
+    });
     this.pagosService.obtenerPagos().subscribe({
       next: (respuesta) => {
         if (respuesta.success) {
@@ -47,4 +57,20 @@ export class Pagos implements OnInit {
   editar(x: Pago): void { this.editandoId = x.id; this.formulario = { idInquilino: x.idInquilino, fechaPago: x.fechaPago.substring(0, 10), monto: x.monto }; }
   eliminar(id: number): void { if (confirm('¿Eliminar este pago?')) this.pagosService.eliminar(id).subscribe({ next: () => this.ngOnInit(), error: () => this.error = 'No se pudo eliminar.' }); }
   cancelar(): void { this.editandoId = null; this.formulario = { idInquilino: '', fechaPago: '', monto: '' }; }
+
+  generarFactura(pago: Pago): void {
+    this.facturaPago = pago;
+    this.facturaInquilino = this.inquilinos.find((inquilino) =>
+      String(inquilino.id) === String(pago.idInquilino)
+    ) ?? null;
+  }
+
+  cerrarFactura(): void {
+    this.facturaPago = null;
+    this.facturaInquilino = null;
+  }
+
+  imprimirFactura(): void {
+    window.print();
+  }
 }

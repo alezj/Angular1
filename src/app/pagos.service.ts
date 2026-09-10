@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { StorageCacheService } from './storage-cache.service';
 
 export interface Pago {
   id: number;
@@ -17,13 +19,14 @@ interface ApiResponse<T> {
 @Injectable({ providedIn: 'root' })
 export class PagosService {
   private readonly apiUrl = 'http://localhost:5129/api/backend/pagos';
+  private readonly cacheKey = 'angular1:pagos';
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient, private readonly cache: StorageCacheService) {}
 
   obtenerPagos(): Observable<ApiResponse<Pago[]>> {
-    return this.http.get<ApiResponse<Pago[]>>(this.apiUrl);
+    return this.cache.getOrFetch(this.cacheKey, this.http.get<ApiResponse<Pago[]>>(this.apiUrl));
   }
-  crear(data: Omit<Pago, 'id'>) { return this.http.post(this.apiUrl, data); }
-  actualizar(id: number, data: Omit<Pago, 'id'>) { return this.http.put(`${this.apiUrl}/${id}`, data); }
-  eliminar(id: number) { return this.http.delete(`${this.apiUrl}/${id}`); }
+  crear(data: Omit<Pago, 'id'>) { return this.http.post(this.apiUrl, data).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
+  actualizar(id: number, data: Omit<Pago, 'id'>) { return this.http.put(`${this.apiUrl}/${id}`, data).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
+  eliminar(id: number) { return this.http.delete(`${this.apiUrl}/${id}`).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
 }

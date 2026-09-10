@@ -32,7 +32,13 @@
           <td>{{ pago.idInquilino || '-' }}</td>
           <td>{{ pago.fechaPago ? (pago.fechaPago | date: 'dd/MM/yyyy') : '-' }}</td>
           <td>{{ pago.monto === '' ? '-' : (pago.monto | number: '1.2-2') }}</td>
-          <td><div class="action-buttons"><button class="filter-button" (click)="editar(pago)">Editar</button> <button class="filter-button secondary delete-button" (click)="eliminar(pago.id)">Eliminar</button></div></td>
+          <td>
+            <div class="action-buttons">
+              <button class="filter-button" type="button" (click)="generarFactura(pago)">Factura</button>
+              <button class="filter-button" type="button" (click)="editar(pago)">Editar</button>
+              <button class="filter-button secondary delete-button" type="button" (click)="eliminar(pago.id)">Eliminar</button>
+            </div>
+          </td>
         </tr>
         <tr *ngIf="pagos.length === 0">
           <td colspan="5">No hay pagos registrados.</td>
@@ -41,3 +47,45 @@
     </table>
   </div>
 </section>
+
+<div class="invoice-backdrop" *ngIf="facturaPago" (click)="cerrarFactura()">
+  <article class="invoice-preview" (click)="$event.stopPropagation()">
+    <div class="invoice-actions no-print">
+      <button class="filter-button" type="button" (click)="imprimirFactura()">Imprimir factura</button>
+      <button class="filter-button secondary" type="button" (click)="cerrarFactura()">Cerrar</button>
+    </div>
+
+    <div class="invoice-document" *ngIf="facturaPago">
+      <header class="invoice-header">
+        <div>
+          <p class="invoice-eyebrow">Comprobante de pago</p>
+          <h2>Factura</h2>
+        </div>
+        <div class="invoice-number">
+          <strong>No. {{ facturaPago.id }}</strong>
+          <span>{{ facturaPago.fechaPago | date: 'dd/MM/yyyy' }}</span>
+        </div>
+      </header>
+
+      <div class="invoice-recipient">
+        <span>Recibido de</span>
+        <strong>{{ facturaInquilino?.nombreApellido || ('Inquilino #' + facturaPago.idInquilino) }}</strong>
+        <span *ngIf="facturaInquilino?.correo">{{ facturaInquilino?.correo }}</span>
+      </div>
+
+      <table class="invoice-table">
+        <thead>
+          <tr><th>Descripción</th><th class="amount">Importe</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Pago de alquiler</td><td class="amount">{{ facturaPago.monto | number: '1.2-2' }}</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><th>Total pagado</th><th class="amount">{{ facturaPago.monto | number: '1.2-2' }}</th></tr>
+        </tfoot>
+      </table>
+
+      <p class="invoice-note">Gracias por su pago.</p>
+    </div>
+  </article>
+</div>

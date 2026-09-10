@@ -26,3 +26,142 @@ th {
 .error {
   color: #b91c1c;
 }
+
+.invoice-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.52);
+}
+
+.invoice-preview {
+  width: min(100%, 720px);
+  max-height: 92vh;
+  overflow: auto;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+}
+
+.invoice-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 1rem 1rem 0;
+}
+
+.invoice-document {
+  margin: 1rem;
+  border: 1px solid #e2e8f0;
+  padding: 2rem;
+  color: #1e293b;
+}
+
+.invoice-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 2px solid #be185d;
+  padding-bottom: 1.25rem;
+}
+
+.invoice-header h2 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.invoice-eyebrow {
+  margin: 0 0 0.35rem;
+  color: #be185d;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.invoice-number {
+  display: grid;
+  align-content: center;
+  justify-items: end;
+  gap: 0.25rem;
+  color: #64748b;
+}
+
+.invoice-number strong {
+  color: #0f172a;
+}
+
+.invoice-recipient {
+  display: grid;
+  gap: 0.25rem;
+  margin: 1.5rem 0;
+}
+
+.invoice-recipient span:first-child {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.invoice-table th,
+.invoice-table td {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.invoice-table .amount {
+  text-align: right;
+}
+
+.invoice-table tfoot th {
+  border-bottom: 0;
+  color: #0f172a;
+  font-size: 1.05rem;
+}
+
+.invoice-note {
+  margin: 2rem 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+@media print {
+  .app-container .sidebar,
+  .app-container .sidebar-overlay,
+  .app-container .topbar,
+  .app-container .pagos {
+    display: none !important;
+  }
+
+  .no-print,
+  body > *:not(app-root) {
+    display: none !important;
+  }
+
+  .invoice-backdrop {
+    position: static;
+    display: block;
+    padding: 0;
+    background: none;
+  }
+
+  .invoice-preview {
+    width: auto;
+    max-height: none;
+    overflow: visible;
+    box-shadow: none;
+  }
+
+  .invoice-document {
+    margin: 0;
+    border: 0;
+  }
+}
