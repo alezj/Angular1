@@ -36,7 +36,7 @@ Este repositorio contiene una aplicación Angular 20 con renderizado del lado de
 - `inicio`: `/inicio` — página principal con dashboard, métricas de propiedades e inquilinos y accesos rápidos.
 - `inquilinos`: `/inquilinos` — consulta de inquilinos.
 - `correos`: `/correos` — envío de correos a inquilinos con correo registrado.
-- `pagos`: `/pagos` — consulta de pagos.
+- `pagos`: `/pagos` — gestión de pagos con selector de inquilino, búsqueda, edición, eliminación y generación de facturas.
 - `propiedades`: `/propiedades` — CRUD de propiedades.
 - `mantenimientos`: `/mantenimientos` — consulta y formularios de mantenimiento.
 - `alquileres`: `/alquileres` — consulta de contratos/alquileres.
@@ -97,11 +97,13 @@ dotnet run
 - Se añadió la ruta `/estados` y el enlace en el menú lateral.
 - El backend ya expone `GET /api/backend/estados` y la API genérica está preparada para `create/update/delete` del recurso `estados`.
 - La compilación de Angular se validó correctamente con `npm run build`.
+- La pantalla de pagos permite seleccionar el inquilino mediante una lista con formato `ID - Nombre`.
+- Las facturas muestran el formato `Factura #número`, se imprimen sin el resto de la pantalla de pagos y el nombre sugerido del PDF usa ese mismo número.
 
 ## Próximos pasos sugeridos
 
 - Reemplazar arrays locales de `estados` en `propiedades` y `mantenimientos` por llamadas al servicio `EstadosService`.
-- Instalar dependencias y compilar el frontend para probar la UI en `http://localhost:4200/`.
+- Ejecutar el frontend y probar la UI en `http://localhost:4200/`.
 - Habilitar `estados` en el `doPost` de Apps Script si se desea permitir crear/editar estados desde la app.
 
 ## Notas
@@ -123,7 +125,7 @@ Set-Location backend
 dotnet build
 ```
 
-- La compilación de Angular queda pendiente hasta que las dependencias puedan instalarse:
+- La compilación de Angular se ejecuta con:
 
 ```powershell
 npm.cmd run build

@@ -1,6 +1,6 @@
 # Estado actual del proyecto
 
-Fecha de actualización: 2026-08-11
+Fecha de actualización: 2026-09-11
 
 ## Objetivo
 
@@ -66,10 +66,18 @@ Se creó `GET /api/backend/catalogos/estados` con los estados de propiedades: Di
 
 El catálogo fijo fue retirado y el backend ahora consulta `GET /api/backend/estados`. La prueba de creación contra Apps Script fue rechazada porque su `doPost` todavía no admite el recurso `estados`; no se modificó ningún dato remoto.
 
+### Pagos y facturas
+
+- El formulario de pagos utiliza una lista desplegable de inquilinos con el formato `ID - Nombre`.
+- El valor enviado al backend sigue siendo el ID del inquilino.
+- La factura se identifica como `Factura #número de pago`.
+- La impresión oculta la pantalla de pagos y deja únicamente el comprobante.
+- El nombre sugerido del archivo PDF usa el formato `Factura #número.pdf` y el título original de la aplicación se restaura después de imprimir.
+
 ## Validación realizada
 
 - `dotnet build` se ejecutó correctamente después de añadir cada endpoint.
-- La compilación de Angular se verificó correctamente con `npm run build`.
+- La compilación de Angular se verificó correctamente con `npm run build` el 2026-09-11.
 - Se confirmó la carga de la nueva ruta `/inicio` y del menú lateral asociado.
 
 ## Acciones realizadas (detallado)
@@ -95,7 +103,7 @@ El catálogo fijo fue retirado y el backend ahora consulta `GET /api/backend/est
 ## Próximos pasos sugeridos (prioritarios)
 
 - Integrar el catálogo `estados` en `propiedades` y `mantenimientos` para reemplazar arrays locales y cargarlos desde el backend.
-- Instalar dependencias de Angular en una máquina con certificados correctos y compilar para probar la UI (`npm install` y `npm run build`).
+- Ejecutar el frontend y probar visualmente las rutas (`npm.cmd start`).
 - Habilitar `estados` en el `doPost` de Apps Script si se desea permitir creación/edición remota desde la aplicación.
 
 

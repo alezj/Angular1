@@ -1,7 +1,12 @@
 <section class="pagos no-print">
   <h2>Pagos</h2>
   <form (ngSubmit)="guardar()" class="formulario">
-    <input class="filter-input" [(ngModel)]="formulario.idInquilino" name="inquilino" placeholder="ID inquilino" required>
+    <select class="filter-select" [(ngModel)]="formulario.idInquilino" name="inquilino" required>
+      <option value="" disabled>Seleccionar inquilino</option>
+      <option *ngFor="let inquilino of inquilinos" [ngValue]="inquilino.id">
+        {{ inquilino.id }} - {{ inquilino.nombreApellido }}
+      </option>
+    </select>
     <input class="filter-input" [(ngModel)]="formulario.fechaPago" name="fecha" type="date" required>
     <input class="filter-input" [(ngModel)]="formulario.monto" name="monto" type="number" min="0" placeholder="Monto" required>
     <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button>
