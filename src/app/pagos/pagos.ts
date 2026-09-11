@@ -71,6 +71,17 @@ export class Pagos implements OnInit {
   }
 
   imprimirFactura(): void {
+    if (!this.facturaPago) return;
+
+    const tituloOriginal = document.title;
+    document.title = `Factura #${this.facturaPago.id}`;
+
+    const restaurarTitulo = () => {
+      document.title = tituloOriginal;
+      window.removeEventListener('afterprint', restaurarTitulo);
+    };
+
+    window.addEventListener('afterprint', restaurarTitulo);
     window.print();
   }
 }

@@ -59,10 +59,9 @@
       <header class="invoice-header">
         <div>
           <p class="invoice-eyebrow">Comprobante de pago</p>
-          <h2>Factura</h2>
+          <h2>Factura #{{ facturaPago.id }}</h2>
         </div>
         <div class="invoice-number">
-          <strong>No. {{ facturaPago.id }}</strong>
           <span>{{ facturaPago.fechaPago | date: 'dd/MM/yyyy' }}</span>
         </div>
       </header>
