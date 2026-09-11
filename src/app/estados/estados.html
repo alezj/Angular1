@@ -2,7 +2,7 @@
   <h2>Catálogo de Estados</h2>
 
   <form (ngSubmit)="guardar()" class="form-inline filter-bar">
-    <input class="filter-input" [(ngModel)]="formulario.nombre" name="nombre" placeholder="Nombre del estado" required />
+    <input class="filter-input" [(ngModel)]="formulario.Descripcion" name="Descripcion" placeholder="Descripción del estado" required />
     <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear' : 'Actualizar' }}</button>
     <button class="filter-button secondary" type="button" (click)="cancelar()">Cancelar</button>
   </form>
@@ -14,18 +14,20 @@
     <thead>
       <tr>
         <th>ID</th>
-        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Tabla</th>
         <th>Acciones</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let e of estados">
-        <td>{{ e.id }}</td>
-        <td>{{ e.nombre }}</td>
+        <td>{{ e.ID }}</td>
+        <td>{{ e.Descripcion }}</td>
+        <td>{{ e.tabla }}</td>
         <td>
           <div class="action-buttons">
             <button class="filter-button" (click)="editar(e)">Editar</button>
-            <button class="filter-button secondary delete-button" (click)="eliminar(e.id)">Eliminar</button>
+            <button class="filter-button secondary delete-button" (click)="eliminar(e.ID)">Eliminar</button>
           </div>
         </td>
       </tr>
