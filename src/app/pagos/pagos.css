@@ -53,6 +53,28 @@ th {
   padding: 1rem 1rem 0;
 }
 
+.share-form {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 1rem 0;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.share-form-row {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.share-form-row .filter-input {
+  flex: 1;
+}
+
+.success {
+  color: #15803d;
+}
+
 .invoice-document {
   margin: 1rem;
   border: 1px solid #e2e8f0;
@@ -163,5 +185,12 @@ th {
   .invoice-document {
     margin: 0;
     border: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .invoice-actions,
+  .share-form-row {
+    flex-direction: column;
   }
 }

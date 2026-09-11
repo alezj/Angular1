@@ -73,6 +73,7 @@ El catálogo fijo fue retirado y el backend ahora consulta `GET /api/backend/est
 - La factura se identifica como `Factura #número de pago`.
 - La impresión oculta la pantalla de pagos y deja únicamente el comprobante.
 - El nombre sugerido del archivo PDF usa el formato `Factura #número.pdf` y el título original de la aplicación se restaura después de imprimir.
+- El botón `Compartir` solicita un correo destinatario y envía la factura con formato HTML mediante `POST /api/Email/enviar` usando `ContenidoHtml: true`.
 
 ## Validación realizada
 

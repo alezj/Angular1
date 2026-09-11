@@ -99,6 +99,7 @@ dotnet run
 - La compilación de Angular se validó correctamente con `npm run build`.
 - La pantalla de pagos permite seleccionar el inquilino mediante una lista con formato `ID - Nombre`.
 - Las facturas muestran el formato `Factura #número`, se imprimen sin el resto de la pantalla de pagos y el nombre sugerido del PDF usa ese mismo número.
+- Desde la factura se puede indicar un destinatario y enviarla por correo mediante el servicio SMTP configurado. El mensaje se envía con formato HTML y estilos propios de la factura.
 
 ## Próximos pasos sugeridos
 

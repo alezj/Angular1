@@ -6,6 +6,7 @@ export interface EnviarCorreoRequest {
   destinatario: string;
   asunto: string;
   contenido: string;
+  contenidoHtml?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

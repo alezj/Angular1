@@ -57,8 +57,28 @@
   <article class="invoice-preview" (click)="$event.stopPropagation()">
     <div class="invoice-actions no-print">
       <button class="filter-button" type="button" (click)="imprimirFactura()">Imprimir factura</button>
+      <button class="filter-button" type="button" (click)="mostrarFormularioCompartir()">Compartir</button>
       <button class="filter-button secondary" type="button" (click)="cerrarFactura()">Cerrar</button>
     </div>
+
+    <form class="share-form no-print" *ngIf="mostrarCompartir" (ngSubmit)="enviarFactura()" #facturaCorreoForm="ngForm">
+      <label for="destinatarioFactura">Correo del destinatario</label>
+      <div class="share-form-row">
+        <input
+          id="destinatarioFactura"
+          class="filter-input"
+          type="email"
+          name="destinatarioFactura"
+          [(ngModel)]="destinatarioFactura"
+          placeholder="correo@ejemplo.com"
+          required>
+        <button class="filter-button" type="submit" [disabled]="facturaCorreoForm.invalid || enviandoFactura">
+          {{ enviandoFactura ? 'Enviando...' : 'Enviar' }}
+        </button>
+      </div>
+      <p *ngIf="confirmacionFactura" class="success" role="status">{{ confirmacionFactura }}</p>
+      <p *ngIf="errorFactura" class="error" role="alert">{{ errorFactura }}</p>
+    </form>
 
     <div class="invoice-document" *ngIf="facturaPago">
       <header class="invoice-header">
