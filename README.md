@@ -100,6 +100,9 @@ dotnet run
 - La pantalla de pagos permite seleccionar el inquilino mediante una lista con formato `ID - Nombre`.
 - Las facturas muestran el formato `Factura #número`, se imprimen sin el resto de la pantalla de pagos y el nombre sugerido del PDF usa ese mismo número.
 - Desde la factura se puede indicar un destinatario y enviarla por correo mediante el servicio SMTP configurado. El mensaje se envía con formato HTML y estilos propios de la factura.
+- Se corrigió la actualización de las vistas después de solicitudes HTTP. La aplicación utiliza `provideZonelessChangeDetection()`, por lo que los componentes que modifican propiedades convencionales tras una respuesta HTTP deben llamar a `ChangeDetectorRef.markForCheck()` para programar el repintado.
+- La corrección se aplicó a Inicio, Datos, Estados, Inquilinos, Pagos, Propiedades, Mantenimientos, Alquileres y Correos. La pantalla Datos también calcula el filtrado en cada detección de cambios para no retener una lista vacía previa a la carga.
+- La compilación se validó con `npm run build` el 2026-09-11 después de esta corrección.
 
 ## Próximos pasos sugeridos
 
@@ -110,6 +113,11 @@ dotnet run
 ## Notas
 
 - Si deseas, puedo actualizar `propiedades.ts` y `mantenimientos.ts` para cargar `estados` desde el backend en lugar de usar valores en memoria.
+- Antes de modificar el proyecto en una próxima sesión, consultar este archivo y `archivo-generado.md`: ambos mantienen las decisiones técnicas, cambios aplicados y pendientes conocidos.
+
+### Actualizaciones HTTP con detección zoneless
+
+`src/app/app.config.ts` habilita `provideZonelessChangeDetection()`. No se debe asumir que una mutación realizada en el callback de `HttpClient` actualizará automáticamente la plantilla si el estado se guarda en propiedades normales. Después de cambiar datos, errores o indicadores como `cargando` en dichos callbacks, usar `this.cdr.markForCheck()` (inyectando `ChangeDetectorRef`) o migrar ese estado completo a señales.
 
 ## Nota sobre npm en este equipo
 

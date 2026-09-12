@@ -1,6 +1,6 @@
 # Estado actual del proyecto
 
-Fecha de actualización: 2026-09-11
+Fecha de actualización: 2026-09-12
 
 ## Objetivo
 
@@ -75,6 +75,23 @@ El catálogo fijo fue retirado y el backend ahora consulta `GET /api/backend/est
 - El nombre sugerido del archivo PDF usa el formato `Factura #número.pdf` y el título original de la aplicación se restaura después de imprimir.
 - El botón `Compartir` solicita un correo destinatario y envía la factura con formato HTML mediante `POST /api/Email/enviar` usando `ContenidoHtml: true`.
 
+### Corrección de actualización después de carga HTTP
+
+- La configuración global en `src/app/app.config.ts` usa `provideZonelessChangeDetection()`.
+- Con este modo, los callbacks de `HttpClient` que actualizan propiedades normales —por ejemplo `cargando`, `error` o los arreglos de datos— no garantizan por sí solos que Angular reprograme la vista.
+- Se inyectó `ChangeDetectorRef` y se llamó a `markForCheck()` al finalizar las cargas, tanto exitosas como fallidas, en:
+  - `src/app/inicio/inicio.ts`
+  - `src/app/datos/datos.ts`
+  - `src/app/estados/estados.ts`
+  - `src/app/inquilinos/inquilinos.ts`
+  - `src/app/pagos/pagos.ts`
+  - `src/app/propiedades/propiedades.ts`
+  - `src/app/mantenimientos/mantenimientos.ts`
+  - `src/app/alquileres/alquileres.ts`
+  - `src/app/correos/correos.ts`
+- Esto evita que el mensaje “Cargando...” permanezca visible después de recibir la respuesta. Para nuevos componentes, aplicar el mismo patrón o usar señales para todo el estado que cambie de forma asíncrona.
+- En `Datos`, `filteredRows` dejó de ser un `computed` que dependía de un arreglo normal; ahora es un método para calcular las filas con los datos recién cargados.
+
 ## Validación realizada
 
 - `dotnet build` se ejecutó correctamente después de añadir cada endpoint.
@@ -117,6 +134,10 @@ El catálogo fijo fue retirado y el backend ahora consulta `GET /api/backend/est
 5. Implementar operaciones de creación, edición y cambio de estado; actualmente los módulos son de consulta.
 6. Relacionar pagos con `alquilerID`, además del inquilino, para poder detectar cuotas pendientes.
 7. Añadir autenticación antes de usar datos reales.
+
+## Referencia para próximas intervenciones
+
+Antes de realizar cambios, revisar `README.md` y este archivo. Mantener ambas referencias actualizadas cuando se modifique arquitectura, rutas, servicios, comportamiento asíncrono, validaciones o pendientes relevantes.
 
 ## Skill de documentación
 
