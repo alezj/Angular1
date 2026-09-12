@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DatosService } from '../datos';
 
@@ -15,23 +15,25 @@ export class Datos implements OnInit {
   error: string | null = null;
 
   searchTerm = signal('');
-  filteredRows = computed(() => {
+  filteredRows(): string[][] {
     const query = this.searchTerm().toLowerCase().trim();
     if (!query) return this.datos.slice(1);
     return this.datos.slice(1).filter((fila) => fila.some((celda) => celda.toString().toLowerCase().includes(query)));
-  });
+  }
 
-  constructor(private datosService: DatosService) {}
+  constructor(private datosService: DatosService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.datosService.obtenerDatos().subscribe({
       next: (respuesta) => {
         this.datos = respuesta;
         this.cargando = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.error = 'No se pudieron cargar los datos';
         this.cargando = false;
+        this.cdr.markForCheck();
         console.error(err);
       }
     });

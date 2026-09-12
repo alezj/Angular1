@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Mantenimiento, MantenimientosService } from '../mantenimientos.service';
@@ -17,7 +17,7 @@ export class Mantenimientos implements OnInit {
   editandoId: number | null = null;
   formulario: Omit<Mantenimiento, 'id'> = { propiedadID: 0, descripcion: '', fecha: '', costo: 0, estado: 1 };
 
-  constructor(private readonly mantenimientosService: MantenimientosService) {}
+  constructor(private readonly mantenimientosService: MantenimientosService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.mantenimientosService.obtenerMantenimientos().subscribe({
@@ -28,10 +28,12 @@ export class Mantenimientos implements OnInit {
           this.error = 'La API no pudo obtener los mantenimientos.';
         }
         this.cargando = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.error = 'No se pudo conectar con el backend.';
         this.cargando = false;
+        this.cdr.markForCheck();
       }
     });
   }

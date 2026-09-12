@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { InquilinosService } from '../inquilinos.service';
 import { PropiedadesService } from '../propiedades.service';
@@ -40,7 +40,8 @@ export class Inicio implements OnInit {
 
   constructor(
     private readonly propiedadesService: PropiedadesService,
-    private readonly inquilinosService: InquilinosService
+    private readonly inquilinosService: InquilinosService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -65,16 +66,19 @@ export class Inicio implements OnInit {
             const inquilinos = respuestaInquilinos?.data ?? [];
             this.summaryCards[2].value = String(inquilinos.length);
             this.cargando = false;
+            this.cdr.markForCheck();
           },
           error: () => {
             this.error = 'No se pudo cargar la cantidad de inquilinos.';
             this.cargando = false;
+            this.cdr.markForCheck();
           }
         });
       },
       error: () => {
         this.error = 'No se pudo cargar el resumen de propiedades.';
         this.cargando = false;
+        this.cdr.markForCheck();
       }
     });
   }

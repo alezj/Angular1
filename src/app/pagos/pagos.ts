@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Pago, PagosService } from '../pagos.service';
@@ -38,7 +38,8 @@ export class Pagos implements OnInit {
   constructor(
     private readonly pagosService: PagosService,
     private readonly inquilinosService: InquilinosService,
-    private readonly emailService: EmailService
+    private readonly emailService: EmailService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -53,10 +54,12 @@ export class Pagos implements OnInit {
           this.error = 'La API no pudo obtener los pagos.';
         }
         this.cargando = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.error = 'No se pudo conectar con el backend.';
         this.cargando = false;
+        this.cdr.markForCheck();
       }
     });
   }

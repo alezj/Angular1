@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EstadosService, Estado } from '../estados.service';
@@ -16,7 +16,7 @@ export class Estados implements OnInit {
   editandoId: number | null = null;
   formulario: Omit<Estado, 'ID'> = { Descripcion: '', tabla: '' };
 
-  constructor(private readonly estadosService: EstadosService) {}
+  constructor(private readonly estadosService: EstadosService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.cargar();
@@ -33,10 +33,12 @@ export class Estados implements OnInit {
           this.error = 'La API no pudo obtener los estados.';
         }
         this.cargando = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.error = 'No se pudo conectar con el backend.';
         this.cargando = false;
+        this.cdr.markForCheck();
       }
     });
   }

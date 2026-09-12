@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize, timeout } from 'rxjs';
 import { EmailService } from '../email.service';
@@ -23,7 +23,8 @@ export class Correos implements OnInit {
 
   constructor(
     private readonly inquilinosService: InquilinosService,
-    private readonly emailService: EmailService
+    private readonly emailService: EmailService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -31,10 +32,12 @@ export class Correos implements OnInit {
       next: (respuesta) => {
         this.inquilinos = (respuesta.data ?? []).filter((inquilino) => this.obtenerCorreo(inquilino));
         this.cargando = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.error = 'No se pudo cargar la lista de correos de inquilinos.';
         this.cargando = false;
+        this.cdr.markForCheck();
       }
     });
   }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Propiedad, PropiedadesService } from '../propiedades.service';
@@ -17,7 +17,7 @@ export class Propiedades implements OnInit {
   editandoId: number | null = null;
   formulario: Omit<Propiedad, 'id'> = { nombre: '', direccion: '', estado: 1, precioMensual: 0, notas: '' };
 
-  constructor(private readonly propiedadesService: PropiedadesService) {}
+  constructor(private readonly propiedadesService: PropiedadesService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.propiedadesService.obtenerPropiedades().subscribe({
@@ -28,10 +28,12 @@ export class Propiedades implements OnInit {
           this.error = 'La API no pudo obtener las propiedades.';
         }
         this.cargando = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.error = 'No se pudo conectar con el backend.';
         this.cargando = false;
+        this.cdr.markForCheck();
       }
     });
   }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Inquilino, InquilinosService } from '../inquilinos.service';
@@ -25,7 +25,7 @@ export class Inquilinos implements OnInit {
     );
   }
 
-  constructor(private readonly inquilinosService: InquilinosService) {}
+  constructor(private readonly inquilinosService: InquilinosService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.inquilinosService.obtenerInquilinos().subscribe({
@@ -36,10 +36,12 @@ export class Inquilinos implements OnInit {
           this.error = 'La API no pudo obtener los inquilinos.';
         }
         this.cargando = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.error = 'No se pudo conectar con el backend.';
         this.cargando = false;
+        this.cdr.markForCheck();
       }
     });
   }
