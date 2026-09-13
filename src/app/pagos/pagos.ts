@@ -63,6 +63,15 @@ export class Pagos implements OnInit {
       }
     });
   }
+getNombreInquilino(idInquilino: string | number | null ): string {
+  if (idInquilino === null || idInquilino === undefined) {
+    return 'No encontrado';
+  }
+  const id = Number(idInquilino);
+  return this.inquilinos.find(
+    i => i.id === id
+  )?.nombreApellido ?? 'No encontrado';
+}
   guardar(): void { const r = this.editandoId === null ? this.pagosService.crear(this.formulario) : this.pagosService.actualizar(this.editandoId, this.formulario); r.subscribe({ next: () => { this.cancelar(); this.ngOnInit(); }, error: () => this.error = 'No se pudo guardar.' }); }
   editar(x: Pago): void { this.editandoId = x.id; this.formulario = { idInquilino: x.idInquilino, fechaPago: x.fechaPago.substring(0, 10), monto: x.monto }; }
   eliminar(id: number): void { if (confirm('¿Eliminar este pago?')) this.pagosService.eliminar(id).subscribe({ next: () => this.ngOnInit(), error: () => this.error = 'No se pudo eliminar.' }); }

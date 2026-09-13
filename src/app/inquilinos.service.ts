@@ -5,7 +5,7 @@ import { tap } from 'rxjs/operators';
 import { StorageCacheService } from './storage-cache.service';
 
 export interface Inquilino {
-  id: number;
+  id: number ;
   nombreApellido: string;
   correo?: string;
   email?: string;

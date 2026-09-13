@@ -34,7 +34,7 @@
       <tbody>
         <tr *ngFor="let pago of pagos">
           <td>{{ pago.id }}</td>
-          <td>{{ pago.idInquilino || '-' }}</td>
+          <td>{{ pago.idInquilino || '-' }} - {{ getNombreInquilino(pago.idInquilino) }}</td>
           <td>{{ pago.fechaPago ? (pago.fechaPago | date: 'dd/MM/yyyy') : '-' }}</td>
           <td>{{ pago.monto === '' ? '-' : (pago.monto | number: '1.2-2') }}</td>
           <td>
