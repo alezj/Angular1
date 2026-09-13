@@ -10,13 +10,13 @@
   </form>
 
   <div class="filter-bar">
-    <input class="filter-input" [(ngModel)]="searchTerm" name="search" placeholder="Buscar inquilinos..." />
+    <input class="filter-input" [(ngModel)]="searchTerm" (ngModelChange)="searchTerm.set($event)" name="search" placeholder="Buscar inquilinos..." />
   </div>
 
   <p *ngIf="cargando">Cargando inquilinos...</p>
-  <p *ngIf="error" class="error">{{ error }}</p>
+  <p *ngIf="error()" class="error">{{ error() }}</p>
 
-  <div class="table-wrapper" *ngIf="!cargando && !error">
+  <div class="table-wrapper" *ngIf="!cargando() && !error()">
     <table>
       <thead>
         <tr>
@@ -29,22 +29,43 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let inquilino of inquilinos">
-          <td>{{ inquilino.id }}</td>
-          <td>{{ inquilino.nombreApellido }}</td>
-          <td>{{ inquilino.correo || inquilino.email || '-' }}</td>
-          <td>{{ inquilino.fechaInicioContrato | date: 'dd/MM/yyyy' }}</td>
-          <td>{{ inquilino.fechaPagos }}</td>
-          <td>
-            <div class="action-buttons">
-              <button class="filter-button" (click)="editar(inquilino)">Editar</button>
-              <button class="filter-button secondary delete-button" (click)="eliminar(inquilino.id)">Eliminar</button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="inquilinos.length === 0">
-          <td colspan="6">No hay inquilinos registrados.</td>
-        </tr>
+        @for (inquilino of filteredInquilinos(); track inquilino.id) {
+  <tr>
+    <td>{{ inquilino.id }}</td>
+    <td>{{ inquilino.nombreApellido }}</td>
+    <td>{{ inquilino.correo || inquilino.email || '-' }}</td>
+    <td>{{ inquilino.fechaInicioContrato | date: 'dd/MM/yyyy' }}</td>
+    <td>{{ inquilino.fechaPagos }}</td>
+
+    <td>
+      <div class="action-buttons">
+
+        <button
+          class="filter-button"
+          (click)="editar(inquilino)">
+          Editar
+        </button>
+
+        <button
+          class="filter-button secondary delete-button"
+          (click)="eliminar(inquilino.id)">
+          Eliminar
+        </button>
+
+      </div>
+    </td>
+  </tr>
+}
+      @if (inquilinos().length === 0) {
+  <tr>
+    <td colspan="6">No hay inquilinos registrados.</td>
+  </tr>
+}
+@else if (filteredInquilinos().length === 0) {
+  <tr>
+    <td colspan="6">No se encontraron inquilinos.</td>
+  </tr>
+}
       </tbody>
     </table>
   </div>

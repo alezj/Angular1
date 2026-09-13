@@ -1,4 +1,58 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+// import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+// import { CommonModule, DatePipe } from '@angular/common';
+// import { FormsModule } from '@angular/forms';
+// import { Inquilino, InquilinosService } from '../inquilinos.service';
+
+// @Component({
+//   selector: 'app-inquilinos',
+//   imports: [CommonModule, DatePipe, FormsModule],
+//   templateUrl: './inquilinos.html',
+//   styleUrl: './inquilinos.css'
+// })
+// export class Inquilinos implements OnInit {
+//   inquilinos: Inquilino[] = [];
+//   cargando = true;
+//   error: string | null = null;
+//   editandoId: number | null = null;
+//   formulario: Omit<Inquilino, 'id'> = { nombreApellido: '', correo: '', fechaInicioContrato: '', fechaPagos: 1 };
+//   searchTerm = '';
+
+//   get filteredInquilinos(): Inquilino[] {
+//     const term = this.searchTerm.toLowerCase().trim();
+//     if (!term) return this.inquilinos;
+//     return this.inquilinos.filter((inquilino) =>
+//       `${inquilino.nombreApellido} ${inquilino.correo} ${inquilino.fechaInicioContrato} ${inquilino.fechaPagos}`.toLowerCase().includes(term)
+//     );
+//   }
+
+//   constructor(private readonly inquilinosService: InquilinosService, private readonly cdr: ChangeDetectorRef) {}
+
+//   ngOnInit(): void {
+//     this.inquilinosService.obtenerInquilinos().subscribe({
+//       next: (respuesta) => {
+//         if (respuesta.success) {
+//           this.inquilinos = respuesta.data;
+//         } else {
+//           this.error = 'La API no pudo obtener los inquilinos.';
+//         }
+//         this.cargando = false;
+//         this.cdr.markForCheck();
+//       },
+//       error: () => {
+//         this.error = 'No se pudo conectar con el backend.';
+//         this.cargando = false;
+//         this.cdr.markForCheck();
+//       }
+//     });
+//   }
+//   guardar(): void { const r = this.editandoId === null ? this.inquilinosService.crear(this.formulario) : this.inquilinosService.actualizar(this.editandoId, this.formulario); r.subscribe({ next: () => { this.cancelar(); this.ngOnInit(); }, error: () => this.error = 'No se pudo guardar.' }); }
+//   editar(x: Inquilino): void { this.editandoId = x.id; this.formulario = { nombreApellido: x.nombreApellido, correo: x.correo ?? x.email ?? '', fechaInicioContrato: x.fechaInicioContrato.substring(0, 10), fechaPagos: x.fechaPagos }; }
+//   eliminar(id: number): void { if (confirm('¿Eliminar este inquilino?')) this.inquilinosService.eliminar(id).subscribe({ next: () => this.ngOnInit(), error: () => this.error = 'No se pudo eliminar.' }); }
+//   cancelar(): void { this.editandoId = null; this.formulario = { nombreApellido: '', correo: '', fechaInicioContrato: '', fechaPagos: 1 }; }
+// }
+
+
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Inquilino, InquilinosService } from '../inquilinos.service';
@@ -10,43 +64,139 @@ import { Inquilino, InquilinosService } from '../inquilinos.service';
   styleUrl: './inquilinos.css'
 })
 export class Inquilinos implements OnInit {
-  inquilinos: Inquilino[] = [];
-  cargando = true;
-  error: string | null = null;
-  editandoId: number | null = null;
-  formulario: Omit<Inquilino, 'id'> = { nombreApellido: '', correo: '', fechaInicioContrato: '', fechaPagos: 1 };
-  searchTerm = '';
 
-  get filteredInquilinos(): Inquilino[] {
-    const term = this.searchTerm.toLowerCase().trim();
-    if (!term) return this.inquilinos;
-    return this.inquilinos.filter((inquilino) =>
-      `${inquilino.nombreApellido} ${inquilino.correo} ${inquilino.fechaInicioContrato} ${inquilino.fechaPagos}`.toLowerCase().includes(term)
+  // Signals
+  inquilinos = signal<Inquilino[]>([]);
+  cargando = signal(true);
+  error = signal<string | null>(null);
+  editandoId = signal<number | null>(null);
+  searchTerm = signal('');
+
+  formulario: Omit<Inquilino, 'id'> = {
+    nombreApellido: '',
+    correo: '',
+    fechaInicioContrato: '',
+    fechaPagos: 1
+  };
+
+  // Computed
+  filteredInquilinos = computed(() => {
+
+    const term = this.searchTerm().toLowerCase().trim();
+    const lista = this.inquilinos();
+
+    if (!term) {
+      return lista;
+    }
+
+    return lista.filter((inquilino) =>
+      `${inquilino.nombreApellido}
+       ${inquilino.correo}
+       ${inquilino.fechaInicioContrato}
+       ${inquilino.fechaPagos}`
+        .toLowerCase()
+        .includes(term)
     );
-  }
+  });
 
-  constructor(private readonly inquilinosService: InquilinosService, private readonly cdr: ChangeDetectorRef) {}
+  constructor(
+    private readonly inquilinosService: InquilinosService
+  ) {}
 
   ngOnInit(): void {
+
+    this.cargando.set(true);
+    this.error.set(null);
+
     this.inquilinosService.obtenerInquilinos().subscribe({
+
       next: (respuesta) => {
+
         if (respuesta.success) {
-          this.inquilinos = respuesta.data;
+          this.inquilinos.set(respuesta.data);
         } else {
-          this.error = 'La API no pudo obtener los inquilinos.';
+          this.error.set(
+            'La API no pudo obtener los inquilinos.'
+          );
         }
-        this.cargando = false;
-        this.cdr.markForCheck();
+
+        this.cargando.set(false);
       },
+
       error: () => {
-        this.error = 'No se pudo conectar con el backend.';
-        this.cargando = false;
-        this.cdr.markForCheck();
+
+        this.error.set(
+          'No se pudo conectar con el backend.'
+        );
+
+        this.cargando.set(false);
       }
+
     });
   }
-  guardar(): void { const r = this.editandoId === null ? this.inquilinosService.crear(this.formulario) : this.inquilinosService.actualizar(this.editandoId, this.formulario); r.subscribe({ next: () => { this.cancelar(); this.ngOnInit(); }, error: () => this.error = 'No se pudo guardar.' }); }
-  editar(x: Inquilino): void { this.editandoId = x.id; this.formulario = { nombreApellido: x.nombreApellido, correo: x.correo ?? x.email ?? '', fechaInicioContrato: x.fechaInicioContrato.substring(0, 10), fechaPagos: x.fechaPagos }; }
-  eliminar(id: number): void { if (confirm('¿Eliminar este inquilino?')) this.inquilinosService.eliminar(id).subscribe({ next: () => this.ngOnInit(), error: () => this.error = 'No se pudo eliminar.' }); }
-  cancelar(): void { this.editandoId = null; this.formulario = { nombreApellido: '', correo: '', fechaInicioContrato: '', fechaPagos: 1 }; }
+
+  guardar(): void {
+
+    const r =
+      this.editandoId() === null
+        ? this.inquilinosService.crear(this.formulario)
+        : this.inquilinosService.actualizar(
+            this.editandoId()!,
+            this.formulario
+          );
+
+    r.subscribe({
+
+      next: () => {
+        this.cancelar();
+        this.ngOnInit();
+      },
+
+      error: () => {
+        this.error.set('No se pudo guardar.');
+      }
+
+    });
+  }
+
+  editar(x: Inquilino): void {
+
+    this.editandoId.set(x.id);
+
+    this.formulario = {
+      nombreApellido: x.nombreApellido,
+      correo: x.correo ?? x.email ?? '',
+      fechaInicioContrato:
+        x.fechaInicioContrato.substring(0, 10),
+      fechaPagos: x.fechaPagos
+    };
+  }
+
+  eliminar(id: number): void {
+
+    if (confirm('¿Eliminar este inquilino?')) {
+
+      this.inquilinosService.eliminar(id).subscribe({
+
+        next: () => this.ngOnInit(),
+
+        error: () => {
+          this.error.set('No se pudo eliminar.');
+        }
+
+      });
+    }
+  }
+
+  cancelar(): void {
+
+    this.editandoId.set(null);
+
+    this.formulario = {
+      nombreApellido: '',
+      correo: '',
+      fechaInicioContrato: '',
+      fechaPagos: 1
+    };
+  }
 }
