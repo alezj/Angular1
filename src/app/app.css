@@ -1,29 +1,29 @@
 :root {
-  --primary: #eb4e96;
-  --primary-rgb: 235, 78, 150;
-  --primary-hover: #f06ba8;
+  --primary: #0875e1;
+  --primary-rgb: 8, 117, 225;
+  --primary-hover: #075ac4;
 
-  --secondary: #667eea;
+  --secondary: #11c9bd;
+  --accent: #70e24d;
 
   /* Fondo general claro */
-  --bg-app: #f8fafc;
-  --bg-sidebar: #ffffff;
+  --bg-app: #f2f8fb;
+  --bg-sidebar: #071d3d;
   --bg-card: #ffffff;
-  --bg-header: rgba(255, 255, 255, 0.95);
+  --bg-header: rgba(242, 248, 251, 0.92);
 
   /* Texto oscuro */
-  --text-main: #1e293b;
-  --text-muted: #64748b;
+  --text-main: #102544;
+  --text-muted: #7890aa;
 
-  --border-light: #e2e8f0;
-  --border-focus: rgba(235, 78, 150, 0.6);
+  --border-light: #d6e5ef;
+  --border-focus: rgba(8, 117, 225, 0.55);
 
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: 'Trebuchet MS', 'Segoe UI', sans-serif;
 
   --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-  --glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+  --glass-shadow: 0 12px 32px rgba(7, 29, 61, 0.1);
 }
 
 * {
@@ -83,8 +83,12 @@ body {
   gap: 0.75rem;
 }
 
-.angular-logo {
-  filter: drop-shadow(0 0 8px rgba(221, 0, 49, 0.4));
+.app-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 10px rgba(8, 117, 225, 0.35));
+  border-radius: 12px;
 }
 
 .logo-text {
@@ -141,7 +145,7 @@ body {
   align-items: center;
   gap: 1rem;
   padding: 0.85rem 1.25rem;
-  color: var(--text-muted);
+  color: #b7c9dc;
   text-decoration: none;
   border-radius: 12px;
   font-weight: 500;
@@ -150,16 +154,16 @@ body {
 }
 
 .nav-item:hover {
-  background-color: oklch(100% 0 0 / 0.03);
-  color: var(--text-main);
+  background-color: rgba(17, 201, 189, 0.12);
+  color: #ffffff;
   transform: translateX(4px);
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, oklch(62% 0.23 342 / 0.15), oklch(60% 0.16 260 / 0.1));
-  color: var(--primary);
+  background: linear-gradient(135deg, rgba(8, 117, 225, 0.92), rgba(17, 201, 189, 0.76));
+  color: #ffffff;
   border-color: var(--border-focus);
-  box-shadow: 0 0 16px oklch(62% 0.23 342 / 0.05);
+  box-shadow: 0 8px 20px rgba(8, 117, 225, 0.25);
 }
 
 .nav-icon {
@@ -171,7 +175,7 @@ body {
 }
 
 .nav-item.active .nav-icon {
-  color: var(--primary);
+  color: #ffffff;
   filter: drop-shadow(0 0 4px var(--primary));
 }
 
@@ -202,9 +206,9 @@ body {
   display: flex;
   flex-direction: column;
   transition: var(--transition-normal);
-  background-image: 
-    radial-gradient(at 0% 0%, oklch(62% 0.23 342 / 0.03) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, oklch(60% 0.16 260 / 0.03) 0px, transparent 50%);
+  background-image:
+    radial-gradient(at 0% 0%, rgba(17, 201, 189, 0.1) 0, transparent 48%),
+    radial-gradient(at 100% 100%, rgba(112, 226, 77, 0.1) 0, transparent 44%);
 }
 
 .topbar {
@@ -252,7 +256,7 @@ body {
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.05em;
-  box-shadow: 0 4px 12px oklch(62% 0.23 342 / 0.2);
+  box-shadow: 0 4px 12px rgba(8, 117, 225, 0.24);
 }
 
 .content-container {
@@ -287,7 +291,7 @@ body {
   left: 0;
   width: 100%;
   height: 4px;
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
 }
 
 /* Fade-in Animation for router loading */
@@ -461,8 +465,8 @@ img, video { max-width: 100%; height: auto; }
 .dashboard-header {
   background: linear-gradient(
     135deg,
-    #fce7f3,
-    #eef2ff
+    #e1f7f5,
+    #e4f0ff
   );
 
   border-radius: 18px;
@@ -471,7 +475,7 @@ img, video { max-width: 100%; height: auto; }
 }
 
 .dashboard-header .eyebrow {
-  color: #ec4899;
+  color: #0875e1;
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -595,13 +599,13 @@ img, video { max-width: 100%; height: auto; }
 .dashboard-section a {
   display: inline-block;
   margin-top: 1rem;
-  color: #ec4899;
+  color: #0875e1;
   font-weight: 600;
   text-decoration: none;
 }
 
 .dashboard-section a:hover {
-  color: #db2777;
+  color: #075ac4;
 }
 
 

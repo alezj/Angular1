@@ -7,8 +7,8 @@
 .hero {
   padding: 1.25rem;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(235, 78, 150, 0.14), rgba(102, 126, 234, 0.12));
-  border: 1px solid rgba(235, 78, 150, 0.2);
+  background: linear-gradient(135deg, rgba(8, 117, 225, 0.12), rgba(17, 201, 189, 0.14));
+  border: 1px solid rgba(8, 117, 225, 0.2);
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
 }
 
@@ -17,7 +17,7 @@
   text-transform: uppercase;
   letter-spacing: 0.16em;
   font-size: 0.78rem;
-  color: #be185d;
+  color: #0875e1;
 }
 
 .hero h2 {
@@ -86,7 +86,7 @@
 
 .dashboard-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(235, 78, 150, 0.5);
+  border-color: rgba(8, 117, 225, 0.5);
   box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
 }
 
@@ -102,5 +102,5 @@
 
 .dashboard-card span {
   font-weight: 600;
-  color: #be185d;
+  color: #0875e1;
 }
