@@ -10,8 +10,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AngularDevelopment", policy =>
         policy
-            //.WithOrigins()
-            .WithOrigins("http://localhost:4200")
+            .WithOrigins("http://localhost:4200", "http://localhost:55054")
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
