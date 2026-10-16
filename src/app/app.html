@@ -1,4 +1,4 @@
-<div class="app-container">
+<div class="app-container" [class.auth-mode]="isLoginRoute()">
   <!-- Sidebar -->
   <aside class="sidebar" [class.open]="isMenuOpen()">
     <div class="sidebar-header">

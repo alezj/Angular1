@@ -19,6 +19,9 @@ export class Usuarios implements OnInit {
   error = signal<string | null>(null);
   mensajeExito = signal<string | null>(null);
   filtroTexto = signal<string>('');
+  usuarioEditando = signal<Profile | null>(null);
+  formularioEdicion = signal({ full_name: '', phone: '' });
+  guardandoEdicion = signal(false);
 
   constructor(
     private readonly supabaseService: SupabaseService,
@@ -72,6 +75,58 @@ export class Usuarios implements OnInit {
 
   conteoPorRol(rol: string): number {
     return this.usuarios().filter((u) => u.role_id === rol).length;
+  }
+
+  abrirEdicion(usuario: Profile): void {
+    this.usuarioEditando.set(usuario);
+    this.formularioEdicion.set({ full_name: usuario.full_name || '', phone: usuario.phone || '' });
+    this.error.set(null);
+  }
+
+  actualizarCampoEdicion(campo: 'full_name' | 'phone', valor: string): void {
+    this.formularioEdicion.update((actual) => ({ ...actual, [campo]: valor }));
+  }
+
+  cerrarEdicion(): void {
+    if (this.guardandoEdicion()) return;
+    this.usuarioEditando.set(null);
+  }
+
+  async guardarEdicion(): Promise<void> {
+    const usuario = this.usuarioEditando();
+    if (!usuario || this.guardandoEdicion()) return;
+
+    const datos = this.formularioEdicion();
+    this.guardandoEdicion.set(true);
+    this.error.set(null);
+    try {
+      const { data, error } = await this.supabaseService.client
+        .from('profiles')
+        .update({
+          full_name: datos.full_name.trim(),
+          phone: datos.phone.trim(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', usuario.id)
+        .select('*, role:roles(*)')
+        .single();
+
+      if (error) throw error;
+
+      const perfilActualizado = data as Profile;
+      this.usuarios.update((lista) => lista.map((actual) => actual.id === usuario.id ? perfilActualizado : actual));
+      if (this.authService.currentProfile()?.id === usuario.id) {
+        this.authService.currentProfile.set(perfilActualizado);
+      }
+      this.usuarioEditando.set(null);
+      this.mensajeExito.set(`Datos de ${perfilActualizado.full_name || perfilActualizado.email} actualizados.`);
+      setTimeout(() => this.mensajeExito.set(null), 3000);
+    } catch (err: any) {
+      this.error.set(err.message || 'No se pudieron guardar los cambios del usuario.');
+    } finally {
+      this.guardandoEdicion.set(false);
+      this.cdr.markForCheck();
+    }
   }
 
   async cambiarRol(usuario: Profile, nuevoRol: string): Promise<void> {

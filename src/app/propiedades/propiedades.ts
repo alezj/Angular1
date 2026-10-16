@@ -15,7 +15,18 @@ export class Propiedades implements OnInit {
   cargando = true;
   error: string | null = null;
   editandoId: number | null = null;
+  formularioAbierto = false;
+  vista: 'tarjetas' | 'tabla' = 'tarjetas';
+  searchTerm = '';
   formulario: Omit<Propiedad, 'id'> = { nombre: '', direccion: '', estado: 1, precioMensual: 0, notas: '' };
+
+  get propiedadesFiltradas(): Propiedad[] {
+    const term = this.searchTerm.toLowerCase().trim();
+    if (!term) return this.propiedades;
+    return this.propiedades.filter((propiedad) =>
+      `${propiedad.nombre} ${propiedad.direccion} ${propiedad.notas}`.toLowerCase().includes(term)
+    );
+  }
 
   constructor(private readonly propiedadesService: PropiedadesService, private readonly cdr: ChangeDetectorRef) {}
 
@@ -42,8 +53,9 @@ export class Propiedades implements OnInit {
     const accion = this.editandoId === null ? this.propiedadesService.crear(this.formulario) : this.propiedadesService.actualizar(this.editandoId, this.formulario);
     accion.subscribe({ next: () => { this.cancelar(); this.ngOnInit(); }, error: () => this.error = 'No se pudo guardar la propiedad.' });
   }
-  editar(propiedad: Propiedad): void { this.editandoId = propiedad.id; this.formulario = { ...propiedad }; }
+  nuevo(): void { this.cancelar(); this.formularioAbierto = true; }
+  editar(propiedad: Propiedad): void { this.editandoId = propiedad.id; this.formulario = { ...propiedad }; this.formularioAbierto = true; }
   eliminar(id: number): void { if (confirm('¿Eliminar esta propiedad?')) this.propiedadesService.eliminar(id).subscribe({ next: () => this.ngOnInit(), error: () => this.error = 'No se pudo eliminar la propiedad.' }); }
-  cancelar(): void { this.editandoId = null; this.formulario = { nombre: '', direccion: '', estado: 1, precioMensual: 0, notas: '' }; }
+  cancelar(): void { this.editandoId = null; this.formularioAbierto = false; this.formulario = { nombre: '', direccion: '', estado: 1, precioMensual: 0, notas: '' }; }
   nombreEstado(id: number): string { return this.estados.find(e => e.id === id)?.nombre ?? `Sin definir (${id})`; }
 }

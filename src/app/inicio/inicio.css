@@ -1,106 +1,171 @@
 .inicio-page {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.35rem;
+  width: 100%;
 }
 
 .hero {
-  padding: 1.25rem;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(8, 117, 225, 0.12), rgba(17, 201, 189, 0.14));
-  border: 1px solid rgba(8, 117, 225, 0.2);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  padding: 0 0 0.25rem;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .eyebrow {
-  margin: 0 0 0.4rem;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-size: 0.78rem;
-  color: #0875e1;
+  margin: 0 0 0.35rem;
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .hero h2 {
-  margin: 0 0 0.4rem;
-  font-size: 1.6rem;
-  color: #111827;
+  margin: 0 0 0.35rem;
+  color: var(--text-main);
+  font-size: 1.75rem;
+  line-height: 1.2;
 }
 
 .hero-text {
   margin: 0;
-  color: #475569;
+  color: var(--text-muted);
 }
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
 .summary-card {
-  padding: 1rem;
-  border-radius: 14px;
+  position: relative;
+  display: flex;
+  min-height: 142px;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 1.2rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 2px 5px rgba(21, 35, 56, 0.03);
 }
 
 .summary-label {
   display: block;
-  color: #475569;
+  max-width: calc(100% - 3rem);
+  color: var(--text-muted);
   font-size: 0.9rem;
-  margin-bottom: 0.45rem;
 }
 
 .summary-value {
-  font-size: 1.7rem;
-  color: #0f172a;
+  color: var(--text-main);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.summary-icon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: grid;
+  width: 2.5rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 10px;
+  background: #e8f4fb;
+  color: #0786c9;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.summary-icon[data-tone='green'] {
+  background: #e7f6ef;
+  color: #15966a;
+}
+
+.summary-icon[data-tone='amber'] {
+  background: #fff2df;
+  color: #d77a0c;
+}
+
+.summary-icon[data-tone='rose'] {
+  background: #fce9ed;
+  color: #d84d70;
 }
 
 .status {
   margin: 0;
-  color: #334155;
+  color: var(--text-muted);
 }
 
 .status.error {
-  color: #b91c1c;
+  color: #b9423b;
+}
+
+.dashboard-section-heading h3 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1.05rem;
 }
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
 }
 
 .dashboard-card {
-  display: block;
-  padding: 1rem;
-  border-radius: 14px;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1.1rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #0f172a;
+  color: var(--text-main);
   text-decoration: none;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .dashboard-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(8, 117, 225, 0.5);
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+  border-color: rgba(var(--primary-rgb), 0.45);
+  box-shadow: var(--shadow-soft);
 }
 
 .dashboard-card h3 {
   margin: 0 0 0.4rem;
-  color: #111827;
+  font-size: 1rem;
 }
 
 .dashboard-card p {
-  margin: 0 0 0.8rem;
-  color: #475569;
+  flex: 1;
+  margin: 0 0 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
 }
 
 .dashboard-card span {
-  font-weight: 600;
-  color: #0875e1;
+  color: var(--primary);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .summary-grid,
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card {
+    min-height: 120px;
+  }
 }

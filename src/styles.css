@@ -1,44 +1,84 @@
-/* Global filter and form controls styling */
+:root {
+  --primary: #0786c9;
+  --primary-rgb: 7, 134, 201;
+  --primary-hover: #0672ad;
+  --secondary: #13a77a;
+  --accent: #ed8b19;
+  --bg-app: #f6f8fb;
+  --bg-sidebar: #111b2e;
+  --bg-card: #ffffff;
+  --text-main: #172236;
+  --text-muted: #718096;
+  --border-light: #e1e7ef;
+  --border-focus: rgba(7, 134, 201, 0.4);
+  --surface-muted: #f5f7fa;
+  --shadow-soft: 0 8px 24px rgba(21, 35, 56, 0.06);
+  --font-sans: 'Aptos', 'Segoe UI', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--bg-app);
+  color: var(--text-main);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* Shared filter, form, and table controls */
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .filter-input,
 .filter-select,
 .filter-button {
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background-color: rgb(252, 252, 252);
-  color: #0f172a;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  font: inherit;
+  min-height: 40px;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border-light);
+  border-radius: 7px;
+  background: #ffffff;
+  color: var(--text-main);
+  box-shadow: 0 1px 2px rgba(28, 57, 47, 0.04);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
 
 .filter-input:focus,
-.filter-select:focus {
+.filter-select:focus,
+.filter-input:focus-visible,
+.filter-select:focus-visible {
   outline: none;
-  border-color: rgba(8, 117, 225, 0.8);
-  box-shadow: 0 0 0 4px rgba(8, 117, 225, 0.16);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.14);
 }
 
 .filter-button {
   cursor: pointer;
-  border: 1px solid transparent;
-  background: linear-gradient(135deg, rgba(8, 117, 225, 0.95), rgba(17, 201, 189, 0.95));
+  border-color: var(--primary);
+  background: var(--primary);
   color: #ffffff;
-  min-width: 120px;
+  font-weight: 650;
 }
 
 .filter-button.secondary {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.12);
-  color: #0875e1;
+  background: #ffffff;
+  border-color: var(--border-light);
+  color: var(--text-main);
 }
 
 .filter-button.delete-button {
@@ -48,10 +88,10 @@
   min-width: 92px;
   height: 2.5rem;
   line-height: 1;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: #ffff00;
-  border: 1px solid #fca5a5;
-  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25);
+  background: #b9423b;
+  color: #ffffff;
+  border: 1px solid #b9423b;
+  box-shadow: none;
   white-space: nowrap;
 }
 
@@ -63,15 +103,209 @@
   justify-content: flex-start;
 }
 
+.icon-action {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #27364b;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.icon-action:hover {
+  border-color: var(--border-light);
+  background: var(--surface-muted);
+}
+
+.icon-action.danger {
+  color: #c43f43;
+}
+
+.icon-action.danger:hover {
+  border-color: #f3d0d0;
+  background: #fff5f4;
+}
+
+.icon-action svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.tenant-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.tenant-modal-header h2 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1.25rem;
+}
+
+.tenant-modal-header p {
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.tenant-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  padding-top: 0.4rem;
+}
+
 .filter-button:hover,
 .filter-input:hover,
 .filter-select:hover {
-  transform: translateY(-1px);
+  border-color: #afbdcb;
+}
+
+.filter-button:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.filter-button.secondary:hover {
+  background: var(--surface-muted);
+  color: var(--text-main);
+}
+
+.filter-button.delete-button:hover {
+  background: #9f3732;
+  border-color: #9f3732;
 }
 
 .filter-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--text-main);
+}
+
+th,
+td {
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid var(--border-light);
+  text-align: left;
+}
+
+th {
+  background: var(--surface-muted);
+  color: #59677d;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+tr:hover td {
+  background: #fafcfb;
+}
+
+.propiedades,
+.inquilinos,
+.alquileres,
+.pagos,
+.mantenimientos {
+  display: grid;
+  width: 100%;
+  align-content: start;
+  gap: 1rem;
+}
+
+.propiedades > h2,
+.inquilinos > h2,
+.alquileres > h2,
+.pagos > h2,
+.mantenimientos > h2 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1.45rem;
+  line-height: 1.25;
+}
+
+.module-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.module-heading h2 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1.45rem;
+  line-height: 1.25;
+}
+
+.module-heading p {
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.formulario {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+  align-items: end;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.formulario .filter-input,
+.formulario .filter-select,
+.formulario .filter-button {
+  width: 100%;
+  min-width: 0;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.table-wrapper table {
+  min-width: 680px;
+}
+
+.table-wrapper th {
+  white-space: nowrap;
+}
+
+.action-buttons .filter-button {
+  width: auto;
+}
+
+.propiedades .error,
+.inquilinos .error,
+.alquileres .error,
+.pagos .error,
+.mantenimientos .error {
+  margin: 0;
+  color: #b9423b;
 }
 
 @media (max-width: 768px) {

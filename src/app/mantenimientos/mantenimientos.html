@@ -1,45 +1,66 @@
 <section class="mantenimientos">
-  <h2>Mantenimientos</h2>
-  <form (ngSubmit)="guardar()" class="formulario">
-    <input class="filter-input" [(ngModel)]="formulario.propiedadID" name="propiedad" type="number" placeholder="ID propiedad" required>
-    <input class="filter-input" [(ngModel)]="formulario.descripcion" name="descripcion" placeholder="Descripción" required>
-    <input class="filter-input" [(ngModel)]="formulario.fecha" name="fecha" type="date" required>
-    <input class="filter-input" [(ngModel)]="formulario.costo" name="costo" type="number" min="0" placeholder="Costo" required>
-    <select class="filter-select" [(ngModel)]="formulario.estado" name="estado"><option *ngFor="let estado of estados" [ngValue]="estado.id">{{ estado.nombre }}</option></select>
-    <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button>
-    <button class="filter-button secondary" *ngIf="editandoId !== null" type="button" (click)="cancelar()">Cancelar</button>
-  </form>
+  <header class="module-heading maintenance-heading">
+    <div>
+      <h2>Mantenimientos</h2>
+      <p>Solicitudes de reparación organizadas por estado.</p>
+    </div>
+    <button class="filter-button" type="button" (click)="nuevo()">+ Nueva solicitud</button>
+  </header>
 
   <p *ngIf="cargando">Cargando mantenimientos...</p>
   <p *ngIf="error" class="error">{{ error }}</p>
 
-  <div class="table-wrapper" *ngIf="!cargando && !error">
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>ID de propiedad</th>
-          <th>Descripción</th>
-          <th>Fecha</th>
-          <th>Costo</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let mantenimiento of mantenimientos">
-          <td>{{ mantenimiento.id }}</td>
-          <td>{{ mantenimiento.propiedadID }}</td>
-          <td>{{ mantenimiento.descripcion }}</td>
-          <td>{{ mantenimiento.fecha | date: 'dd/MM/yyyy' }}</td>
-          <td>{{ mantenimiento.costo | number: '1.2-2' }}</td>
-          <td>{{ nombreEstado(mantenimiento.estado) }}</td>
-          <td><div class="action-buttons"><button class="filter-button" (click)="editar(mantenimiento)">Editar</button> <button class="filter-button secondary delete-button" (click)="eliminar(mantenimiento.id)">Eliminar</button></div></td>
-        </tr>
-        <tr *ngIf="mantenimientos.length === 0">
-          <td colspan="7">No hay mantenimientos registrados.</td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="maintenance-board" *ngIf="!cargando && !error">
+    <section class="maintenance-column" *ngFor="let estado of estados" [attr.data-state]="estado.id" [attr.aria-label]="estado.nombre">
+      <header class="maintenance-column-header">
+        <h3>{{ estado.nombre }}</h3>
+        <span>{{ solicitudesPorEstado(estado.id).length }}</span>
+      </header>
+      <div class="maintenance-column-content">
+        <article class="maintenance-ticket" *ngFor="let mantenimiento of solicitudesPorEstado(estado.id)">
+          <header class="ticket-header">
+            <span>#{{ mantenimiento.id }}</span>
+            <div class="action-buttons">
+              <button class="icon-action" type="button" title="Editar" [attr.aria-label]="'Editar solicitud ' + mantenimiento.id" (click)="editar(mantenimiento)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
+              </button>
+              <button class="icon-action danger" type="button" title="Eliminar" [attr.aria-label]="'Eliminar solicitud ' + mantenimiento.id" (click)="eliminar(mantenimiento.id)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6" /></svg>
+              </button>
+            </div>
+          </header>
+          <h4>{{ mantenimiento.descripcion }}</h4>
+          <p class="ticket-property">Propiedad #{{ mantenimiento.propiedadID }}</p>
+          <footer class="ticket-footer">
+            <span>{{ mantenimiento.fecha | date: 'dd/MM/yyyy' }}</span>
+            <strong>RD$ {{ mantenimiento.costo | number: '1.2-2' }}</strong>
+          </footer>
+        </article>
+        <p class="column-empty" *ngIf="solicitudesPorEstado(estado.id).length === 0">Sin solicitudes</p>
+      </div>
+    </section>
   </div>
 </section>
+
+<div class="maintenance-modal-backdrop" *ngIf="formularioAbierto" (click)="cancelar()">
+  <section class="maintenance-modal" role="dialog" aria-modal="true" aria-labelledby="maintenance-modal-title" (click)="$event.stopPropagation()">
+    <header class="tenant-modal-header">
+      <div>
+        <h2 id="maintenance-modal-title">{{ editandoId === null ? 'Nueva solicitud' : 'Editar solicitud' }}</h2>
+        <p>Registra el trabajo y su estado de seguimiento.</p>
+      </div>
+      <button class="icon-action" type="button" aria-label="Cerrar" title="Cerrar" (click)="cancelar()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12" /></svg></button>
+    </header>
+    <form (ngSubmit)="guardar()" class="maintenance-form">
+      <label><span>ID de propiedad</span><input class="filter-input" [(ngModel)]="formulario.propiedadID" name="propiedad" type="number" min="1" required></label>
+      <label><span>Fecha</span><input class="filter-input" [(ngModel)]="formulario.fecha" name="fecha" type="date" required></label>
+      <label class="maintenance-description"><span>Descripción</span><input class="filter-input" [(ngModel)]="formulario.descripcion" name="descripcion" required></label>
+      <label><span>Costo (RD$)</span><input class="filter-input" [(ngModel)]="formulario.costo" name="costo" type="number" min="0" required></label>
+      <label><span>Estado</span><select class="filter-select" [(ngModel)]="formulario.estado" name="estado"><option *ngFor="let estado of estados" [ngValue]="estado.id">{{ estado.nombre }}</option></select></label>
+      <footer class="tenant-form-actions">
+        <button class="filter-button secondary" type="button" (click)="cancelar()">Cancelar</button>
+        <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear solicitud' : 'Guardar cambios' }}</button>
+      </footer>
+    </form>
+  </section>
+</div>

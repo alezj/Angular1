@@ -1,45 +1,186 @@
-.pagos h2 {
-  margin-top: 0;
+.payments-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
 }
 
-.table-wrapper {
+.payment-metric {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.payment-metric-icon,
+.empty-payment-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 9px;
+  background: #e8f4fb;
+  color: var(--primary);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.payment-metric-icon.total {
+  background: #e7f6ef;
+  color: #19724d;
+  font-size: 0.8rem;
+}
+
+.payment-metric > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.25rem;
+}
+
+.payment-metric span:not(.payment-metric-icon) {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.payment-metric strong {
+  overflow-wrap: anywhere;
+  color: var(--text-main);
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.payments-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.65rem;
+  padding: clamp(2rem, 7vw, 4rem) 1.25rem;
+  border: 1px dashed #cbd6e2;
+  border-radius: 8px;
+  background: #ffffff;
+  text-align: center;
+}
+
+.empty-payment-icon {
+  width: 52px;
+  height: 52px;
+  font-size: 0.85rem;
+}
+
+.payments-empty h3 {
+  margin: 0.25rem 0 0;
+  color: var(--text-main);
+  font-size: 1.05rem;
+}
+
+.payments-empty p {
+  max-width: 440px;
+  margin: 0 0 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.payment-modal-backdrop {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 1.25rem;
+  background: rgba(13, 24, 42, 0.52);
+  backdrop-filter: blur(3px);
+}
+
+.pagos .table-wrapper {
   overflow-x: auto;
 }
 
-table {
+.pagos table {
+  min-width: 740px;
+}
+
+.pagos .action-buttons {
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+}
+
+.pagos .icon-action {
+  border-color: var(--border-light);
+  background: #ffffff;
+}
+
+.pagos .icon-action svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.pagos .icon-action:hover {
+  background: var(--surface-muted);
+}
+
+.pagos .icon-action.danger:hover {
+  background: #fff5f4;
+}
+
+.payment-modal {
+  width: min(100%, 540px);
+  max-height: min(90vh, 720px);
+  overflow-y: auto;
+  padding: 1.5rem;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 24px 64px rgba(15, 28, 48, 0.24);
+}
+
+.payment-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.payment-form label {
+  display: grid;
+  min-width: 0;
+  gap: 0.4rem;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.payment-form .filter-input,
+.payment-form .filter-select {
   width: 100%;
-  border-collapse: collapse;
+  min-width: 0;
 }
 
-th,
-td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-th {
-  color: #374151;
-  background: #f9fafb;
-}
-
-.error {
-  color: #b91c1c;
+.payment-form .tenant-form-actions {
+  margin-top: 0.25rem;
 }
 
 .invoice-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 220;
   display: grid;
   place-items: center;
-  padding: 1rem;
+  overflow-y: auto;
+  padding: clamp(0.35rem, 2.5vw, 1rem);
   background: rgba(15, 23, 42, 0.52);
 }
 
 .invoice-preview {
   width: min(100%, 720px);
-  max-height: 92vh;
+  max-height: calc(100dvh - 2rem);
   overflow: auto;
   border-radius: 10px;
   background: #ffffff;
@@ -48,6 +189,7 @@ th {
 
 .invoice-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.6rem;
   padding: 1rem 1rem 0;
@@ -76,9 +218,9 @@ th {
 }
 
 .invoice-document {
-  margin: 1rem;
+  margin: clamp(0.5rem, 2.5vw, 1rem);
   border: 1px solid #e2e8f0;
-  padding: 2rem;
+  padding: clamp(1rem, 4vw, 2rem);
   color: #1e293b;
 }
 
@@ -86,7 +228,7 @@ th {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  border-bottom: 2px solid #be185d;
+  border-bottom: 2px solid var(--primary);
   padding-bottom: 1.25rem;
 }
 
@@ -97,7 +239,7 @@ th {
 
 .invoice-eyebrow {
   margin: 0 0 0.35rem;
-  color: #be185d;
+  color: var(--primary);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -118,8 +260,10 @@ th {
 
 .invoice-recipient {
   display: grid;
+  min-width: 0;
   gap: 0.25rem;
   margin: 1.5rem 0;
+  overflow-wrap: anywhere;
 }
 
 .invoice-recipient span:first-child {
@@ -130,6 +274,7 @@ th {
 .invoice-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .invoice-table th,
@@ -189,8 +334,98 @@ th {
 }
 
 @media (max-width: 600px) {
+  .payments-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .pagos table,
+  .pagos tbody,
+  .pagos tr,
+  .pagos td {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pagos thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+
+  .pagos tbody tr:not(:last-child) {
+    margin-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .pagos tbody tr td[data-label] {
+    display: grid;
+    grid-template-columns: minmax(96px, 34%) minmax(0, 1fr);
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.8rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .pagos tbody tr td[data-label]::before {
+    color: var(--text-muted);
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .pagos tbody tr td[data-label='Acciones'] .action-buttons {
+    justify-content: flex-start;
+  }
+
+  .pagos tbody tr td[colspan] {
+    display: block;
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .invoice-backdrop {
+    place-items: start center;
+    padding: 0.35rem;
+  }
+
+  .invoice-preview {
+    width: 100%;
+    max-height: calc(100dvh - 0.7rem);
+    border-radius: 8px;
+  }
+
   .invoice-actions,
   .share-form-row {
     flex-direction: column;
+  }
+
+  .invoice-actions .filter-button,
+  .share-form-row .filter-button {
+    width: 100%;
+  }
+
+  .invoice-header {
+    flex-wrap: wrap;
+  }
+
+  .invoice-number {
+    justify-items: start;
+  }
+
+  .invoice-table th,
+  .invoice-table td {
+    padding: 0.7rem 0;
+    overflow-wrap: anywhere;
+  }
+
+  .invoice-table th:first-child,
+  .invoice-table td:first-child {
+    width: 62%;
   }
 }

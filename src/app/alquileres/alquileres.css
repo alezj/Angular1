@@ -1,28 +1,239 @@
-.alquileres h2 {
-  margin-top: 0;
-}
-
 .table-wrapper {
   overflow-x: auto;
 }
 
-table {
+.alquileres {
+  display: grid;
+  gap: 1rem;
+}
+
+.module-heading > .filter-button {
+  width: auto;
+  white-space: nowrap;
+}
+
+.contract-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.contract-metric {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.9rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.metric-mark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.metric-mark.all {
+  background: #e8f4fb;
+  color: #176d9a;
+}
+
+.metric-mark.active {
+  background: #e7f6ef;
+}
+
+.metric-mark.upcoming {
+  background: #fff1dc;
+}
+
+.metric-mark.ended {
+  background: #edf0f4;
+}
+
+.metric-mark > span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #19724d;
+}
+
+.metric-mark.upcoming > span {
+  background: #aa6818;
+}
+
+.metric-mark.ended > span {
+  background: #657184;
+}
+
+.contract-metric > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.contract-metric > div span {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+.contract-metric strong {
+  color: var(--text-main);
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.contract-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 0.65rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.contract-toolbar .filter-input {
+  width: min(100%, 480px);
+}
+
+.alquileres table {
+  min-width: 800px;
+}
+
+.alquileres th,
+.alquileres td {
+  white-space: nowrap;
+}
+
+.contract-id {
+  color: var(--text-main);
+}
+
+.reference-value {
+  display: inline-flex;
+  min-width: 30px;
+  justify-content: center;
+  padding: 0.2rem 0.45rem;
+  border-radius: 5px;
+  background: #f0f4f7;
+  color: #3f5265;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.contract-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: #e7f6ef;
+  color: #19724d;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.contract-status::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  content: '';
+}
+
+.contract-status[data-status='Próximo'] {
+  background: #fff1dc;
+  color: #9c5b12;
+}
+
+.contract-status[data-status='Finalizado'] {
+  background: #edf0f4;
+  color: #5f6b7b;
+}
+
+.contract-empty {
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.contract-modal-backdrop {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 1.25rem;
+  background: rgba(13, 24, 42, 0.52);
+  backdrop-filter: blur(3px);
+}
+
+.contract-modal {
+  width: min(100%, 600px);
+  max-height: min(90vh, 760px);
+  overflow-y: auto;
+  padding: 1.5rem;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 24px 64px rgba(15, 28, 48, 0.24);
+}
+
+.contract-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.contract-form label {
+  display: grid;
+  min-width: 0;
+  gap: 0.4rem;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.contract-form .filter-input {
   width: 100%;
-  border-collapse: collapse;
+  min-width: 0;
 }
 
-th,
-td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+.contract-form .tenant-form-actions {
+  margin-top: 0.25rem;
 }
 
-th {
-  color: #374151;
-  background: #f9fafb;
+@media (max-width: 780px) {
+  .contract-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-.error {
-  color: #b91c1c;
+@media (max-width: 560px) {
+  .module-heading > .filter-button {
+    width: 100%;
+  }
+
+  .contract-modal {
+    padding: 1.1rem;
+  }
+
+  .contract-form {
+    grid-template-columns: 1fr;
+  }
+
+  .contract-form .tenant-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .contract-form .tenant-form-actions .filter-button {
+    width: 100%;
+  }
 }

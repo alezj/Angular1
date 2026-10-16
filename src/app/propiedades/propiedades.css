@@ -1,43 +1,298 @@
-.propiedades h2 {
-  margin-top: 0;
-}
-
 .table-wrapper {
   overflow-x: auto;
 }
-.formulario { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .5rem; margin-bottom: 1rem; }
-.formulario input,
-.formulario select {
-  padding: .65rem .75rem;
-  border-radius:10px;
-  border:1px solid #dbe3ee;
+
+.properties-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
   background: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
-.formulario button { padding: .55rem; border-radius:8px; background: linear-gradient(90deg,#ef6, #f9c); border: none; cursor:pointer; }
 
-table {
+.properties-toolbar > .filter-input {
+  width: min(100%, 420px);
+}
+
+.view-switch {
+  display: flex;
+  gap: 0.2rem;
+  margin-left: auto;
+  padding: 0.2rem;
+  border: 1px solid var(--border-light);
+  border-radius: 7px;
+  background: #ffffff;
+}
+
+.view-switch button {
+  display: grid;
+  width: 32px;
+  height: 30px;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.view-switch button.active {
+  background: #e8f4fb;
+  color: var(--primary);
+}
+
+.view-switch svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.property-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 1rem;
+}
+
+.property-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  border-radius: 9px;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(17, 35, 58, 0.035);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.property-card:hover {
+  transform: translateY(-2px);
+  border-color: #c4d7e5;
+  box-shadow: 0 10px 24px rgba(17, 35, 58, 0.08);
+}
+
+.property-cover {
+  position: relative;
+  display: grid;
+  min-height: 132px;
+  place-items: center;
+  overflow: hidden;
+  background:
+    linear-gradient(115deg, rgba(13, 65, 105, 0.08) 0 1px, transparent 1px 100%),
+    linear-gradient(25deg, #e8f1f6, #dbe9f2 58%, #edf3f5);
+  background-size: 28px 28px, auto;
+}
+
+.property-building {
+  width: 64px;
+  height: 64px;
+  fill: none;
+  stroke: #5d8098;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.property-state,
+.property-reference {
+  position: absolute;
+  top: 0.75rem;
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--text-main);
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.property-state {
+  left: 0.75rem;
+}
+
+.property-state[data-state='1'] {
+  background: #e2f6eb;
+  color: #19724d;
+}
+
+.property-state[data-state='2'] {
+  background: #e5f2f9;
+  color: #176d9a;
+}
+
+.property-state[data-state='3'] {
+  background: #fff1dc;
+  color: #9c5b12;
+}
+
+.property-state[data-state='4'] {
+  background: #edf0f4;
+  color: #5f6b7b;
+}
+
+.property-reference {
+  right: 0.75rem;
+  background: #27364b;
+  color: #ffffff;
+}
+
+.property-content {
+  padding: 1rem;
+}
+
+.property-kind {
+  margin: 0 0 0.35rem;
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.property-content h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--text-main);
+  font-size: 1.05rem;
+}
+
+.property-address {
+  margin: 0.45rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+.property-notes {
+  margin: 0.55rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.property-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.property-footer > div:first-child {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.property-footer strong {
+  color: var(--text-main);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.property-footer span {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.property-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 2rem;
+  border: 1px dashed #cbd6e2;
+  border-radius: 8px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.property-modal-backdrop {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 1.25rem;
+  background: rgba(13, 24, 42, 0.52);
+  backdrop-filter: blur(3px);
+}
+
+.property-modal {
+  width: min(100%, 620px);
+  max-height: min(90vh, 760px);
+  overflow-y: auto;
+  padding: 1.5rem;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 24px 64px rgba(15, 28, 48, 0.24);
+}
+
+.property-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.property-form label {
+  display: grid;
+  min-width: 0;
+  gap: 0.4rem;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.property-form .filter-input,
+.property-form .filter-select {
   width: 100%;
-  border-collapse: collapse;
+  min-width: 0;
 }
 
-th,
-td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #e5e7eb;
-  color: #0f172a;
+.property-notes-field,
+.property-form .tenant-form-actions {
+  grid-column: 1 / -1;
 }
 
-th {
-  color: #374151;
-  background: #f9fafb;
+.property-form textarea {
+  resize: vertical;
 }
 
-.error {
-  color: #b91c1c;
+@media (max-width: 760px) {
+  .property-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.filter-bar { margin-bottom: 0.75rem; }
+@media (max-width: 560px) {
+  .properties-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .properties-toolbar > .filter-input {
+    width: 100%;
+  }
+
+  .view-switch {
+    align-self: flex-end;
+    margin-left: 0;
+  }
+
+  .property-form {
+    grid-template-columns: 1fr;
+  }
+
+  .property-notes-field,
+  .property-form .tenant-form-actions {
+    grid-column: auto;
+  }
+}
 

@@ -1,26 +1,31 @@
 <section class="pagos no-print">
-  <h2>Pagos</h2>
-  <form (ngSubmit)="guardar()" class="formulario">
-    <select class="filter-select" [(ngModel)]="formulario.idInquilino" name="inquilino" required>
-      <option value="" disabled>Seleccionar inquilino</option>
-      <option *ngFor="let inquilino of inquilinos" [ngValue]="inquilino.id">
-        {{ inquilino.id }} - {{ inquilino.nombreApellido }}
-      </option>
-    </select>
-    <input class="filter-input" [(ngModel)]="formulario.fechaPago" name="fecha" type="date" required>
-    <input class="filter-input" [(ngModel)]="formulario.monto" name="monto" type="number" min="0" placeholder="Monto" required>
-    <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear' : 'Guardar' }}</button>
-    <button class="filter-button secondary" *ngIf="editandoId !== null" type="button" (click)="cancelar()">Cancelar</button>
-  </form>
+  <header class="module-heading">
+    <div>
+      <h2>Pagos de Renta</h2>
+      <p>Historial de cobros y comprobantes de pago.</p>
+    </div>
+    <button class="filter-button" type="button" (click)="nuevo()">+ Nuevo pago</button>
+  </header>
+
+  <div class="payments-summary">
+    <article class="payment-metric">
+      <span class="payment-metric-icon">$</span>
+      <div><span>Pagos registrados</span><strong>{{ pagos.length }}</strong></div>
+    </article>
+    <article class="payment-metric">
+      <span class="payment-metric-icon total">RD$</span>
+      <div><span>Total registrado</span><strong>RD$ {{ montoTotalRegistrado | number: '1.2-2' }}</strong></div>
+    </article>
+  </div>
 
   <div class="filter-bar">
-    <input class="filter-input" [(ngModel)]="searchTerm" name="search" placeholder="Buscar pagos..." />
+    <input class="filter-input" [(ngModel)]="searchTerm" name="search" placeholder="Buscar por inquilino, fecha o monto..." aria-label="Buscar pagos" />
   </div>
 
   <p *ngIf="cargando">Cargando pagos...</p>
   <p *ngIf="error" class="error">{{ error }}</p>
 
-  <div class="table-wrapper" *ngIf="!cargando && !error">
+  <div class="table-wrapper" *ngIf="!cargando && !error && pagos.length > 0">
     <table>
       <thead>
         <tr>
@@ -32,26 +37,60 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let pago of pagos">
-          <td>{{ pago.id }}</td>
-          <td>{{ pago.idInquilino || '-' }} - {{ getNombreInquilino(pago.idInquilino) }}</td>
-          <td>{{ pago.fechaPago ? (pago.fechaPago | date: 'dd/MM/yyyy') : '-' }}</td>
-          <td>{{ pago.monto === '' ? '-' : (pago.monto | number: '1.2-2') }}</td>
-          <td>
+        <tr *ngFor="let pago of filteredPagos">
+          <td data-label="ID">{{ pago.id }}</td>
+          <td data-label="Inquilino">{{ pago.idInquilino || '-' }} - {{ getNombreInquilino(pago.idInquilino) }}</td>
+          <td data-label="Fecha de pago">{{ pago.fechaPago ? (pago.fechaPago | date: 'dd/MM/yyyy') : '-' }}</td>
+          <td data-label="Monto">{{ pago.monto === '' ? '-' : (pago.monto | number: '1.2-2') }}</td>
+          <td data-label="Acciones">
             <div class="action-buttons">
-              <button class="filter-button" type="button" (click)="generarFactura(pago)">Factura</button>
-              <button class="filter-button" type="button" (click)="editar(pago)">Editar</button>
-              <button class="filter-button secondary delete-button" type="button" (click)="eliminar(pago.id)">Eliminar</button>
+              <button class="icon-action" type="button" title="Ver factura" [attr.aria-label]="'Ver factura del pago ' + pago.id" (click)="generarFactura(pago)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h8" /></svg>
+              </button>
+              <button class="icon-action" type="button" title="Editar pago" [attr.aria-label]="'Editar pago ' + pago.id" (click)="editar(pago)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
+              </button>
+              <button class="icon-action danger" type="button" title="Eliminar pago" [attr.aria-label]="'Eliminar pago ' + pago.id" (click)="eliminar(pago.id)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6" /></svg>
+              </button>
             </div>
           </td>
         </tr>
-        <tr *ngIf="pagos.length === 0">
-          <td colspan="5">No hay pagos registrados.</td>
+        <tr *ngIf="filteredPagos.length === 0">
+          <td colspan="5">No se encontraron pagos.</td>
         </tr>
       </tbody>
     </table>
   </div>
+
+  <div class="payments-empty" *ngIf="!cargando && !error && pagos.length === 0">
+    <span class="empty-payment-icon" aria-hidden="true">RD$</span>
+    <h3>Aún no hay pagos registrados</h3>
+    <p>Cuando registres un pago, aparecerá aquí el historial de cobros y sus comprobantes.</p>
+    <button class="filter-button" type="button" (click)="nuevo()">Registrar primer pago</button>
+  </div>
 </section>
+
+<div class="payment-modal-backdrop no-print" *ngIf="formularioAbierto" (click)="cancelar()">
+  <section class="payment-modal" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title" (click)="$event.stopPropagation()">
+    <header class="tenant-modal-header">
+      <div>
+        <h2 id="payment-modal-title">{{ editandoId === null ? 'Nuevo pago' : 'Editar pago' }}</h2>
+        <p>Asocia el pago con un inquilino y registra fecha e importe.</p>
+      </div>
+      <button class="icon-action" type="button" aria-label="Cerrar" title="Cerrar" (click)="cancelar()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12" /></svg></button>
+    </header>
+    <form (ngSubmit)="guardar()" class="payment-form">
+      <label><span>Inquilino</span><select class="filter-select" [(ngModel)]="formulario.idInquilino" name="inquilino" required><option value="" disabled>Seleccionar inquilino</option><option *ngFor="let inquilino of inquilinos" [ngValue]="inquilino.id">{{ inquilino.nombreApellido }}</option></select></label>
+      <label><span>Fecha de pago</span><input class="filter-input" [(ngModel)]="formulario.fechaPago" name="fecha" type="date" required></label>
+      <label><span>Monto (RD$)</span><input class="filter-input" [(ngModel)]="formulario.monto" name="monto" type="number" min="0" required></label>
+      <footer class="tenant-form-actions">
+        <button class="filter-button secondary" type="button" (click)="cancelar()">Cancelar</button>
+        <button class="filter-button" type="submit">{{ editandoId === null ? 'Registrar pago' : 'Guardar cambios' }}</button>
+      </footer>
+    </form>
+  </section>
+</div>
 
 <div class="invoice-backdrop" *ngIf="facturaPago" (click)="cerrarFactura()">
   <article class="invoice-preview" (click)="$event.stopPropagation()">

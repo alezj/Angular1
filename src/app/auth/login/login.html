@@ -1,12 +1,36 @@
 <div class="auth-viewport">
+  <aside class="auth-story">
+    <div class="auth-brand">
+      <span class="auth-brand-icon">🏢</span>
+      <span>Nexus CRM</span>
+    </div>
+    <div class="auth-story-copy">
+      <p class="story-eyebrow">CRM inmobiliario</p>
+      <h2>Propiedades, inquilinos y rentas en un solo lugar.</h2>
+      <p>Controla contratos, cobros y mantenimientos desde un solo panel de gestión.</p>
+    </div>
+    <div class="auth-features" aria-label="Módulos del CRM">
+      <div class="feature-item">
+        <strong>Contratos</strong>
+        <span>Alertas de vencimiento</span>
+      </div>
+      <div class="feature-item">
+        <strong>Cobros</strong>
+        <span>Pagos y seguimiento</span>
+      </div>
+      <div class="feature-item">
+        <strong>Mantenimiento</strong>
+        <span>Solicitudes por propiedad</span>
+      </div>
+    </div>
+  </aside>
+
+  <section class="auth-panel">
   <div class="auth-card">
     <div class="auth-header">
-      <div class="brand-logo">
-        <span class="logo-icon">🏢</span>
-        <div class="logo-text">
-          <h1>Nexus CRM</h1>
-          <p class="subtitle">Gestión Inmobiliaria Inteligente</p>
-        </div>
+      <div class="auth-intro">
+        <h1>{{ isRegistro ? 'Crear cuenta' : 'Iniciar sesión' }}</h1>
+        <p>{{ isRegistro ? 'Completa tus datos para acceder al CRM.' : 'Accede a tu panel de gestión inmobiliaria.' }}</p>
       </div>
 
       <!-- Selector de Modo (Tabs) -->
@@ -154,4 +178,5 @@
       </p>
     </div>
   </div>
+  </section>
 </div>

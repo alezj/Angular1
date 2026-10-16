@@ -70,6 +70,7 @@ export class Inquilinos implements OnInit {
   cargando = signal(true);
   error = signal<string | null>(null);
   editandoId = signal<number | null>(null);
+  formularioAbierto = signal(false);
   searchTerm = signal('');
 
   formulario: Omit<Inquilino, 'id'> = {
@@ -170,6 +171,12 @@ export class Inquilinos implements OnInit {
         x.fechaInicioContrato.substring(0, 10),
       fechaPagos: x.fechaPagos
     };
+    this.formularioAbierto.set(true);
+  }
+
+  nuevo(): void {
+    this.cancelar();
+    this.formularioAbierto.set(true);
   }
 
   eliminar(id: number): void {
@@ -191,6 +198,7 @@ export class Inquilinos implements OnInit {
   cancelar(): void {
 
     this.editandoId.set(null);
+    this.formularioAbierto.set(false);
 
     this.formulario = {
       nombreApellido: '',

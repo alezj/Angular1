@@ -2,13 +2,14 @@
   <div class="hero">
     <div>
       <p class="eyebrow">Panel principal</p>
-      <h2>Bienvenido a Inicio</h2>
-      <p class="hero-text">Aquí se mostrarán los dashboards y los accesos rápidos a las secciones más importantes.</p>
+      <h2>Dashboard</h2>
+      <p class="hero-text">Resumen general de tu cartera y actividad inmobiliaria.</p>
     </div>
   </div>
 
   <div class="summary-grid" *ngIf="!cargando">
     <div class="summary-card" *ngFor="let item of summaryCards">
+      <span class="summary-icon" [attr.data-tone]="item.tone" aria-hidden="true">{{ item.icon }}</span>
       <span class="summary-label">{{ item.label }}</span>
       <strong class="summary-value">{{ item.value }}</strong>
     </div>
@@ -16,6 +17,10 @@
 
   <p class="status" *ngIf="cargando">Cargando resumen...</p>
   <p class="status error" *ngIf="error">{{ error }}</p>
+
+  <div class="dashboard-section-heading">
+    <h3>Accesos rápidos</h3>
+  </div>
 
   <div class="dashboard-grid">
     <a class="dashboard-card" *ngFor="let card of dashboardCards" [routerLink]="card.link">

@@ -15,6 +15,7 @@ export class Mantenimientos implements OnInit {
   cargando = true;
   error: string | null = null;
   editandoId: number | null = null;
+  formularioAbierto = false;
   formulario: Omit<Mantenimiento, 'id'> = { propiedadID: 0, descripcion: '', fecha: '', costo: 0, estado: 1 };
 
   constructor(private readonly mantenimientosService: MantenimientosService, private readonly cdr: ChangeDetectorRef) {}
@@ -38,8 +39,10 @@ export class Mantenimientos implements OnInit {
     });
   }
   guardar(): void { const r = this.editandoId === null ? this.mantenimientosService.crear(this.formulario) : this.mantenimientosService.actualizar(this.editandoId, this.formulario); r.subscribe({ next: () => { this.cancelar(); this.ngOnInit(); }, error: () => this.error = 'No se pudo guardar.' }); }
-  editar(x: Mantenimiento): void { this.editandoId = x.id; this.formulario = { ...x, fecha: x.fecha.substring(0, 10) }; }
+  solicitudesPorEstado(estado: number): Mantenimiento[] { return this.mantenimientos.filter((mantenimiento) => mantenimiento.estado === estado); }
+  nuevo(): void { this.cancelar(); this.formularioAbierto = true; }
+  editar(x: Mantenimiento): void { this.editandoId = x.id; this.formulario = { ...x, fecha: x.fecha.substring(0, 10) }; this.formularioAbierto = true; }
   eliminar(id: number): void { if (confirm('¿Eliminar este mantenimiento?')) this.mantenimientosService.eliminar(id).subscribe({ next: () => this.ngOnInit(), error: () => this.error = 'No se pudo eliminar.' }); }
-  cancelar(): void { this.editandoId = null; this.formulario = { propiedadID: 0, descripcion: '', fecha: '', costo: 0, estado: 1 }; }
+  cancelar(): void { this.editandoId = null; this.formularioAbierto = false; this.formulario = { propiedadID: 0, descripcion: '', fecha: '', costo: 0, estado: 1 }; }
   nombreEstado(id: number): string { return this.estados.find(e => e.id === id)?.nombre ?? `Sin definir (${id})`; }
 }

@@ -260,6 +260,109 @@
   background: #f1f5f9;
 }
 
+.edit-user-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: 0.4rem;
+  color: var(--text-main);
+}
+
+.edit-user-btn svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.user-edit-backdrop {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 1.25rem;
+  background: rgba(13, 24, 42, 0.52);
+  backdrop-filter: blur(3px);
+}
+
+.user-edit-modal {
+  width: min(100%, 520px);
+  max-height: min(90vh, 720px);
+  overflow-y: auto;
+  padding: 1.5rem;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 24px 64px rgba(15, 28, 48, 0.24);
+}
+
+.user-edit-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.user-edit-header h2 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1.25rem;
+}
+
+.user-edit-header p {
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.user-edit-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.user-edit-form .alert {
+  margin: 0;
+}
+
+.user-edit-form label {
+  display: grid;
+  min-width: 0;
+  gap: 0.4rem;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.user-edit-form .filter-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.user-edit-form input[readonly] {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.user-edit-form small {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 400;
+}
+
+.user-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  padding-top: 0.35rem;
+}
+
 .empty-cell {
   text-align: center;
   padding: 2.5rem;
@@ -305,4 +408,76 @@
   background: #fef2f2;
   color: #991b1b;
   border: 1px solid #fecaca;
+}
+
+.usuarios-container {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.header-titles h2 {
+  color: var(--text-main);
+}
+
+.subtitle {
+  color: var(--text-muted);
+}
+
+.metric-card,
+.toolbar-card,
+.table-card {
+  border-color: var(--border-light);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.metric-value,
+.user-name {
+  color: var(--text-main);
+}
+
+.crm-table th {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.crm-table td {
+  border-bottom-color: var(--border-light);
+  color: var(--text-main);
+}
+
+.crm-table tr:hover td {
+  background: #fafbfd;
+}
+
+.avatar-small {
+  background: #e8f4fb;
+  color: var(--primary);
+}
+
+@media (max-width: 700px) {
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .crm-table {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 560px) {
+  .user-edit-modal {
+    padding: 1.1rem;
+  }
+
+  .user-edit-actions {
+    flex-direction: column-reverse;
+  }
+
+  .user-edit-actions .filter-button {
+    width: 100%;
+  }
 }

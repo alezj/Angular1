@@ -30,9 +30,10 @@ export class Inicio implements OnInit {
   ];
 
   summaryCards = [
-    { label: 'Propiedades disponibles', value: '0' },
-    { label: 'Propiedades ocupadas', value: '0' },
-    { label: 'Inquilinos', value: '0' }
+    { label: 'Total propiedades', value: '0', icon: '🏢', tone: 'blue' },
+    { label: 'Disponibles', value: '0', icon: '⌂', tone: 'green' },
+    { label: 'Ocupadas', value: '0', icon: '⚠', tone: 'amber' },
+    { label: 'Inquilinos', value: '0', icon: '♙', tone: 'rose' }
   ];
 
   cargando = true;
@@ -58,13 +59,14 @@ export class Inicio implements OnInit {
         const disponibles = propiedades.filter((propiedad) => propiedad.estado === 1).length;
         const ocupadas = propiedades.filter((propiedad) => propiedad.estado === 2).length;
 
-        this.summaryCards[0].value = String(disponibles);
-        this.summaryCards[1].value = String(ocupadas);
+        this.summaryCards[0].value = String(propiedades.length);
+        this.summaryCards[1].value = String(disponibles);
+        this.summaryCards[2].value = String(ocupadas);
 
         this.inquilinosService.obtenerInquilinos().subscribe({
           next: (respuestaInquilinos) => {
             const inquilinos = respuestaInquilinos?.data ?? [];
-            this.summaryCards[2].value = String(inquilinos.length);
+            this.summaryCards[3].value = String(inquilinos.length);
             this.cargando = false;
             this.cdr.markForCheck();
           },

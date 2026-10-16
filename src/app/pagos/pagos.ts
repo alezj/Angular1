@@ -16,6 +16,7 @@ export class Pagos implements OnInit {
   cargando = true;
   error: string | null = null;
   editandoId: number | null = null;
+  formularioAbierto = false;
   formulario: Omit<Pago, 'id'> = { idInquilino: '', fechaPago: '', monto: '' };
   searchTerm = '';
   inquilinos: Inquilino[] = [];
@@ -33,6 +34,10 @@ export class Pagos implements OnInit {
     return this.pagos.filter((pago) =>
       `${pago.idInquilino} ${pago.fechaPago} ${pago.monto}`.toLowerCase().includes(term)
     );
+  }
+
+  get montoTotalRegistrado(): number {
+    return this.pagos.reduce((total, pago) => total + (Number(pago.monto) || 0), 0);
   }
 
   constructor(
@@ -73,9 +78,10 @@ getNombreInquilino(idInquilino: string | number | null ): string {
   )?.nombreApellido ?? 'No encontrado';
 }
   guardar(): void { const r = this.editandoId === null ? this.pagosService.crear(this.formulario) : this.pagosService.actualizar(this.editandoId, this.formulario); r.subscribe({ next: () => { this.cancelar(); this.ngOnInit(); }, error: () => this.error = 'No se pudo guardar.' }); }
-  editar(x: Pago): void { this.editandoId = x.id; this.formulario = { idInquilino: x.idInquilino, fechaPago: x.fechaPago.substring(0, 10), monto: x.monto }; }
+  nuevo(): void { this.cancelar(); this.formularioAbierto = true; }
+  editar(x: Pago): void { this.editandoId = x.id; this.formulario = { idInquilino: x.idInquilino, fechaPago: x.fechaPago.substring(0, 10), monto: x.monto }; this.formularioAbierto = true; }
   eliminar(id: number): void { if (confirm('¿Eliminar este pago?')) this.pagosService.eliminar(id).subscribe({ next: () => this.ngOnInit(), error: () => this.error = 'No se pudo eliminar.' }); }
-  cancelar(): void { this.editandoId = null; this.formulario = { idInquilino: '', fechaPago: '', monto: '' }; }
+  cancelar(): void { this.editandoId = null; this.formularioAbierto = false; this.formulario = { idInquilino: '', fechaPago: '', monto: '' }; }
 
   generarFactura(pago: Pago): void {
     this.facturaPago = pago;
