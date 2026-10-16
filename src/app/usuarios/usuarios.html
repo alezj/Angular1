@@ -1,0 +1,136 @@
+<div class="usuarios-container">
+  <div class="page-header">
+    <div class="header-titles">
+      <h2>Equipo y Roles del CRM</h2>
+      <p class="subtitle">Administra los usuarios, asigna roles y supervisa los permisos del equipo.</p>
+    </div>
+    <button (click)="cargarDatos()" class="refresh-btn" title="Recargar lista">
+      🔄 Actualizar
+    </button>
+  </div>
+
+  <!-- Métricas Rápidas -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <span class="metric-icon">👥</span>
+      <div class="metric-data">
+        <span class="metric-value">{{ usuarios().length }}</span>
+        <span class="metric-label">Total Usuarios</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <span class="metric-icon">🛡️</span>
+      <div class="metric-data">
+        <span class="metric-value">{{ conteoPorRol('admin') }}</span>
+        <span class="metric-label">Administradores</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <span class="metric-icon">💼</span>
+      <div class="metric-data">
+        <span class="metric-value">{{ conteoPorRol('agente') }}</span>
+        <span class="metric-label">Agentes Inmobiliarios</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <span class="metric-icon">🔧</span>
+      <div class="metric-data">
+        <span class="metric-value">{{ conteoPorRol('mantenimiento') }}</span>
+        <span class="metric-label">Operaciones</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Banners de Alerta -->
+  <div *ngIf="mensajeExito()" class="alert alert-success">{{ mensajeExito() }}</div>
+  <div *ngIf="error()" class="alert alert-danger">{{ error() }}</div>
+
+  <!-- Barra de Filtros -->
+  <div class="toolbar-card">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input
+        type="search"
+        [ngModel]="filtroTexto()"
+        (ngModelChange)="filtroTexto.set($event)"
+        placeholder="Buscar por nombre, correo o rol..."
+        class="search-input"
+      />
+    </div>
+  </div>
+
+  <!-- Spinner de Carga -->
+  <div *ngIf="cargando()" class="loading-state">
+    <span class="spinner-large"></span>
+    <p>Cargando usuarios y roles de Supabase...</p>
+  </div>
+
+  <!-- Tabla de Usuarios -->
+  <div *ngIf="!cargando()" class="table-card">
+    <table class="crm-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Correo Electrónico</th>
+          <th>Teléfono</th>
+          <th>Rol Asignado</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of usuariosFiltrados()">
+          <td>
+            <div class="user-cell">
+              <div class="avatar-small">
+                <span *ngIf="!u.avatar_url">
+                  {{ (u.full_name || u.email).charAt(0).toUpperCase() }}
+                </span>
+                <img *ngIf="u.avatar_url" [src]="u.avatar_url" alt="" class="avatar-small-img" />
+              </div>
+              <div class="user-details">
+                <span class="user-name">{{ u.full_name || 'Sin nombre' }}</span>
+                <span *ngIf="u.id === authService.currentUser()?.id" class="badge-you">(Tú)</span>
+              </div>
+            </div>
+          </td>
+          <td class="email-cell">{{ u.email }}</td>
+          <td>{{ u.phone || '—' }}</td>
+          <td>
+            <select
+              [ngModel]="u.role_id"
+              (ngModelChange)="cambiarRol(u, $event)"
+              class="role-select"
+              [attr.data-role]="u.role_id"
+              [disabled]="u.id === authService.currentUser()?.id"
+              title="Cambiar rol"
+            >
+              <option *ngFor="let r of roles()" [value]="r.id">{{ r.name }}</option>
+            </select>
+          </td>
+          <td>
+            <span class="status-pill" [class.active]="u.is_active" [class.inactive]="!u.is_active">
+              {{ u.is_active ? 'Activo' : 'Suspendido' }}
+            </span>
+          </td>
+          <td>
+            <button
+              *ngIf="u.id !== authService.currentUser()?.id"
+              (click)="toggleEstado(u)"
+              class="action-btn"
+              [title]="u.is_active ? 'Suspender cuenta' : 'Activar cuenta'"
+            >
+              {{ u.is_active ? '⏸️ Desactivar' : '▶️ Activar' }}
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="usuariosFiltrados().length === 0">
+          <td colspan="6" class="empty-cell">
+            No se encontraron usuarios coincidentes con la búsqueda.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

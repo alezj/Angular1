@@ -1,33 +1,39 @@
-import { DatosService } from './datos';
 import { Routes } from '@angular/router';
-import { Pruebas } from './pruebas/pruebas';
-import { SearchComponent } from './search.component/search.component';
-import { Custome } from './custome/custome';
-import { Contar } from './contar/contar';
-import  {Datos } from './datos/datos';
-import { Inquilinos } from './inquilinos/inquilinos';
-import { Pagos } from './pagos/pagos';
-import { Propiedades } from './propiedades/propiedades';
-import { Mantenimientos } from './mantenimientos/mantenimientos';
 import { Alquileres } from './alquileres/alquileres';
+import { authGuard, roleGuard } from './auth/auth.guard';
+import { Login } from './auth/login/login';
+import { Perfil } from './auth/perfil/perfil';
+import { Contar } from './contar/contar';
+import { Correos } from './correos/correos';
+import { Custome } from './custome/custome';
+import { Datos } from './datos/datos';
 import { Estados } from './estados/estados';
 import { Inicio } from './inicio/inicio';
-import { Correos } from './correos/correos';
+import { Inquilinos } from './inquilinos/inquilinos';
+import { Mantenimientos } from './mantenimientos/mantenimientos';
+import { Pagos } from './pagos/pagos';
+import { Propiedades } from './propiedades/propiedades';
+import { Pruebas } from './pruebas/pruebas';
+import { SearchComponent } from './search.component/search.component';
+import { Usuarios } from './usuarios/usuarios';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'inicio', pathMatch: 'full' },
-  { path: 'inicio', component: Inicio },
-  { path: 'correos', component: Correos },
-  { path: 'pruebas', component: Pruebas },
-  { path: 'search', component: SearchComponent },
-  { path: 'custom', component: Custome },
-  { path: 'contar', component: Contar },
-  { path: 'datos', component: Datos },
-  { path: 'inquilinos', component: Inquilinos },
-  { path: 'pagos', component: Pagos },
-  { path: 'propiedades', component: Propiedades },
-  { path: 'mantenimientos', component: Mantenimientos },
-  { path: 'estados', component: Estados },
-  { path: 'alquileres', component: Alquileres }
+  { path: 'login', component: Login },
+  { path: 'perfil', component: Perfil, canActivate: [authGuard] },
+  { path: 'usuarios', component: Usuarios, canActivate: [authGuard, roleGuard(['admin'])] },
+  { path: 'inicio', component: Inicio, canActivate: [authGuard] },
+  { path: 'propiedades', component: Propiedades, canActivate: [authGuard] },
+  { path: 'inquilinos', component: Inquilinos, canActivate: [authGuard] },
+  { path: 'alquileres', component: Alquileres, canActivate: [authGuard] },
+  { path: 'pagos', component: Pagos, canActivate: [authGuard] },
+  { path: 'mantenimientos', component: Mantenimientos, canActivate: [authGuard] },
+  { path: 'estados', component: Estados, canActivate: [authGuard] },
+  { path: 'correos', component: Correos, canActivate: [authGuard] },
+  { path: 'datos', component: Datos, canActivate: [authGuard] },
+  { path: 'pruebas', component: Pruebas, canActivate: [authGuard] },
+  { path: 'search', component: SearchComponent, canActivate: [authGuard] },
+  { path: 'custom', component: Custome, canActivate: [authGuard] },
+  { path: 'contar', component: Contar, canActivate: [authGuard] },
+  { path: '**', redirectTo: 'inicio' }
 ];
-

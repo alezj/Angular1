@@ -1,0 +1,97 @@
+<div class="perfil-container">
+  <div class="perfil-header">
+    <div class="user-avatar-badge">
+      <span *ngIf="!avatarUrl" class="avatar-letter">
+        {{ (nombreCompleto || authService.currentUser()?.email || 'U').charAt(0).toUpperCase() }}
+      </span>
+      <img *ngIf="avatarUrl" [src]="avatarUrl" alt="Avatar" class="avatar-img" />
+    </div>
+
+    <div class="user-main-info">
+      <h2>{{ nombreCompleto || 'Usuario del CRM' }}</h2>
+      <p class="email-text">{{ authService.currentUser()?.email }}</p>
+      
+      <!-- Badge de Rol -->
+      <div class="role-pill" [attr.data-role]="authService.currentProfile()?.role_id">
+        <span class="role-dot"></span>
+        <span class="role-name">{{ authService.currentProfile()?.role?.name || authService.currentProfile()?.role_id || 'Cargando...' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="perfil-grid">
+    <!-- Formulario de Edición -->
+    <div class="perfil-card">
+      <h3 class="card-title">Información de Contacto</h3>
+      <p class="card-subtitle">Actualiza tus datos visibles para el equipo y clientes.</p>
+
+      <div *ngIf="mensajeExito" class="alert alert-success">{{ mensajeExito }}</div>
+      <div *ngIf="mensajeError" class="alert alert-danger">{{ mensajeError }}</div>
+
+      <form (submit)="guardarCambios()" class="perfil-form">
+        <div class="form-group">
+          <label for="nombre">Nombre Completo</label>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            [(ngModel)]="nombreCompleto"
+            class="form-input"
+            placeholder="Tu nombre completo"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="telefono">Teléfono / Móvil</label>
+          <input
+            type="tel"
+            id="telefono"
+            name="telefono"
+            [(ngModel)]="telefono"
+            class="form-input"
+            placeholder="+1 (555) 012-3456"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="avatar">URL de Foto de Perfil</label>
+          <input
+            type="url"
+            id="avatar"
+            name="avatar"
+            [(ngModel)]="avatarUrl"
+            class="form-input"
+            placeholder="https://ejemplo.com/mi-foto.jpg"
+          />
+        </div>
+
+        <button type="submit" class="save-btn" [disabled]="guardando">
+          <span *ngIf="guardando" class="spinner"></span>
+          <span>{{ guardando ? 'Guardando...' : 'Guardar Cambios' }}</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Panel de Roles y Permisos -->
+    <div class="perfil-card">
+      <h3 class="card-title">Tus Permisos en el CRM</h3>
+      <p class="card-subtitle">Acciones autorizadas para tu rol actual en la plataforma.</p>
+
+      <div class="role-description-box">
+        <strong>Descripción del Rol:</strong>
+        <p>{{ authService.currentProfile()?.role?.description || 'Rol asignado en el sistema.' }}</p>
+      </div>
+
+      <div class="permissions-list">
+        <div *ngFor="let p of authService.permissions()" class="permission-tag">
+          <span class="check-icon">✓</span>
+          <code>{{ p }}</code>
+        </div>
+
+        <div *ngIf="authService.isAdmin()" class="admin-notice">
+          ⭐ Como <strong>Administrador</strong>, tienes acceso irrestricto a todos los módulos y funciones.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
