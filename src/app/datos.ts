@@ -1,22 +1,50 @@
-
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { from, Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { StorageCacheService } from './storage-cache.service';
+import { SupabaseService } from './supabase.service';
 
 @Injectable({ providedIn: 'root' })
 export class DatosService {
-  private readonly apiUrl = 'http://localhost:5129/api/backend/apps-script';
   private readonly cacheKey = 'angular1:datos';
 
-  constructor(private http: HttpClient, private readonly cache: StorageCacheService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly cache: StorageCacheService
+  ) {}
 
   obtenerDatos(): Observable<string[][]> {
-    return this.cache.getOrFetch(this.cacheKey, this.http.get<string[][]>(this.apiUrl));
+    const fetch$ = from(
+      this.supabaseService.client
+        .from('propiedades')
+        .select('*')
+        .order('id', { ascending: true })
+    ).pipe(
+      map(({ data, error }) => {
+        if (error || !data) return [];
+        const headers = ['ID', 'Nombre', 'Dirección', 'Precio Mensual', 'Notas'];
+        const rows = data.map((p: any) => [
+          String(p.id ?? ''),
+          String(p.nombre ?? ''),
+          String(p.direccion ?? ''),
+          String(p.precioMensual ?? ''),
+          String(p.notas ?? '')
+        ]);
+        return [headers, ...rows];
+      })
+    );
+    return this.cache.getOrFetch(this.cacheKey, fetch$);
   }
 
   agregarDato(valores: string[]) {
-    return this.http.post(this.apiUrl, { valores }).pipe(tap(() => this.cache.invalidate(this.cacheKey)));
+    const [nombre, direccion, precio, notas] = valores;
+    return from(
+      this.supabaseService.client.from('propiedades').insert({
+        nombre: nombre || 'Nueva propiedad',
+        direccion: direccion || '',
+        precioMensual: Number(precio) || 0,
+        notas: notas || ''
+      })
+    ).pipe(tap(() => this.cache.invalidate(this.cacheKey)));
   }
 }

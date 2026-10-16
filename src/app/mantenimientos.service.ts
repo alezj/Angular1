@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { from, Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { StorageCacheService } from './storage-cache.service';
+import { SupabaseService } from './supabase.service';
 
 export interface Mantenimiento {
   id: number;
@@ -13,22 +13,80 @@ export interface Mantenimiento {
   estado: number;
 }
 
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   success: boolean;
   data: T;
 }
 
 @Injectable({ providedIn: 'root' })
 export class MantenimientosService {
-  private readonly apiUrl = 'http://localhost:5129/api/backend/mantenimientos';
   private readonly cacheKey = 'angular1:mantenimientos';
 
-  constructor(private readonly http: HttpClient, private readonly cache: StorageCacheService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly cache: StorageCacheService
+  ) {}
 
   obtenerMantenimientos(): Observable<ApiResponse<Mantenimiento[]>> {
-    return this.cache.getOrFetch(this.cacheKey, this.http.get<ApiResponse<Mantenimiento[]>>(this.apiUrl));
+    const fetch$ = from(
+      this.supabaseService.client
+        .from('mantenimientos')
+        .select('*')
+        .order('id', { ascending: true })
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return { success: true, data: (data || []) as Mantenimiento[] };
+      })
+    );
+    return this.cache.getOrFetch(this.cacheKey, fetch$);
   }
-  crear(data: Omit<Mantenimiento, 'id'>) { return this.http.post(this.apiUrl, data).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
-  actualizar(id: number, data: Omit<Mantenimiento, 'id'>) { return this.http.put(`${this.apiUrl}/${id}`, data).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
-  eliminar(id: number) { return this.http.delete(`${this.apiUrl}/${id}`).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
+
+  crear(datos: Omit<Mantenimiento, 'id'>): Observable<ApiResponse<Mantenimiento>> {
+    return from(
+      this.supabaseService.client
+        .from('mantenimientos')
+        .insert(datos)
+        .select()
+        .single()
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return { success: true, data: data as Mantenimiento };
+      }),
+      tap(() => this.cache.invalidate(this.cacheKey))
+    );
+  }
+
+  actualizar(id: number, datos: Omit<Mantenimiento, 'id'>): Observable<ApiResponse<Mantenimiento>> {
+    return from(
+      this.supabaseService.client
+        .from('mantenimientos')
+        .update(datos)
+        .eq('id', id)
+        .select()
+        .single()
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return { success: true, data: data as Mantenimiento };
+      }),
+      tap(() => this.cache.invalidate(this.cacheKey))
+    );
+  }
+
+  eliminar(id: number): Observable<ApiResponse<null>> {
+    return from(
+      this.supabaseService.client
+        .from('mantenimientos')
+        .delete()
+        .eq('id', id)
+    ).pipe(
+      map(({ error }) => {
+        if (error) throw error;
+        return { success: true, data: null };
+      }),
+      tap(() => this.cache.invalidate(this.cacheKey))
+    );
+  }
 }

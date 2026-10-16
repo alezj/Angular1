@@ -1,36 +1,29 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Archivos\\Johancel\\Proyectos\\Angular1\\backend\\backend.csproj": {}
+    "/Users/johancela/Documents/Angular/Projectos en Angular/Angular1/backend/backend.csproj": {}
   },
   "projects": {
-    "C:\\Archivos\\Johancel\\Proyectos\\Angular1\\backend\\backend.csproj": {
+    "/Users/johancela/Documents/Angular/Projectos en Angular/Angular1/backend/backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Archivos\\Johancel\\Proyectos\\Angular1\\backend\\backend.csproj",
+        "projectUniqueName": "/Users/johancela/Documents/Angular/Projectos en Angular/Angular1/backend/backend.csproj",
         "projectName": "backend",
-        "projectPath": "C:\\Archivos\\Johancel\\Proyectos\\Angular1\\backend\\backend.csproj",
-        "packagesPath": "C:\\Users\\U31241\\.nuget\\packages\\",
-        "outputPath": "C:\\Archivos\\Johancel\\Proyectos\\Angular1\\backend\\obj\\",
+        "projectPath": "/Users/johancela/Documents/Angular/Projectos en Angular/Angular1/backend/backend.csproj",
+        "packagesPath": "/Users/johancela/.nuget/packages/",
+        "outputPath": "/Users/johancela/Documents/Angular/Projectos en Angular/Angular1/backend/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\U31241\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/johancela/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
-            "framework": "net8.0",
             "targetAlias": "net8.0",
             "projectReferences": {}
           }
@@ -45,11 +38,10 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "10.0.400"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "net8.0": {
-          "framework": "net8.0",
           "targetAlias": "net8.0",
           "dependencies": {
             "Microsoft.AspNetCore.OpenApi": {
@@ -80,7 +72,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.400/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.202/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

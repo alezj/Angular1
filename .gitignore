@@ -54,6 +54,11 @@ TestResults/
 
 **/appsettings.Development.json
 **/appsettings.Local.json
+.env
+.env.*
+*.local.json
+**/mcp_config.json
+!**/mcp_config.example.json
 
 # =========================================================
 # Visual Studio Code

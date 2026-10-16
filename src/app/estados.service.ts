@@ -1,22 +1,106 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { from, Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { StorageCacheService } from './storage-cache.service';
+import { SupabaseService } from './supabase.service';
 
-export interface Estado { ID: number; Descripcion: string; tabla: string; }
+export interface Estado {
+  ID: number;
+  Descripcion: string;
+  tabla: string;
+}
 
-interface ApiResponse<T> { success: boolean; data: T; }
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+}
 
 @Injectable({ providedIn: 'root' })
 export class EstadosService {
-  private readonly apiUrl = 'http://localhost:5129/api/backend/estados';
   private readonly cacheKey = 'angular1:estados';
 
-  constructor(private readonly http: HttpClient, private readonly cache: StorageCacheService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly cache: StorageCacheService
+  ) {}
 
-  obtenerEstados(): Observable<ApiResponse<Estado[]>> { return this.cache.getOrFetch(this.cacheKey, this.http.get<ApiResponse<Estado[]>>(this.apiUrl)); }
-  crear(datos: Omit<Estado, 'ID'>) { return this.http.post(this.apiUrl, datos).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
-  actualizar(id: number, datos: Omit<Estado, 'ID'>) { return this.http.put(`${this.apiUrl}/${id}`, datos).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
-  eliminar(id: number) { return this.http.delete(`${this.apiUrl}/${id}`).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
+  obtenerEstados(): Observable<ApiResponse<Estado[]>> {
+    const fetch$ = from(
+      this.supabaseService.client
+        .from('estados')
+        .select('*')
+        .order('id', { ascending: true })
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        const estados = (data || []).map((item: any) => ({
+          ID: item.id ?? item.ID,
+          Descripcion: item.Descripcion ?? item.descripcion,
+          tabla: item.tabla
+        }));
+        return { success: true, data: estados as Estado[] };
+      })
+    );
+    return this.cache.getOrFetch(this.cacheKey, fetch$);
+  }
+
+  crear(datos: Omit<Estado, 'ID'>): Observable<ApiResponse<Estado>> {
+    return from(
+      this.supabaseService.client
+        .from('estados')
+        .insert({
+          Descripcion: datos.Descripcion,
+          tabla: datos.tabla
+        })
+        .select()
+        .single()
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return {
+          success: true,
+          data: { ID: data.id, Descripcion: data.Descripcion, tabla: data.tabla } as Estado
+        };
+      }),
+      tap(() => this.cache.invalidate(this.cacheKey))
+    );
+  }
+
+  actualizar(id: number, datos: Omit<Estado, 'ID'>): Observable<ApiResponse<Estado>> {
+    return from(
+      this.supabaseService.client
+        .from('estados')
+        .update({
+          Descripcion: datos.Descripcion,
+          tabla: datos.tabla
+        })
+        .eq('id', id)
+        .select()
+        .single()
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return {
+          success: true,
+          data: { ID: data.id, Descripcion: data.Descripcion, tabla: data.tabla } as Estado
+        };
+      }),
+      tap(() => this.cache.invalidate(this.cacheKey))
+    );
+  }
+
+  eliminar(id: number): Observable<ApiResponse<null>> {
+    return from(
+      this.supabaseService.client
+        .from('estados')
+        .delete()
+        .eq('id', id)
+    ).pipe(
+      map(({ error }) => {
+        if (error) throw error;
+        return { success: true, data: null };
+      }),
+      tap(() => this.cache.invalidate(this.cacheKey))
+    );
+  }
 }

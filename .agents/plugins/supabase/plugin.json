@@ -1,0 +1,4 @@
+{
+  "name": "supabase-mcp",
+  "description": "Supabase MCP server integration for database management, migrations, and queries"
+}

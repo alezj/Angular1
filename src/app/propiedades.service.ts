@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { from, Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { StorageCacheService } from './storage-cache.service';
+import { SupabaseService } from './supabase.service';
 
 export interface Propiedad {
   id: number;
@@ -13,23 +13,80 @@ export interface Propiedad {
   notas: string;
 }
 
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   success: boolean;
   data: T;
 }
 
 @Injectable({ providedIn: 'root' })
 export class PropiedadesService {
-  private readonly apiUrl = 'http://localhost:5129/api/backend/propiedades';
   private readonly cacheKey = 'angular1:propiedades';
 
-  constructor(private readonly http: HttpClient, private readonly cache: StorageCacheService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly cache: StorageCacheService
+  ) {}
 
   obtenerPropiedades(): Observable<ApiResponse<Propiedad[]>> {
-    return this.cache.getOrFetch(this.cacheKey, this.http.get<ApiResponse<Propiedad[]>>(this.apiUrl));
+    const fetch$ = from(
+      this.supabaseService.client
+        .from('propiedades')
+        .select('*')
+        .order('id', { ascending: true })
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return { success: true, data: (data || []) as Propiedad[] };
+      })
+    );
+    return this.cache.getOrFetch(this.cacheKey, fetch$);
   }
 
-  crear(datos: Omit<Propiedad, 'id'>) { return this.http.post(this.apiUrl, datos).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
-  actualizar(id: number, datos: Omit<Propiedad, 'id'>) { return this.http.put(`${this.apiUrl}/${id}`, datos).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
-  eliminar(id: number) { return this.http.delete(`${this.apiUrl}/${id}`).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
+  crear(datos: Omit<Propiedad, 'id'>): Observable<ApiResponse<Propiedad>> {
+    return from(
+      this.supabaseService.client
+        .from('propiedades')
+        .insert(datos)
+        .select()
+        .single()
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return { success: true, data: data as Propiedad };
+      }),
+      tap(() => this.cache.invalidate(this.cacheKey))
+    );
+  }
+
+  actualizar(id: number, datos: Omit<Propiedad, 'id'>): Observable<ApiResponse<Propiedad>> {
+    return from(
+      this.supabaseService.client
+        .from('propiedades')
+        .update(datos)
+        .eq('id', id)
+        .select()
+        .single()
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return { success: true, data: data as Propiedad };
+      }),
+      tap(() => this.cache.invalidate(this.cacheKey))
+    );
+  }
+
+  eliminar(id: number): Observable<ApiResponse<null>> {
+    return from(
+      this.supabaseService.client
+        .from('propiedades')
+        .delete()
+        .eq('id', id)
+    ).pipe(
+      map(({ error }) => {
+        if (error) throw error;
+        return { success: true, data: null };
+      }),
+      tap(() => this.cache.invalidate(this.cacheKey))
+    );
+  }
 }

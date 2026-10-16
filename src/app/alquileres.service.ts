@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { from, Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { StorageCacheService } from './storage-cache.service';
+import { SupabaseService } from './supabase.service';
 
 export interface Alquiler {
   id: number | string;
@@ -12,22 +12,80 @@ export interface Alquiler {
   fechaFin: string;
 }
 
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   success: boolean;
   data: T;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AlquileresService {
-  private readonly apiUrl = 'http://localhost:5129/api/backend/alquileres';
   private readonly cacheKey = 'angular1:alquileres';
 
-  constructor(private readonly http: HttpClient, private readonly cache: StorageCacheService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly cache: StorageCacheService
+  ) {}
 
   obtenerAlquileres(): Observable<ApiResponse<Alquiler[]>> {
-    return this.cache.getOrFetch(this.cacheKey, this.http.get<ApiResponse<Alquiler[]>>(this.apiUrl));
+    const fetch$ = from(
+      this.supabaseService.client
+        .from('alquileres')
+        .select('*')
+        .order('id', { ascending: true })
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return { success: true, data: (data || []) as Alquiler[] };
+      })
+    );
+    return this.cache.getOrFetch(this.cacheKey, fetch$);
   }
-  crear(data: Omit<Alquiler, 'id'>) { return this.http.post(this.apiUrl, data).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
-  actualizar(id: number | string, data: Omit<Alquiler, 'id'>) { return this.http.put(`${this.apiUrl}/${id}`, data).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
-  eliminar(id: number | string) { return this.http.delete(`${this.apiUrl}/${id}`).pipe(tap(() => this.cache.invalidate(this.cacheKey))); }
+
+  crear(datos: Omit<Alquiler, 'id'>): Observable<ApiResponse<Alquiler>> {
+    return from(
+      this.supabaseService.client
+        .from('alquileres')
+        .insert(datos)
+        .select()
+        .single()
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return { success: true, data: data as Alquiler };
+      }),
+      tap(() => this.cache.invalidate(this.cacheKey))
+    );
+  }
+
+  actualizar(id: number | string, datos: Omit<Alquiler, 'id'>): Observable<ApiResponse<Alquiler>> {
+    return from(
+      this.supabaseService.client
+        .from('alquileres')
+        .update(datos)
+        .eq('id', id)
+        .select()
+        .single()
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return { success: true, data: data as Alquiler };
+      }),
+      tap(() => this.cache.invalidate(this.cacheKey))
+    );
+  }
+
+  eliminar(id: number | string): Observable<ApiResponse<null>> {
+    return from(
+      this.supabaseService.client
+        .from('alquileres')
+        .delete()
+        .eq('id', id)
+    ).pipe(
+      map(({ error }) => {
+        if (error) throw error;
+        return { success: true, data: null };
+      }),
+      tap(() => this.cache.invalidate(this.cacheKey))
+    );
+  }
 }
