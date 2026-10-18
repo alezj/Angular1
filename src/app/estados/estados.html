@@ -1,38 +1,72 @@
-<div class="page">
-  <h2>Catálogo de Estados</h2>
+<section class="estados">
+  <header class="module-heading">
+    <div>
+      <h2>Catálogo de Estados</h2>
+      <p>Estados disponibles para clasificar la operación.</p>
+    </div>
+    <button class="filter-button" type="button" (click)="nuevo()">+ Nuevo estado</button>
+  </header>
 
-  <form (ngSubmit)="guardar()" class="form-inline filter-bar">
-    <input class="filter-input" [(ngModel)]="formulario.Descripcion" name="Descripcion" placeholder="Descripción del estado" required />
-    <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear' : 'Actualizar' }}</button>
-    <button class="filter-button secondary" type="button" (click)="cancelar()">Cancelar</button>
-  </form>
-
-  <div *ngIf="cargando">Cargando...</div>
+  <p *ngIf="cargando">Cargando estados...</p>
   <div *ngIf="error" class="error">{{ error }}</div>
 
-  <table *ngIf="!cargando && estados.length > 0" class="table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Descripción</th>
-        <th>Tabla</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let e of estados">
-        <td>{{ e.ID }}</td>
-        <td>{{ e.Descripcion }}</td>
-        <td>{{ e.tabla }}</td>
-        <td>
-          <div class="action-buttons">
-            <button class="filter-button" (click)="editar(e)">Editar</button>
-            <button class="filter-button secondary delete-button" (click)="eliminar(e.ID)">Eliminar</button>
-          </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="table-wrapper" *ngIf="!cargando && !error">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Descripción</th>
+          <th>Tabla</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let estado of estados">
+          <td>{{ estado.ID }}</td>
+          <td>{{ estado.Descripcion }}</td>
+          <td>{{ estado.tabla }}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="icon-action" type="button" title="Editar" [attr.aria-label]="'Editar ' + estado.Descripcion" (click)="editar(estado)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
+              </button>
+              <button class="icon-action danger" type="button" title="Eliminar" [attr.aria-label]="'Eliminar ' + estado.Descripcion" (click)="eliminar(estado.ID)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6" /></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="estados.length === 0"><td colspan="4">No hay estados definidos.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 
-  <div *ngIf="!cargando && estados.length === 0">No hay estados definidos.</div>
+<div class="estado-modal-backdrop" *ngIf="formularioAbierto" (click)="cancelar()">
+  <section class="estado-modal" role="dialog" aria-modal="true" aria-labelledby="estado-modal-title" (click)="$event.stopPropagation()">
+    <header class="estado-modal-header">
+      <div>
+        <h2 id="estado-modal-title">{{ editandoId === null ? 'Nuevo estado' : 'Editar estado' }}</h2>
+        <p>Completa los datos del estado.</p>
+      </div>
+      <button class="icon-action" type="button" aria-label="Cerrar" title="Cerrar" (click)="cancelar()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12" /></svg>
+      </button>
+    </header>
+
+    <form (ngSubmit)="guardar()" class="estado-form">
+      <label>
+        <span>Descripción</span>
+        <input class="filter-input" [(ngModel)]="formulario.Descripcion" name="Descripcion" required>
+      </label>
+      <label>
+        <span>Tabla</span>
+        <input class="filter-input" [(ngModel)]="formulario.tabla" name="tabla" required>
+      </label>
+      <footer class="estado-form-actions">
+        <button class="filter-button secondary" type="button" (click)="cancelar()">Cancelar</button>
+        <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear estado' : 'Guardar cambios' }}</button>
+      </footer>
+    </form>
+  </section>
 </div>

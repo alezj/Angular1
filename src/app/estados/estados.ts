@@ -14,6 +14,7 @@ export class Estados implements OnInit {
   cargando = true;
   error: string | null = null;
   editandoId: number | null = null;
+  formularioAbierto = false;
   formulario: Omit<Estado, 'ID'> = { Descripcion: '', tabla: '' };
 
   constructor(private readonly estadosService: EstadosService, private readonly cdr: ChangeDetectorRef) {}
@@ -51,7 +52,12 @@ export class Estados implements OnInit {
     accion.subscribe({ next: () => { this.cancelar(); this.cargar(); }, error: () => this.error = 'No se pudo guardar el estado.' });
   }
 
-  editar(estado: Estado): void { this.editandoId = estado.ID; this.formulario = { Descripcion: estado.Descripcion, tabla: estado.tabla,}; }
+  editar(estado: Estado): void {
+    this.editandoId = estado.ID;
+    this.formulario = { Descripcion: estado.Descripcion, tabla: estado.tabla };
+    this.formularioAbierto = true;
+  }
+  nuevo(): void { this.cancelar(); this.formularioAbierto = true; }
   eliminar(id: number): void { if (confirm('¿Eliminar este estado?')) this.estadosService.eliminar(id).subscribe({ next: () => this.cargar(), error: () => this.error = 'No se pudo eliminar el estado.' }); }
-  cancelar(): void { this.editandoId = null; this.formulario = { Descripcion: '', tabla: ''}; }
+  cancelar(): void { this.editandoId = null; this.formularioAbierto = false; this.formulario = { Descripcion: '', tabla: '' }; }
 }
