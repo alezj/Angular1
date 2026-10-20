@@ -9,6 +9,11 @@ export interface Pago {
   idInquilino: number | string;
   fechaPago: string;
   monto: number | string;
+  idAlquiler?: number | string | null;
+  periodo?: string | null;
+  estado?: string | null;
+  metodoPago?: string | null;
+  fechaVencimiento?: string | null;
 }
 
 export interface ApiResponse<T> {

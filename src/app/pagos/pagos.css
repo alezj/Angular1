@@ -1,7 +1,8 @@
 .payments-summary {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.85rem;
+  margin-bottom: 1.1rem;
 }
 
 .payment-metric {
@@ -29,11 +30,25 @@
   font-weight: 700;
 }
 
+.payment-metric-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 .payment-metric-icon.total {
   background: #e7f6ef;
   color: #19724d;
   font-size: 0.8rem;
 }
+
+.payment-metric.paid .payment-metric-icon { background: #e7f6ef; color: #16804f; }
+.payment-metric.pending .payment-metric-icon { background: #fff5df; color: #a76b00; }
+.payment-metric.overdue .payment-metric-icon { background: #fff0ef; color: #c43f3b; }
 
 .payment-metric > div {
   display: grid;
@@ -98,10 +113,15 @@
 
 .pagos .table-wrapper {
   overflow-x: auto;
+  border: 1px solid var(--border-light);
+  border-radius: 9px;
+  background: #fff;
 }
 
 .pagos table {
-  min-width: 740px;
+  min-width: 980px;
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .pagos .action-buttons {
@@ -130,6 +150,33 @@
 
 .pagos .icon-action.danger:hover {
   background: #fff5f4;
+}
+
+.pagos .filter-bar { margin: 0 0 1rem; }
+.pagos .period-filter { min-width: 132px; }
+.pagos .period-filter .filter-select { width: 100%; }
+.pagos .payment-search { flex: 1 1 220px; }
+.pagos .payment-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.28rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.pagos .payment-status.pagado { background: #e7f6ef; color: #167149; }
+.pagos .payment-status.pendiente { background: #fff5df; color: #946200; }
+.pagos .payment-status.atrasado { background: #fff0ef; color: #b93632; }
+.pagos .filter-empty { margin-top: 0.5rem; }
+.pagos .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
 }
 
 .payment-modal {
@@ -428,4 +475,8 @@
   .invoice-table td:first-child {
     width: 62%;
   }
+}
+
+@media (max-width: 850px) {
+  .payments-summary { grid-template-columns: 1fr; }
 }

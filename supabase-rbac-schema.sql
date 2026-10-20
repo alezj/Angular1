@@ -4,10 +4,14 @@
 
 -- 1. TABLA ROLES
 CREATE TABLE IF NOT EXISTS public.roles (
-    id TEXT PRIMARY KEY,
+    id TEXT NOT NULL,
+    "Origen" TEXT NOT NULL DEFAULT 'web' CHECK ("Origen" IN ('web', 'movil')),
+    usuario UUID NOT NULL DEFAULT COALESCE(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid),
     name TEXT NOT NULL,
     description TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (id, "Origen", usuario),
+    CONSTRAINT uq_roles_legacy_id UNIQUE (id)
 );
 
 INSERT INTO public.roles (id, name, description)
@@ -21,9 +25,13 @@ SET name = EXCLUDED.name, description = EXCLUDED.description;
 
 -- 2. TABLA PERMISOS
 CREATE TABLE IF NOT EXISTS public.permissions (
-    id TEXT PRIMARY KEY,
+    id TEXT NOT NULL,
+    "Origen" TEXT NOT NULL DEFAULT 'web' CHECK ("Origen" IN ('web', 'movil')),
+    usuario UUID NOT NULL DEFAULT COALESCE(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid),
     module TEXT NOT NULL,
-    description TEXT
+    description TEXT,
+    PRIMARY KEY (id, "Origen", usuario),
+    CONSTRAINT uq_permissions_legacy_id UNIQUE (id)
 );
 
 INSERT INTO public.permissions (id, module, description)
@@ -58,9 +66,12 @@ SET module = EXCLUDED.module, description = EXCLUDED.description;
 
 -- 3. TABLA ASIGNACIÓN ROL - PERMISOS
 CREATE TABLE IF NOT EXISTS public.role_permissions (
+    "Origen" TEXT NOT NULL DEFAULT 'web' CHECK ("Origen" IN ('web', 'movil')),
+    usuario UUID NOT NULL DEFAULT COALESCE(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid),
     role_id TEXT NOT NULL REFERENCES public.roles(id) ON DELETE CASCADE,
     permission_id TEXT NOT NULL REFERENCES public.permissions(id) ON DELETE CASCADE,
-    PRIMARY KEY (role_id, permission_id)
+    PRIMARY KEY (role_id, permission_id, "Origen", usuario),
+    CONSTRAINT uq_role_permissions_legacy_key UNIQUE (role_id, permission_id)
 );
 
 -- Permisos para 'admin' (todos los permisos)
@@ -100,7 +111,9 @@ ON CONFLICT DO NOTHING;
 
 -- 4. TABLA PERFILES DE USUARIO (Vinculada a auth.users de Supabase)
 CREATE TABLE IF NOT EXISTS public.profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    "Origen" TEXT NOT NULL DEFAULT 'web' CHECK ("Origen" IN ('web', 'movil')),
+    usuario UUID NOT NULL DEFAULT COALESCE(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid),
     email TEXT NOT NULL,
     full_name TEXT DEFAULT '',
     phone TEXT DEFAULT '',
@@ -108,7 +121,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     role_id TEXT NOT NULL REFERENCES public.roles(id) DEFAULT 'agente',
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (id, "Origen", usuario),
+    CONSTRAINT uq_profiles_legacy_id UNIQUE (id)
 );
 
 -- 5. TRIGGER AUTOMÁTICO AL REGISTRAR UN USUARIO
@@ -126,13 +141,20 @@ BEGIN
         initial_role := COALESCE(new.raw_user_meta_data->>'role_id', 'agente');
     END IF;
 
-    INSERT INTO public.profiles (id, email, full_name, phone, role_id)
+    INSERT INTO public.profiles (id, email, full_name, phone, role_id, "Origen", usuario)
     VALUES (
         new.id,
         new.email,
         COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
         COALESCE(new.raw_user_meta_data->>'phone', ''),
-        initial_role
+        initial_role,
+        CASE lower(COALESCE(new.raw_user_meta_data->>'Origen', 'web'))
+            WHEN 'movil' THEN 'movil'
+            WHEN 'móvil' THEN 'movil'
+            WHEN 'mobile' THEN 'movil'
+            ELSE 'web'
+        END,
+        COALESCE(auth.uid(), new.id)
     )
     ON CONFLICT (id) DO UPDATE
     SET email = EXCLUDED.email,

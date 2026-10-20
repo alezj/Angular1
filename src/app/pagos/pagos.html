@@ -2,46 +2,62 @@
   <header class="module-heading">
     <div>
       <h2>Pagos de Renta</h2>
-      <p>Historial de cobros y comprobantes de pago.</p>
+      <p>Control de cobros, pendientes y mora.</p>
     </div>
-    <button class="filter-button" type="button" (click)="nuevo()">+ Nuevo pago</button>
+    <button class="filter-button" type="button" (click)="nuevo()">+ Registrar pago</button>
   </header>
 
   <div class="payments-summary">
-    <article class="payment-metric">
-      <span class="payment-metric-icon">$</span>
-      <div><span>Pagos registrados</span><strong>{{ pagos.length }}</strong></div>
+    <article class="payment-metric paid">
+      <span class="payment-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg></span>
+      <div><span>Pagado · {{ cantidadPagados }}</span><strong>RD$ {{ montoPagado | number: '1.2-2' }}</strong></div>
     </article>
-    <article class="payment-metric">
-      <span class="payment-metric-icon total">RD$</span>
-      <div><span>Total registrado</span><strong>RD$ {{ montoTotalRegistrado | number: '1.2-2' }}</strong></div>
+    <article class="payment-metric pending">
+      <span class="payment-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg></span>
+      <div><span>Pendiente · {{ cantidadPendientes }}</span><strong>RD$ {{ montoPendiente | number: '1.2-2' }}</strong></div>
+    </article>
+    <article class="payment-metric overdue">
+      <span class="payment-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.8 19h18.4L12 3Z" /><path d="M12 9v4m0 3h.01" /></svg></span>
+      <div><span>Atrasado · {{ cantidadAtrasados }}</span><strong>RD$ {{ montoAtrasado | number: '1.2-2' }}</strong></div>
     </article>
   </div>
-
   <div class="filter-bar">
-    <input class="filter-input" [(ngModel)]="searchTerm" name="search" placeholder="Buscar por inquilino, fecha o monto..." aria-label="Buscar pagos" />
+    <label class="period-filter"><span class="visually-hidden">Mes</span><select class="filter-select" [ngModel]="mesFiltro" (ngModelChange)="cambiarPeriodo($event)" name="mes"><option [ngValue]="0">Todos los meses</option><option [ngValue]="1">Enero</option><option [ngValue]="2">Febrero</option><option [ngValue]="3">Marzo</option><option [ngValue]="4">Abril</option><option [ngValue]="5">Mayo</option><option [ngValue]="6">Junio</option><option [ngValue]="7">Julio</option><option [ngValue]="8">Agosto</option><option [ngValue]="9">Septiembre</option><option [ngValue]="10">Octubre</option><option [ngValue]="11">Noviembre</option><option [ngValue]="12">Diciembre</option></select></label>
+    <label class="period-filter"><span class="visually-hidden">Año</span><select class="filter-select" [(ngModel)]="anioFiltro" name="anio"><option *ngFor="let anio of aniosDisponibles" [ngValue]="anio">{{ anio }}</option></select></label>
+    <label class="period-filter status-filter"><span class="visually-hidden">Estado</span><select class="filter-select" [(ngModel)]="estadoFiltro" name="estado"><option>Todos</option><option>Pagado</option><option>Pendiente</option><option>Atrasado</option></select></label>
+    <input class="filter-input payment-search" [(ngModel)]="searchTerm" name="search" placeholder="Buscar inquilino o propiedad..." aria-label="Buscar pagos" />
   </div>
 
   <p *ngIf="cargando">Cargando pagos...</p>
   <p *ngIf="error" class="error">{{ error }}</p>
+  <div class="payments-empty filter-empty" *ngIf="!cargando && !error && pagos.length > 0 && filteredPagos.length === 0">
+    <h3>No hay cargos para los filtros seleccionados</h3>
+    <p>Prueba con otro mes, año, estado o término de búsqueda.</p>
+  </div>
 
-  <div class="table-wrapper" *ngIf="!cargando && !error && pagos.length > 0">
+  <div class="table-wrapper" *ngIf="!cargando && !error && filteredPagos.length > 0">
     <table>
       <thead>
         <tr>
-          <th>ID</th>
-          <th>ID de inquilino</th>
-          <th>Fecha de pago</th>
+          <th>Inquilino</th>
+          <th>Propiedad</th>
+          <th>Período</th>
+          <th>Vence</th>
           <th>Monto</th>
+          <th>Pagado</th>
+          <th>Estado</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let pago of filteredPagos">
-          <td data-label="ID">{{ pago.id }}</td>
-          <td data-label="Inquilino">{{ pago.idInquilino || '-' }} - {{ getNombreInquilino(pago.idInquilino) }}</td>
-          <td data-label="Fecha de pago">{{ pago.fechaPago ? (pago.fechaPago | date: 'dd/MM/yyyy') : '-' }}</td>
+          <td data-label="Inquilino">{{ getNombreInquilino(pago.idInquilino) }}</td>
+          <td data-label="Propiedad">{{ nombrePropiedad(pago) }}</td>
+          <td data-label="Período">{{ periodoPago(pago) }}</td>
+          <td data-label="Vence">{{ fechaVencimiento(pago) ? (fechaVencimiento(pago) | date: 'dd/MM/yyyy') : '—' }}</td>
           <td data-label="Monto">{{ pago.monto === '' ? '-' : (pago.monto | number: '1.2-2') }}</td>
+          <td data-label="Pagado">{{ detallePago(pago) }}</td>
+          <td data-label="Estado"><span class="payment-status" [ngClass]="estadoPago(pago).toLowerCase()">{{ estadoPago(pago) }}</span></td>
           <td data-label="Acciones">
             <div class="action-buttons">
               <button class="icon-action" type="button" title="Ver factura" [attr.aria-label]="'Ver factura del pago ' + pago.id" (click)="generarFactura(pago)">
@@ -55,9 +71,6 @@
               </button>
             </div>
           </td>
-        </tr>
-        <tr *ngIf="filteredPagos.length === 0">
-          <td colspan="5">No se encontraron pagos.</td>
         </tr>
       </tbody>
     </table>
