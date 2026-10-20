@@ -32,12 +32,13 @@ export class Login implements OnInit {
     private readonly route: ActivatedRoute
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
 
-    // Si ya está autenticado, redirigir
+    // Esperar la restauración de Supabase para no mostrar el login durante una recarga.
+    await this.authService.esperarInicializacion();
     if (this.authService.isAuthenticated()) {
-      this.router.navigateByUrl(this.returnUrl);
+      await this.router.navigateByUrl(this.returnUrl);
     }
   }
 
