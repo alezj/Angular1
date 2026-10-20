@@ -6,14 +6,8 @@ export const authGuard: CanActivateFn = async (_route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Si aún está resolviendo la sesión inicial, esperar un breve momento
-  if (authService.cargando()) {
-    let intentos = 0;
-    while (authService.cargando() && intentos < 20) {
-      await new Promise((r) => setTimeout(r, 50));
-      intentos++;
-    }
-  }
+  // Esperar a que Supabase restaure la sesión persistida antes de decidir.
+  await authService.esperarInicializacion();
 
   if (authService.isAuthenticated()) {
     return true;

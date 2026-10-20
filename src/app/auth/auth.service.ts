@@ -8,6 +8,10 @@ import { Profile, Role } from './auth.models';
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly tiempoInactividadMaximo = 30 * 60 * 1000;
+  private readonly claveUltimaActividad = 'inm gestion ultima actividad';
+  private readonly inicializacion: Promise<void>;
+  private actividadRegistradaEn = 0;
   readonly currentUser = signal<User | null>(null);
   readonly currentProfile = signal<Profile | null>(null);
   readonly permissions = signal<string[]>([]);
@@ -24,7 +28,12 @@ export class AuthService {
     private readonly supabaseService: SupabaseService,
     private readonly router: Router
   ) {
-    this.inicializarAuth();
+    this.registrarActividad();
+    this.inicializacion = this.inicializarAuth();
+  }
+
+  async esperarInicializacion(): Promise<void> {
+    await this.inicializacion;
   }
 
   private async inicializarAuth(): Promise<void> {
@@ -40,8 +49,14 @@ export class AuthService {
       // 2. Obtener sesión actual
       const { data: { session } } = await this.supabaseService.client.auth.getSession();
       if (session?.user) {
-        this.currentUser.set(session.user);
-        await this.cargarPerfilYPermisos(session.user.id);
+        if (!window.localStorage.getItem(this.claveUltimaActividad)) this.guardarActividad();
+        if (this.sesionVencidaPorInactividad()) {
+          await this.supabaseService.client.auth.signOut();
+          this.limpiarActividad();
+        } else {
+          this.currentUser.set(session.user);
+          await this.cargarPerfilYPermisos(session.user.id);
+        }
       }
     } catch (err) {
       console.error('Error al inicializar sesión:', err);
@@ -54,8 +69,12 @@ export class AuthService {
       const user = session?.user ?? null;
       this.currentUser.set(user);
       if (user) {
+        if (_event === 'SIGNED_IN' && !this.sesionVencidaPorInactividad()) {
+          this.guardarActividad();
+        }
         await this.cargarPerfilYPermisos(user.id);
       } else {
+        this.limpiarActividad();
         this.currentProfile.set(null);
         this.permissions.set([]);
       }
@@ -116,6 +135,7 @@ export class AuthService {
       }
 
       if (data.user) {
+        this.guardarActividad();
         this.currentUser.set(data.user);
         await this.cargarPerfilYPermisos(data.user.id);
       }
@@ -152,6 +172,7 @@ export class AuthService {
       }
 
       if (data.user) {
+        this.guardarActividad();
         this.currentUser.set(data.user);
         await this.cargarPerfilYPermisos(data.user.id);
       }
@@ -167,7 +188,39 @@ export class AuthService {
     this.currentUser.set(null);
     this.currentProfile.set(null);
     this.permissions.set([]);
+    this.limpiarActividad();
     this.router.navigate(['/login']);
+  }
+
+  private registrarActividad(): void {
+    if (typeof window === 'undefined') return;
+    const actualizar = () => {
+      const ahora = Date.now();
+      if (ahora - this.actividadRegistradaEn < 60_000) return;
+      this.actividadRegistradaEn = ahora;
+      this.guardarActividad();
+    };
+    window.addEventListener('pointerdown', actualizar, { passive: true });
+    window.addEventListener('keydown', actualizar);
+    window.addEventListener('touchstart', actualizar, { passive: true });
+  }
+
+  private guardarActividad(): void {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(this.claveUltimaActividad, String(Date.now()));
+    }
+  }
+
+  private sesionVencidaPorInactividad(): boolean {
+    if (typeof window === 'undefined') return false;
+    const valor = window.localStorage.getItem(this.claveUltimaActividad);
+    if (!valor) return false;
+    const ultima = Number(valor);
+    return Number.isFinite(ultima) && Date.now() - ultima >= this.tiempoInactividadMaximo;
+  }
+
+  private limpiarActividad(): void {
+    if (typeof window !== 'undefined') window.localStorage.removeItem(this.claveUltimaActividad);
   }
 
   async actualizarPerfil(datos: Partial<Profile>): Promise<{ success: boolean; error?: string }> {

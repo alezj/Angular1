@@ -15,7 +15,8 @@ export class SupabaseService {
       {
         auth: {
           persistSession: typeof window !== 'undefined',
-          autoRefreshToken: typeof window !== 'undefined'
+          autoRefreshToken: typeof window !== 'undefined',
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined
         }
       }
     );
