@@ -66,6 +66,13 @@ CREATE TABLE IF NOT EXISTS public.pagos (
     "idInquilino" BIGINT REFERENCES public.inquilinos(id) ON DELETE SET NULL,
     "fechaPago" TEXT NOT NULL,
     "monto" NUMERIC DEFAULT 0,
+    "idAlquiler" BIGINT,
+    "periodo" TEXT,
+    "fechaVencimiento" TEXT,
+    "estado" TEXT NOT NULL DEFAULT 'Pagado',
+    "metodoPago" TEXT,
+    "banco" TEXT,
+    "referencia" TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (id, "Origen", usuario),
     CONSTRAINT uq_pagos_legacy_id UNIQUE (id)

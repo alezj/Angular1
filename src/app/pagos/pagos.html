@@ -60,13 +60,14 @@
           <td data-label="Estado"><span class="payment-status" [ngClass]="estadoPago(pago).toLowerCase()">{{ estadoPago(pago) }}</span></td>
           <td data-label="Acciones">
             <div class="action-buttons">
-              <button class="icon-action" type="button" title="Ver factura" [attr.aria-label]="'Ver factura del pago ' + pago.id" (click)="generarFactura(pago)">
+              <button *ngIf="estadoPago(pago) === 'Pagado'" class="icon-action" type="button" title="Imprimir o compartir recibo" [attr.aria-label]="'Ver recibo del pago ' + pago.id" (click)="generarFactura(pago)">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h8" /></svg>
               </button>
-              <button class="icon-action" type="button" title="Editar pago" [attr.aria-label]="'Editar pago ' + pago.id" (click)="editar(pago)">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
+              <button *ngIf="estadoPago(pago) !== 'Pagado'" class="collect-action" type="button" [disabled]="guardandoCobro" (click)="abrirCobro(pago)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16 9" /></svg>
+                Cobrar
               </button>
-              <button class="icon-action danger" type="button" title="Eliminar pago" [attr.aria-label]="'Eliminar pago ' + pago.id" (click)="eliminar(pago.id)">
+              <button class="icon-action danger" type="button" title="Eliminar pago" [attr.aria-label]="'Eliminar pago ' + pago.id" (click)="eliminar(pago)">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6" /></svg>
               </button>
             </div>
@@ -83,6 +84,31 @@
     <button class="filter-button" type="button" (click)="nuevo()">Registrar primer pago</button>
   </div>
 </section>
+
+<div class="payment-modal-backdrop no-print" *ngIf="cobroPago" (click)="cancelarCobro()">
+  <section class="payment-modal collect-modal" role="dialog" aria-modal="true" aria-labelledby="collect-modal-title" (click)="$event.stopPropagation()">
+    <header class="tenant-modal-header">
+      <div><h2 id="collect-modal-title">Registrar cobro</h2><p>Confirma el pago para generar su recibo.</p></div>
+      <button class="icon-action" type="button" aria-label="Cerrar" [disabled]="guardandoCobro" (click)="cancelarCobro()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12" /></svg></button>
+    </header>
+    <div class="collect-summary">
+      <strong>{{ getNombreInquilino(cobroPago.idInquilino) }}</strong>
+      <span>{{ nombrePropiedad(cobroPago) }} · {{ periodoPago(cobroPago) }}</span>
+      <b>RD$ {{ cobroPago.monto | number: '1.2-2' }}</b>
+    </div>
+    <form class="payment-form collect-form" (ngSubmit)="confirmarCobro()">
+      <label><span>Fecha de pago</span><input class="filter-input" type="date" name="fechaCobro" [(ngModel)]="cobroFormulario.fechaPago" required></label>
+      <label><span>Método</span><select class="filter-select" name="metodoCobro" [(ngModel)]="cobroFormulario.metodoPago"><option>Transferencia</option><option>Efectivo</option><option>Tarjeta</option><option>Cheque</option><option>Otro</option></select></label>
+      <label *ngIf="cobroFormulario.metodoPago === 'Transferencia'"><span>Banco</span><select class="filter-select" name="bancoCobro" [(ngModel)]="cobroFormulario.banco"><option>Banco Popular</option><option>Banreservas</option><option>BHD</option><option>Scotiabank</option><option>Otro</option></select></label>
+      <label><span>Referencia (opcional)</span><input class="filter-input" name="referenciaCobro" [(ngModel)]="cobroFormulario.referencia" maxlength="120"></label>
+      <p *ngIf="errorCobro" class="error" role="alert">{{ errorCobro }}</p>
+      <footer class="tenant-form-actions">
+        <button class="filter-button secondary" type="button" [disabled]="guardandoCobro" (click)="cancelarCobro()">Cancelar</button>
+        <button class="filter-button confirm-collect" type="submit" [disabled]="guardandoCobro">{{ guardandoCobro ? 'Guardando…' : 'Confirmar pago' }}</button>
+      </footer>
+    </form>
+  </section>
+</div>
 
 <div class="payment-modal-backdrop no-print" *ngIf="formularioAbierto" (click)="cancelar()">
   <section class="payment-modal" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title" (click)="$event.stopPropagation()">
@@ -108,8 +134,8 @@
 <div class="invoice-backdrop" *ngIf="facturaPago" (click)="cerrarFactura()">
   <article class="invoice-preview" (click)="$event.stopPropagation()">
     <div class="invoice-actions no-print">
-      <button class="filter-button" type="button" (click)="imprimirFactura()">Imprimir factura</button>
-      <button class="filter-button" type="button" (click)="mostrarFormularioCompartir()">Compartir</button>
+      <button class="filter-button" type="button" (click)="imprimirFactura()">Imprimir recibo</button>
+      <button class="filter-button" type="button" (click)="mostrarFormularioCompartir()">Compartir recibo</button>
       <button class="filter-button secondary" type="button" (click)="cerrarFactura()">Cerrar</button>
     </div>
 
@@ -135,8 +161,8 @@
     <div class="invoice-document" *ngIf="facturaPago">
       <header class="invoice-header">
         <div>
-          <p class="invoice-eyebrow">Comprobante de pago</p>
-          <h2>Factura #{{ facturaPago.id }}</h2>
+          <p class="invoice-eyebrow">Recibo de pago</p>
+          <h2>Recibo #{{ facturaPago.id }}</h2>
         </div>
         <div class="invoice-number">
           <span>{{ facturaPago.fechaPago | date: 'dd/MM/yyyy' }}</span>
@@ -154,10 +180,10 @@
           <tr><th>Descripción</th><th class="amount">Importe</th></tr>
         </thead>
         <tbody>
-          <tr><td>Pago de alquiler</td><td class="amount">{{ facturaPago.monto | number: '1.2-2' }}</td></tr>
+          <tr><td>Pago de alquiler <span *ngIf="facturaPago.metodoPago">· {{ facturaPago.metodoPago }}</span><span *ngIf="facturaPago.banco">· {{ facturaPago.banco }}</span><span *ngIf="facturaPago.referencia">· Ref. {{ facturaPago.referencia }}</span></td><td class="amount">{{ facturaPago.monto | number: '1.2-2' }}</td></tr>
         </tbody>
         <tfoot>
-          <tr><th>Total pagado</th><th class="amount">{{ facturaPago.monto | number: '1.2-2' }}</th></tr>
+          <tr><th>Total recibido</th><th class="amount">{{ facturaPago.monto | number: '1.2-2' }}</th></tr>
         </tfoot>
       </table>
 

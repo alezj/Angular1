@@ -1,6 +1,8 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { timeout } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import { Pago, PagosService } from '../pagos.service';
 import { Inquilino, InquilinosService } from '../inquilinos.service';
 import { EmailService } from '../email.service';
@@ -18,6 +20,7 @@ export class Pagos implements OnInit {
   cargando = true;
   error: string | null = null;
   editandoId: number | null = null;
+  editandoPago: Pago | null = null;
   formularioAbierto = false;
   formulario: Omit<Pago, 'id'> = { idInquilino: '', fechaPago: '', monto: '' };
   searchTerm = '';
@@ -34,6 +37,10 @@ export class Pagos implements OnInit {
   enviandoFactura = false;
   errorFactura: string | null = null;
   confirmacionFactura: string | null = null;
+  cobroPago: Pago | null = null;
+  guardandoCobro = false;
+  errorCobro: string | null = null;
+  cobroFormulario = { fechaPago: this.fechaHoy(), metodoPago: 'Transferencia', banco: 'Banco Popular', referencia: '' };
 
   get filteredPagos(): Pago[] {
     const term = this.searchTerm.toLowerCase().trim();
@@ -110,7 +117,7 @@ export class Pagos implements OnInit {
     if (!pago.fechaPago) return '—';
     const fecha = new Date(`${pago.fechaPago.substring(0, 10)}T00:00:00`);
     const texto = Number.isNaN(fecha.getTime()) ? pago.fechaPago : new Intl.DateTimeFormat('es-DO').format(fecha);
-    return `${texto}${pago.metodoPago ? ` · ${pago.metodoPago}` : ''}`;
+    return `${texto}${pago.metodoPago ? ` ${pago.metodoPago}` : ''}${pago.banco ? ` ${pago.banco}` : ''}${pago.referencia ? ` · Ref. ${pago.referencia}` : ''}`;
   }
   periodoPago(pago: Pago): string {
     const fecha = this.fechaCargo(pago);
@@ -132,6 +139,58 @@ export class Pagos implements OnInit {
     }
     return 'Pendiente';
   }
+  abrirCobro(pago: Pago): void {
+    this.cobroPago = pago;
+    this.errorCobro = null;
+    this.cobroFormulario = { fechaPago: this.fechaHoy(), metodoPago: 'Transferencia', banco: 'Banco Popular', referencia: '' };
+  }
+  cancelarCobro(): void {
+    if (this.guardandoCobro) return;
+    this.cobroPago = null;
+    this.errorCobro = null;
+  }
+  confirmarCobro(): void {
+    if (!this.cobroPago || !this.cobroFormulario.fechaPago || this.guardandoCobro) return;
+    this.guardandoCobro = true;
+    this.errorCobro = null;
+    this.pagosService.registrarCobro(this.cobroPago, {
+      fechaPago: this.cobroFormulario.fechaPago,
+      estado: 'Pagado',
+      metodoPago: this.cobroFormulario.metodoPago,
+      banco: this.cobroFormulario.metodoPago === 'Transferencia' ? this.cobroFormulario.banco : null,
+      referencia: this.cobroFormulario.referencia.trim() || null
+    }).pipe(
+      timeout({ first: 20000 }),
+      finalize(() => {
+        this.guardandoCobro = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: ({ data }) => {
+        this.pagos = this.pagos.map(p => this.mismoPago(p, data) ? data : p);
+        this.guardandoCobro = false;
+        this.cancelarCobro();
+        this.generarFactura(data);
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        const detalle = String(error?.message || error?.details || '');
+        this.errorCobro = /column .* does not exist|schema cache/i.test(detalle)
+          ? 'Faltan campos en Supabase. Ejecuta supabase-pagos-cobro-migration.sql y vuelve a intentar.'
+          : error?.name === 'TimeoutError'
+            ? 'Supabase no respondió en 20 segundos. Revisa tu conexión e inténtalo otra vez.'
+            : detalle || 'No se pudo registrar el cobro. Intenta nuevamente.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+  private fechaHoy(): string {
+    const hoy = new Date();
+    return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+  }
+  private mismoPago(a: Pago, b: Pago): boolean {
+    return a.id === b.id && a.Origen === b.Origen && a.usuario === b.usuario;
+  }
   nombrePropiedad(pago: Pago): string {
     const alquiler = this.alquileres.find(a => String(a.id) === String(pago.idAlquiler));
     return this.propiedades.find(p => p.id === Number(alquiler?.propiedadID))?.nombre ?? '—';
@@ -150,11 +209,16 @@ getNombreInquilino(idInquilino: string | number | null ): string {
     i => i.id === id
   )?.nombreApellido ?? 'No encontrado';
 }
-  guardar(): void { const r = this.editandoId === null ? this.pagosService.crear(this.formulario) : this.pagosService.actualizar(this.editandoId, this.formulario); r.subscribe({ next: () => { this.cancelar(); this.ngOnInit(); }, error: () => this.error = 'No se pudo guardar.' }); }
+  guardar(): void {
+    const r = this.editandoPago === null
+      ? this.pagosService.crear(this.formulario)
+      : this.pagosService.actualizar(this.editandoPago, this.formulario);
+    r.subscribe({ next: () => { this.cancelar(); this.ngOnInit(); }, error: (e) => this.error = e?.message || 'No se pudo guardar.' });
+  }
   nuevo(): void { this.cancelar(); this.formularioAbierto = true; }
-  editar(x: Pago): void { this.editandoId = x.id; this.formulario = { idInquilino: x.idInquilino, fechaPago: x.fechaPago.substring(0, 10), monto: x.monto }; this.formularioAbierto = true; }
-  eliminar(id: number): void { if (confirm('¿Eliminar este pago?')) this.pagosService.eliminar(id).subscribe({ next: () => this.ngOnInit(), error: () => this.error = 'No se pudo eliminar.' }); }
-  cancelar(): void { this.editandoId = null; this.formularioAbierto = false; this.formulario = { idInquilino: '', fechaPago: '', monto: '' }; }
+  editar(x: Pago): void { this.editandoId = x.id; this.editandoPago = x; this.formulario = { idInquilino: x.idInquilino, fechaPago: (x.fechaPago || '').substring(0, 10), monto: x.monto }; this.formularioAbierto = true; }
+  eliminar(pago: Pago): void { if (confirm('¿Eliminar este pago?')) this.pagosService.eliminar(pago).subscribe({ next: () => this.ngOnInit(), error: (e) => this.error = e?.message || 'No se pudo eliminar.' }); }
+  cancelar(): void { this.editandoId = null; this.editandoPago = null; this.formularioAbierto = false; this.formulario = { idInquilino: '', fechaPago: '', monto: '' }; }
 
   generarFactura(pago: Pago): void {
     this.facturaPago = pago;
@@ -193,7 +257,7 @@ getNombreInquilino(idInquilino: string | number | null ): string {
     this.confirmacionFactura = null;
     this.emailService.enviar({
       destinatario: this.destinatarioFactura.trim(),
-      asunto: `Factura #${this.facturaPago.id}`,
+      asunto: `Recibo de pago #${this.facturaPago.id}`,
       contenido: this.generarFacturaHtml(this.facturaPago, nombreInquilino),
       contenidoHtml: true
     }).subscribe({
@@ -218,9 +282,9 @@ getNombreInquilino(idInquilino: string | number | null ): string {
 
     return `
       <div style="max-width:640px;margin:0 auto;padding:32px;font-family:Arial,sans-serif;color:#1e293b;border:1px solid #e2e8f0;border-radius:8px">
-        <p style="margin:0 0 8px;color:#be185d;font-size:12px;font-weight:bold;letter-spacing:2px;text-transform:uppercase">Comprobante de pago</p>
+        <p style="margin:0 0 8px;color:#be185d;font-size:12px;font-weight:bold;letter-spacing:2px;text-transform:uppercase">Recibo de pago</p>
         <div style="display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #be185d;padding-bottom:16px">
-          <h1 style="margin:0;font-size:28px;color:#0f172a">Factura #${numero}</h1>
+          <h1 style="margin:0;font-size:28px;color:#0f172a">Recibo #${numero}</h1>
           <strong style="font-size:16px">${fecha}</strong>
         </div>
         <p style="margin:24px 0 4px;color:#64748b">Recibido de</p>
@@ -234,7 +298,7 @@ getNombreInquilino(idInquilino: string | number | null ): string {
           </thead>
           <tbody>
             <tr>
-              <td style="padding:12px 0;border-bottom:1px solid #e2e8f0">Pago de alquiler</td>
+              <td style="padding:12px 0;border-bottom:1px solid #e2e8f0">Pago de alquiler${pago.metodoPago ? ` · ${this.escaparHtml(pago.metodoPago)}` : ''}${pago.banco ? ` · ${this.escaparHtml(pago.banco)}` : ''}${pago.referencia ? ` · Ref. ${this.escaparHtml(pago.referencia)}` : ''}</td>
               <td style="padding:12px 0;text-align:right;border-bottom:1px solid #e2e8f0">${monto}</td>
             </tr>
           </tbody>
@@ -263,7 +327,7 @@ getNombreInquilino(idInquilino: string | number | null ): string {
     if (!this.facturaPago) return;
 
     const tituloOriginal = document.title;
-    document.title = `Factura #${this.facturaPago.id}`;
+    document.title = `Recibo #${this.facturaPago.id}`;
 
     const restaurarTitulo = () => {
       document.title = tituloOriginal;

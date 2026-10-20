@@ -152,6 +152,34 @@
   background: #fff5f4;
 }
 
+.pagos .collect-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #dce6f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #07865f;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+.pagos .collect-action svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+.pagos .collect-action:hover { background: #effaf5; border-color: #9ed8bf; }
+.pagos .collect-action:focus-visible { outline: 3px solid rgba(7, 134, 95, 0.28); outline-offset: 2px; }
+.pagos .collect-action:disabled { opacity: 0.65; cursor: wait; }
+
 .pagos .filter-bar { margin: 0 0 1rem; }
 .pagos .period-filter { min-width: 132px; }
 .pagos .period-filter .filter-select { width: 100%; }
@@ -189,6 +217,25 @@
   background: #ffffff;
   box-shadow: 0 24px 64px rgba(15, 28, 48, 0.24);
 }
+
+.collect-modal { width: min(100%, 800px); padding: 1.6rem; }
+.collect-summary {
+  display: grid;
+  gap: 0.35rem;
+  margin: 1.2rem 0 1.35rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 10px;
+  background: #f7f9fc;
+}
+.collect-summary strong { color: var(--text-main); font-size: 1.15rem; }
+.collect-summary span { color: var(--text-muted); }
+.collect-summary b { margin-top: 0.25rem; color: var(--text-main); font-size: 1.45rem; font-variant-numeric: tabular-nums; }
+.collect-form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem 1.25rem; }
+.collect-form .tenant-form-actions,
+.collect-form > .error { grid-column: 1 / -1; }
+.collect-form .tenant-form-actions { margin: 0 -1.6rem -1.6rem; padding: 1rem 1.6rem; border-top: 1px solid var(--border-light); background: #f7f9fc; }
+.collect-form .confirm-collect { background: #059669; border-color: #059669; }
+.collect-form .confirm-collect:hover { background: #047857; }
 
 .payment-form {
   display: grid;
@@ -384,6 +431,12 @@
   .payments-summary {
     grid-template-columns: 1fr;
   }
+
+  .collect-modal { padding: 1.1rem; }
+  .collect-form { grid-template-columns: 1fr; }
+  .collect-form .tenant-form-actions,
+  .collect-form > .error { grid-column: auto; }
+  .collect-form .tenant-form-actions { margin: 0 -1.1rem -1.1rem; padding: 0.9rem 1.1rem; }
 
   .pagos table,
   .pagos tbody,
