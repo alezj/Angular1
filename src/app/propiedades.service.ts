@@ -1,15 +1,27 @@
 import { Injectable } from '@angular/core';
-import { from, Observable } from 'rxjs';
+import { from, Observable, throwError } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { StorageCacheService } from './storage-cache.service';
 import { SupabaseService } from './supabase.service';
 
 export interface Propiedad {
   id: number;
+  Origen?: 'web' | 'movil' | string;
+  usuario?: string;
+  codigo?: string;
   nombre: string;
+  tipo?: string;
   direccion: string;
+  sector?: string;
+  ciudad?: string;
+  habitaciones?: number;
+  banos?: number;
+  parqueos?: number;
+  area?: number;
   estado: number;
   precioMensual: number;
+  deposito?: number;
+  imagenUrl?: string;
   notas: string;
 }
 
@@ -58,12 +70,17 @@ export class PropiedadesService {
     );
   }
 
-  actualizar(id: number, datos: Omit<Propiedad, 'id'>): Observable<ApiResponse<Propiedad>> {
+  actualizar(propiedad: Propiedad, datos: Omit<Propiedad, 'id'>): Observable<ApiResponse<Propiedad>> {
+    if (!propiedad.Origen || !propiedad.usuario) {
+      return throwError(() => new Error('No se puede identificar esta propiedad: faltan Origen o usuario.'));
+    }
     return from(
       this.supabaseService.client
         .from('propiedades')
         .update(datos)
-        .eq('id', id)
+        .eq('id', propiedad.id)
+        .eq('Origen', propiedad.Origen)
+        .eq('usuario', propiedad.usuario)
         .select()
         .single()
     ).pipe(
@@ -75,12 +92,17 @@ export class PropiedadesService {
     );
   }
 
-  eliminar(id: number): Observable<ApiResponse<null>> {
+  eliminar(propiedad: Propiedad): Observable<ApiResponse<null>> {
+    if (!propiedad.Origen || !propiedad.usuario) {
+      return throwError(() => new Error('No se puede identificar esta propiedad: faltan Origen o usuario.'));
+    }
     return from(
       this.supabaseService.client
         .from('propiedades')
         .delete()
-        .eq('id', id)
+        .eq('id', propiedad.id)
+        .eq('Origen', propiedad.Origen)
+        .eq('usuario', propiedad.usuario)
     ).pipe(
       map(({ error }) => {
         if (error) throw error;

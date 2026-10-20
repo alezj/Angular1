@@ -18,7 +18,9 @@ export class Propiedades implements OnInit {
   formularioAbierto = false;
   vista: 'tarjetas' | 'tabla' = 'tarjetas';
   searchTerm = '';
-  formulario: Omit<Propiedad, 'id'> = { nombre: '', direccion: '', estado: 1, precioMensual: 0, notas: '' };
+  formulario: Omit<Propiedad, 'id'> = this.formularioVacio();
+  imagenPreviewError = false;
+  readonly tipos = ['Casa', 'Apartamento', 'Penthouse', 'Villa', 'Local comercial', 'Oficina', 'Terreno', 'Otro'];
 
   get propiedadesFiltradas(): Propiedad[] {
     const term = this.searchTerm.toLowerCase().trim();
@@ -50,12 +52,29 @@ export class Propiedades implements OnInit {
   }
 
   guardar(): void {
-    const accion = this.editandoId === null ? this.propiedadesService.crear(this.formulario) : this.propiedadesService.actualizar(this.editandoId, this.formulario);
-    accion.subscribe({ next: () => { this.cancelar(); this.ngOnInit(); }, error: () => this.error = 'No se pudo guardar la propiedad.' });
+    const accion = this.editandoPropiedad === null
+      ? this.propiedadesService.crear(this.formulario)
+      : this.propiedadesService.actualizar(this.editandoPropiedad, this.formulario);
+    accion.subscribe({ next: () => { this.cancelar(); this.ngOnInit(); }, error: (e) => this.error = e?.message || 'No se pudo guardar la propiedad.' });
   }
+  private editandoPropiedad: Propiedad | null = null;
   nuevo(): void { this.cancelar(); this.formularioAbierto = true; }
-  editar(propiedad: Propiedad): void { this.editandoId = propiedad.id; this.formulario = { ...propiedad }; this.formularioAbierto = true; }
-  eliminar(id: number): void { if (confirm('¿Eliminar esta propiedad?')) this.propiedadesService.eliminar(id).subscribe({ next: () => this.ngOnInit(), error: () => this.error = 'No se pudo eliminar la propiedad.' }); }
-  cancelar(): void { this.editandoId = null; this.formularioAbierto = false; this.formulario = { nombre: '', direccion: '', estado: 1, precioMensual: 0, notas: '' }; }
+  editar(propiedad: Propiedad): void {
+    this.editandoId = propiedad.id;
+    this.editandoPropiedad = propiedad;
+    this.formulario = { ...this.formularioVacio(), ...propiedad };
+    this.imagenPreviewError = false;
+    this.formularioAbierto = true;
+  }
+  eliminar(propiedad: Propiedad): void { if (confirm('¿Eliminar esta propiedad?')) this.propiedadesService.eliminar(propiedad).subscribe({ next: () => this.ngOnInit(), error: (e) => this.error = e?.message || 'No se pudo eliminar la propiedad.' }); }
+  cancelar(): void { this.editandoId = null; this.editandoPropiedad = null; this.formularioAbierto = false; this.formulario = this.formularioVacio(); this.imagenPreviewError = false; }
   nombreEstado(id: number): string { return this.estados.find(e => e.id === id)?.nombre ?? `Sin definir (${id})`; }
+  get esEnlaceCompartidoGoogleFotos(): boolean {
+    return this.esEnlaceGoogleFotos(this.formulario.imagenUrl || '');
+  }
+  esEnlaceGoogleFotos(url: string): boolean { return /^https?:\/\/(photos\.app\.goo\.gl|photos\.google\.com\/share|photos\.google\.com\/photo)\//i.test(url); }
+
+  private formularioVacio(): Omit<Propiedad, 'id'> {
+    return { codigo: '', nombre: '', tipo: 'Apartamento', direccion: '', sector: '', ciudad: '', habitaciones: 0, banos: 0, parqueos: 0, area: 0, estado: 1, precioMensual: 0, deposito: 0, imagenUrl: '', notas: '' };
+  }
 }

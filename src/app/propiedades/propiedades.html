@@ -25,14 +25,22 @@
   <div class="property-grid" *ngIf="!cargando && !error && vista === 'tarjetas'">
     <article class="property-card" *ngFor="let propiedad of propiedadesFiltradas">
       <div class="property-cover">
+        <img *ngIf="propiedad.imagenUrl" class="property-photo" [src]="propiedad.imagenUrl" [alt]="'Foto de ' + propiedad.nombre" loading="lazy" (error)="$event.currentTarget && $any($event.currentTarget).classList.add('image-failed')">
         <svg class="property-building" viewBox="0 0 64 64" aria-hidden="true"><path d="M12 54V18l20-9 20 9v36M7 54h50M22 25h5m10 0h5M22 34h5m10 0h5M27 54V43h10v11"/></svg>
+        <a *ngIf="propiedad.imagenUrl && esEnlaceGoogleFotos(propiedad.imagenUrl)" class="property-photo-link" [href]="propiedad.imagenUrl" target="_blank" rel="noopener noreferrer">Abrir foto</a>
         <span class="property-state" [attr.data-state]="propiedad.estado">{{ nombreEstado(propiedad.estado) }}</span>
         <span class="property-reference">#{{ propiedad.id }}</span>
       </div>
       <div class="property-content">
-        <p class="property-kind">Propiedad</p>
+        <p class="property-kind">{{ propiedad.codigo || ('PROP-' + propiedad.id) }} · {{ propiedad.tipo || 'Propiedad' }}</p>
         <h3>{{ propiedad.nombre }}</h3>
-        <p class="property-address">{{ propiedad.direccion }}</p>
+        <p class="property-address">{{ propiedad.sector ? propiedad.sector + ', ' : '' }}{{ propiedad.ciudad ? propiedad.ciudad + ' · ' : '' }}{{ propiedad.direccion }}</p>
+        <p class="property-specs" *ngIf="propiedad.habitaciones || propiedad.banos || propiedad.parqueos || propiedad.area">
+          <span *ngIf="propiedad.habitaciones">{{ propiedad.habitaciones }} hab.</span>
+          <span *ngIf="propiedad.banos">{{ propiedad.banos }} baños</span>
+          <span *ngIf="propiedad.parqueos">{{ propiedad.parqueos }} parqueos</span>
+          <span *ngIf="propiedad.area">{{ propiedad.area }} m²</span>
+        </p>
         <p class="property-notes" *ngIf="propiedad.notas">{{ propiedad.notas }}</p>
         <footer class="property-footer">
           <div>
@@ -43,7 +51,7 @@
             <button class="icon-action" type="button" title="Editar" [attr.aria-label]="'Editar ' + propiedad.nombre" (click)="editar(propiedad)">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
             </button>
-            <button class="icon-action danger" type="button" title="Eliminar" [attr.aria-label]="'Eliminar ' + propiedad.nombre" (click)="eliminar(propiedad.id)">
+            <button class="icon-action danger" type="button" title="Eliminar" [attr.aria-label]="'Eliminar ' + propiedad.nombre" (click)="eliminar(propiedad)">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6" /></svg>
             </button>
           </div>
@@ -74,7 +82,7 @@
           <td>{{ nombreEstado(propiedad.estado) }}</td>
           <td>{{ propiedad.precioMensual | number: '1.2-2' }}</td>
           <td>{{ propiedad.notas || '-' }}</td>
-          <td><div class="action-buttons"><button class="icon-action" type="button" title="Editar" [attr.aria-label]="'Editar ' + propiedad.nombre" (click)="editar(propiedad)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg></button><button class="icon-action danger" type="button" title="Eliminar" [attr.aria-label]="'Eliminar ' + propiedad.nombre" (click)="eliminar(propiedad.id)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6" /></svg></button></div></td>
+          <td><div class="action-buttons"><button class="icon-action" type="button" title="Editar" [attr.aria-label]="'Editar ' + propiedad.nombre" (click)="editar(propiedad)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg></button><button class="icon-action danger" type="button" title="Eliminar" [attr.aria-label]="'Eliminar ' + propiedad.nombre" (click)="eliminar(propiedad)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6" /></svg></button></div></td>
         </tr>
         <tr *ngIf="propiedadesFiltradas.length === 0">
           <td colspan="7">No hay propiedades registradas.</td>
@@ -94,11 +102,25 @@
       <button class="icon-action" type="button" aria-label="Cerrar" title="Cerrar" (click)="cancelar()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12" /></svg></button>
     </header>
     <form (ngSubmit)="guardar()" class="property-form">
+      <label><span>Código</span><input class="filter-input" [(ngModel)]="formulario.codigo" name="codigo" maxlength="40" placeholder="Ej. NAC-410"></label>
       <label><span>Nombre</span><input class="filter-input" [(ngModel)]="formulario.nombre" name="nombre" required></label>
-      <label><span>Dirección</span><input class="filter-input" [(ngModel)]="formulario.direccion" name="direccion" required></label>
-      <label><span>Renta mensual (RD$)</span><input class="filter-input" [(ngModel)]="formulario.precioMensual" name="precioMensual" type="number" min="0" required></label>
+      <label><span>Tipo</span><select class="filter-select" [(ngModel)]="formulario.tipo" name="tipo"><option *ngFor="let tipo of tipos">{{ tipo }}</option></select></label>
       <label><span>Estado</span><select class="filter-select" [(ngModel)]="formulario.estado" name="estado"><option *ngFor="let estado of estados" [ngValue]="estado.id">{{ estado.nombre }}</option></select></label>
-      <label class="property-notes-field"><span>Notas</span><textarea class="filter-input" [(ngModel)]="formulario.notas" name="notas" rows="3"></textarea></label>
+      <label><span>Dirección</span><input class="filter-input" [(ngModel)]="formulario.direccion" name="direccion" required></label>
+      <label><span>Sector</span><input class="filter-input" [(ngModel)]="formulario.sector" name="sector"></label>
+      <label><span>Ciudad</span><input class="filter-input" [(ngModel)]="formulario.ciudad" name="ciudad"></label>
+      <label><span>Habitaciones</span><input class="filter-input" [(ngModel)]="formulario.habitaciones" name="habitaciones" type="number" min="0"></label>
+      <label><span>Baños</span><input class="filter-input" [(ngModel)]="formulario.banos" name="banos" type="number" min="0" step="0.5"></label>
+      <label><span>Parqueos</span><input class="filter-input" [(ngModel)]="formulario.parqueos" name="parqueos" type="number" min="0"></label>
+      <label><span>Área (m²)</span><input class="filter-input" [(ngModel)]="formulario.area" name="area" type="number" min="0"></label>
+      <label><span>Renta mensual (RD$)</span><input class="filter-input" [(ngModel)]="formulario.precioMensual" name="precioMensual" type="number" min="0" required></label>
+      <label><span>Depósito (RD$)</span><input class="filter-input" [(ngModel)]="formulario.deposito" name="deposito" type="number" min="0"></label>
+      <label class="property-image-field"><span>URL de imagen (opcional)</span><input class="filter-input" [(ngModel)]="formulario.imagenUrl" name="imagenUrl" type="url" placeholder="https://..." (ngModelChange)="imagenPreviewError = false"><small *ngIf="!esEnlaceCompartidoGoogleFotos">Usa una URL pública directa a un archivo JPG, PNG o WebP.</small><small *ngIf="esEnlaceCompartidoGoogleFotos" class="google-photos-note">Enlace compartido de Google Fotos detectado. Se guardará y podrás abrir la foto desde la tarjeta; para mostrar la miniatura dentro del CRM, usa el enlace directo del archivo de imagen.</small></label>
+      <div class="property-image-preview property-image-field" *ngIf="formulario.imagenUrl">
+        <img *ngIf="!esEnlaceCompartidoGoogleFotos && !imagenPreviewError" [src]="formulario.imagenUrl" [alt]="'Vista previa de ' + formulario.nombre" (error)="imagenPreviewError = true">
+        <a *ngIf="esEnlaceCompartidoGoogleFotos || imagenPreviewError" [href]="formulario.imagenUrl" target="_blank" rel="noopener noreferrer">{{ esEnlaceCompartidoGoogleFotos ? 'Abrir foto compartida de Google Fotos' : 'Abrir enlace de imagen' }}</a>
+      </div>
+      <label class="property-notes-field"><span>Descripción</span><textarea class="filter-input" [(ngModel)]="formulario.notas" name="notas" rows="3"></textarea></label>
       <footer class="tenant-form-actions">
         <button class="filter-button secondary" type="button" (click)="cancelar()">Cancelar</button>
         <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear propiedad' : 'Guardar cambios' }}</button>
