@@ -73,6 +73,11 @@ export class Propiedades implements OnInit {
     return this.esEnlaceGoogleFotos(this.formulario.imagenUrl || '');
   }
   esEnlaceGoogleFotos(url: string): boolean { return /^https?:\/\/(photos\.app\.goo\.gl|photos\.google\.com\/share|photos\.google\.com\/photo)\//i.test(url); }
+  imagenVisible(url: string): string {
+    return this.esEnlaceGoogleFotos(url)
+      ? `/api/google-photos-image?url=${encodeURIComponent(url)}`
+      : url;
+  }
 
   private formularioVacio(): Omit<Propiedad, 'id'> {
     return { codigo: '', nombre: '', tipo: 'Apartamento', direccion: '', sector: '', ciudad: '', habitaciones: 0, banos: 0, parqueos: 0, area: 0, estado: 1, precioMensual: 0, deposito: 0, imagenUrl: '', notas: '' };

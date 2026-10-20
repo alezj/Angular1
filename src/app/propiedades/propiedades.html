@@ -25,7 +25,7 @@
   <div class="property-grid" *ngIf="!cargando && !error && vista === 'tarjetas'">
     <article class="property-card" *ngFor="let propiedad of propiedadesFiltradas">
       <div class="property-cover">
-        <img *ngIf="propiedad.imagenUrl" class="property-photo" [src]="propiedad.imagenUrl" [alt]="'Foto de ' + propiedad.nombre" loading="lazy" (error)="$event.currentTarget && $any($event.currentTarget).classList.add('image-failed')">
+        <img *ngIf="propiedad.imagenUrl" class="property-photo" [src]="imagenVisible(propiedad.imagenUrl)" [alt]="'Foto de ' + propiedad.nombre" loading="lazy" (error)="$event.currentTarget && $any($event.currentTarget).classList.add('image-failed')">
         <svg class="property-building" viewBox="0 0 64 64" aria-hidden="true"><path d="M12 54V18l20-9 20 9v36M7 54h50M22 25h5m10 0h5M22 34h5m10 0h5M27 54V43h10v11"/></svg>
         <a *ngIf="propiedad.imagenUrl && esEnlaceGoogleFotos(propiedad.imagenUrl)" class="property-photo-link" [href]="propiedad.imagenUrl" target="_blank" rel="noopener noreferrer">Abrir foto</a>
         <span class="property-state" [attr.data-state]="propiedad.estado">{{ nombreEstado(propiedad.estado) }}</span>
@@ -115,10 +115,10 @@
       <label><span>Área (m²)</span><input class="filter-input" [(ngModel)]="formulario.area" name="area" type="number" min="0"></label>
       <label><span>Renta mensual (RD$)</span><input class="filter-input" [(ngModel)]="formulario.precioMensual" name="precioMensual" type="number" min="0" required></label>
       <label><span>Depósito (RD$)</span><input class="filter-input" [(ngModel)]="formulario.deposito" name="deposito" type="number" min="0"></label>
-      <label class="property-image-field"><span>URL de imagen (opcional)</span><input class="filter-input" [(ngModel)]="formulario.imagenUrl" name="imagenUrl" type="url" placeholder="https://..." (ngModelChange)="imagenPreviewError = false"><small *ngIf="!esEnlaceCompartidoGoogleFotos">Usa una URL pública directa a un archivo JPG, PNG o WebP.</small><small *ngIf="esEnlaceCompartidoGoogleFotos" class="google-photos-note">Enlace compartido de Google Fotos detectado. Se guardará y podrás abrir la foto desde la tarjeta; para mostrar la miniatura dentro del CRM, usa el enlace directo del archivo de imagen.</small></label>
+      <label class="property-image-field"><span>URL de imagen (opcional)</span><input class="filter-input" [(ngModel)]="formulario.imagenUrl" name="imagenUrl" type="url" placeholder="https://..." (ngModelChange)="imagenPreviewError = false"><small *ngIf="!esEnlaceCompartidoGoogleFotos">Puedes pegar una URL pública directa o un enlace compartido de Google Fotos.</small><small *ngIf="esEnlaceCompartidoGoogleFotos" class="google-photos-note">Enlace de Google Fotos detectado. La aplicación intentará mostrar su vista previa pública.</small></label>
       <div class="property-image-preview property-image-field" *ngIf="formulario.imagenUrl">
-        <img *ngIf="!esEnlaceCompartidoGoogleFotos && !imagenPreviewError" [src]="formulario.imagenUrl" [alt]="'Vista previa de ' + formulario.nombre" (error)="imagenPreviewError = true">
-        <a *ngIf="esEnlaceCompartidoGoogleFotos || imagenPreviewError" [href]="formulario.imagenUrl" target="_blank" rel="noopener noreferrer">{{ esEnlaceCompartidoGoogleFotos ? 'Abrir foto compartida de Google Fotos' : 'Abrir enlace de imagen' }}</a>
+        <img *ngIf="!imagenPreviewError" [src]="imagenVisible(formulario.imagenUrl || '')" [alt]="'Vista previa de ' + formulario.nombre" (error)="imagenPreviewError = true">
+        <a *ngIf="imagenPreviewError" [href]="formulario.imagenUrl" target="_blank" rel="noopener noreferrer">{{ esEnlaceCompartidoGoogleFotos ? 'Abrir foto compartida de Google Fotos' : 'Abrir enlace de imagen' }}</a>
       </div>
       <label class="property-notes-field"><span>Descripción</span><textarea class="filter-input" [(ngModel)]="formulario.notas" name="notas" rows="3"></textarea></label>
       <footer class="tenant-form-actions">
