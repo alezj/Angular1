@@ -2,6 +2,8 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Alquiler, AlquileresService } from '../alquileres.service';
+import { Inquilino, InquilinosService } from '../inquilinos.service';
+import { Propiedad, PropiedadesService } from '../propiedades.service';
 
 @Component({
   selector: 'app-alquileres',
@@ -11,6 +13,8 @@ import { Alquiler, AlquileresService } from '../alquileres.service';
 })
 export class Alquileres implements OnInit {
   alquileres: Alquiler[] = [];
+  propiedades: Propiedad[] = [];
+  inquilinos: Inquilino[] = [];
   cargando = true;
   error: string | null = null;
   editandoId: number | string | null = null;
@@ -23,7 +27,7 @@ export class Alquileres implements OnInit {
     const term = this.searchTerm.toLowerCase().trim();
     if (!term) return this.alquileres;
     return this.alquileres.filter((alquiler) =>
-      `${alquiler.id} ${alquiler.propiedadID} ${alquiler.inquilinoID} ${alquiler.fechaInicio} ${alquiler.fechaFin} ${this.estado(alquiler)}`
+      `${alquiler.id} ${alquiler.propiedadID} ${this.nombrePropiedad(alquiler.propiedadID)} ${alquiler.inquilinoID} ${this.nombreInquilino(alquiler.inquilinoID)} ${alquiler.fechaInicio} ${alquiler.fechaFin} ${this.estado(alquiler)}`
         .toLowerCase()
         .includes(term)
     );
@@ -33,7 +37,12 @@ export class Alquileres implements OnInit {
   get porIniciar(): number { return this.alquileres.filter((alquiler) => this.estado(alquiler) === 'Próximo').length; }
   get finalizados(): number { return this.alquileres.filter((alquiler) => this.estado(alquiler) === 'Finalizado').length; }
 
-  constructor(private readonly alquileresService: AlquileresService, private readonly cdr: ChangeDetectorRef) {}
+  constructor(
+    private readonly alquileresService: AlquileresService,
+    private readonly propiedadesService: PropiedadesService,
+    private readonly inquilinosService: InquilinosService,
+    private readonly cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.cargando = true;
@@ -54,6 +63,38 @@ export class Alquileres implements OnInit {
         this.cdr.markForCheck();
       }
     });
+    this.propiedadesService.obtenerPropiedades().subscribe({
+      next: (respuesta) => {
+        if (respuesta.success) this.propiedades = respuesta.data;
+        this.cdr.markForCheck();
+      }
+    });
+    this.inquilinosService.obtenerInquilinos().subscribe({
+      next: (respuesta) => {
+        if (respuesta.success) this.inquilinos = respuesta.data;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  nombrePropiedad(id: number): string {
+    const propiedad = this.propiedades.find((item) => item.id === Number(id));
+    if (!propiedad) return `Propiedad #${id}`;
+    const nombre = propiedad.nombre?.trim() || propiedad.codigo?.trim() || `Propiedad #${id}`;
+    return propiedad.direccion?.trim() ? `${nombre} · ${propiedad.direccion.trim()}` : nombre;
+  }
+
+  nombreInquilino(id: number): string {
+    const inquilino = this.inquilinos.find((item) => item.id === Number(id));
+    return inquilino?.nombreApellido?.trim() || `Inquilino #${id}`;
+  }
+
+  propiedadNoDisponible(id: number): boolean {
+    return !!id && !this.propiedades.some((propiedad) => propiedad.id === Number(id));
+  }
+
+  inquilinoNoDisponible(id: number): boolean {
+    return !!id && !this.inquilinos.some((inquilino) => inquilino.id === Number(id));
   }
   nuevo(): void { this.cancelar(); this.formularioAbierto = true; }
   guardar(): void {

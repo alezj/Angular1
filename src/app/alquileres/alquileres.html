@@ -27,7 +27,7 @@
   </div>
 
   <div class="contract-toolbar">
-    <input class="filter-input" [(ngModel)]="searchTerm" name="search" placeholder="Buscar por ID, propiedad, inquilino o vigencia..." aria-label="Buscar contratos">
+    <input class="filter-input" [(ngModel)]="searchTerm" name="search" placeholder="Buscar por contrato, propiedad, inquilino o vigencia..." aria-label="Buscar contratos">
   </div>
 
   <p *ngIf="cargando">Cargando alquileres...</p>
@@ -49,8 +49,8 @@
       <tbody>
         <tr *ngFor="let alquiler of filteredAlquileres">
           <td><strong class="contract-id">#{{ alquiler.id || '-' }}</strong></td>
-          <td><span class="reference-value">{{ alquiler.propiedadID }}</span></td>
-          <td><span class="reference-value">{{ alquiler.inquilinoID }}</span></td>
+          <td>{{ nombrePropiedad(alquiler.propiedadID) }}</td>
+          <td>{{ nombreInquilino(alquiler.inquilinoID) }}</td>
           <td>{{ alquiler.fechaInicio | date: 'dd/MM/yyyy' }}</td>
           <td>{{ alquiler.fechaFin | date: 'dd/MM/yyyy' }}</td>
           <td><span class="contract-status" [attr.data-status]="estado(alquiler)">{{ estado(alquiler) }}</span></td>
@@ -90,12 +90,20 @@
 
     <form (ngSubmit)="guardar()" class="contract-form">
       <label>
-        <span>ID de propiedad</span>
-        <input class="filter-input" [(ngModel)]="formulario.propiedadID" name="propiedad" type="number" min="1" required>
+        <span>Propiedad</span>
+        <select class="filter-input" [(ngModel)]="formulario.propiedadID" name="propiedad" required>
+          <option [ngValue]="0" disabled>Selecciona una propiedad</option>
+          <option *ngIf="propiedadNoDisponible(formulario.propiedadID)" [ngValue]="formulario.propiedadID">{{ nombrePropiedad(formulario.propiedadID) }} (no disponible)</option>
+          <option *ngFor="let propiedad of propiedades" [ngValue]="propiedad.id">{{ nombrePropiedad(propiedad.id) }}</option>
+        </select>
       </label>
       <label>
-        <span>ID de inquilino</span>
-        <input class="filter-input" [(ngModel)]="formulario.inquilinoID" name="inquilino" type="number" min="1" required>
+        <span>Inquilino</span>
+        <select class="filter-input" [(ngModel)]="formulario.inquilinoID" name="inquilino" required>
+          <option [ngValue]="0" disabled>Selecciona un inquilino</option>
+          <option *ngIf="inquilinoNoDisponible(formulario.inquilinoID)" [ngValue]="formulario.inquilinoID">{{ nombreInquilino(formulario.inquilinoID) }} (no disponible)</option>
+          <option *ngFor="let inquilino of inquilinos" [ngValue]="inquilino.id">{{ nombreInquilino(inquilino.id) }}</option>
+        </select>
       </label>
       <label>
         <span>Fecha de inicio</span>
