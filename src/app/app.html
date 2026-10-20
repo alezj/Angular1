@@ -3,7 +3,7 @@
   <aside class="sidebar" [class.open]="isMenuOpen()">
     <div class="sidebar-header">
       <div class="logo-container">
-        <span class="crm-logo-icon">🏢</span>
+        <svg lucideBuilding2 class="crm-logo-icon" [size]="28" [strokeWidth]="1.8" aria-hidden="true"></svg>
         <div class="crm-brand">
           <span class="logo-text">Alquilados CRM</span>
           <span class="logo-subtext">Inmobiliaria</span>
@@ -22,7 +22,7 @@
       <div class="nav-section-title">Comercial & CRM</div>
 
       <a routerLink="/inicio" routerLinkActive="active" (click)="closeMenu()" class="nav-item">
-        <span class="item-icon">📊</span>
+        <svg lucideLayoutDashboard class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
         <span>Dashboard</span>
       </a>
 
@@ -33,7 +33,7 @@
         (click)="closeMenu()"
         class="nav-item"
       >
-        <span class="item-icon">👥</span>
+        <svg lucideUsers class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
         <span>Inquilinos & Prospectos</span>
       </a>
 
@@ -44,7 +44,7 @@
         (click)="closeMenu()"
         class="nav-item"
       >
-        <span class="item-icon">📄</span>
+        <svg lucideFileSignature class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
         <span>Contratos de Alquiler</span>
       </a>
 
@@ -55,7 +55,7 @@
         (click)="closeMenu()"
         class="nav-item"
       >
-        <span class="item-icon">✉️</span>
+        <svg lucideMail class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
         <span>Mensajería</span>
       </a>
 
@@ -69,7 +69,7 @@
         (click)="closeMenu()"
         class="nav-item"
       >
-        <span class="item-icon">🏠</span>
+        <svg lucideHouse class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
         <span>Propiedades</span>
       </a>
 
@@ -80,7 +80,7 @@
         (click)="closeMenu()"
         class="nav-item"
       >
-        <span class="item-icon">🛠️</span>
+        <svg lucideWrench class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
         <span>Mantenimientos</span>
       </a>
 
@@ -91,7 +91,7 @@
         (click)="closeMenu()"
         class="nav-item"
       >
-        <span class="item-icon">🏷️</span>
+        <svg lucideTags class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
         <span>Catálogo de Estados</span>
       </a>
 
@@ -105,7 +105,7 @@
         (click)="closeMenu()"
         class="nav-item"
       >
-        <span class="item-icon">💳</span>
+        <svg lucideWallet class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
         <span>Cobros & Pagos</span>
       </a>
 
@@ -113,7 +113,7 @@
       <ng-container *ngIf="authService.isAdmin()">
         <div class="nav-section-title">Administración</div>
         <a routerLink="/usuarios" routerLinkActive="active" (click)="closeMenu()" class="nav-item">
-          <span class="item-icon">🛡️</span>
+          <svg lucideShield class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
           <span>Equipo & Roles</span>
         </a>
       </ng-container>
@@ -122,18 +122,18 @@
       <div class="nav-section-title">Usuario</div>
       <ng-container *ngIf="authService.isAuthenticated()">
         <a routerLink="/perfil" routerLinkActive="active" (click)="closeMenu()" class="nav-item">
-          <span class="item-icon">👤</span>
+          <svg lucideUser class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
           <span>Mi Perfil</span>
         </a>
         <button (click)="authService.cerrarSesion(); closeMenu()" class="nav-item nav-btn-logout">
-          <span class="item-icon">🚪</span>
+          <svg lucideLogOut class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
           <span>Cerrar Sesión</span>
         </button>
       </ng-container>
 
       <ng-container *ngIf="!authService.isAuthenticated()">
         <a routerLink="/login" routerLinkActive="active" (click)="closeMenu()" class="nav-item">
-          <span class="item-icon">🔑</span>
+          <svg lucideKeyRound class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
           <span>Iniciar Sesión</span>
         </a>
       </ng-container>
@@ -148,9 +148,7 @@
     <header class="topbar">
       <div class="topbar-left">
         <button class="menu-toggle" (click)="toggleMenu()" aria-label="Toggle menu">
-          <svg viewBox="0 0 24 24" width="24" height="24">
-            <path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-          </svg>
+          <svg lucideMenu [size]="24" [strokeWidth]="1.8" aria-hidden="true"></svg>
         </button>
         <h1 class="topbar-title">Alquilados CRM</h1>
       </div>
@@ -178,7 +176,7 @@
             </div>
           </a>
           <button (click)="authService.cerrarSesion()" class="logout-mini-btn" title="Cerrar sesión">
-            🚪
+            <svg lucideLogOut [size]="18" [strokeWidth]="1.8" aria-hidden="true"></svg>
           </button>
         </div>
 

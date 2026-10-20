@@ -3,11 +3,32 @@ import { Component, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from './auth/auth.service';
+import {
+  LucideBuilding2,
+  LucideFileSignature,
+  LucideHouse,
+  LucideKeyRound,
+  LucideLayoutDashboard,
+  LucideLogOut,
+  LucideMail,
+  LucideMenu,
+  LucideShield,
+  LucideTags,
+  LucideUser,
+  LucideUsers,
+  LucideWallet,
+  LucideWrench
+} from '@lucide/angular';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
+  imports: [
+    RouterOutlet, RouterLink, RouterLinkActive, CommonModule,
+    LucideBuilding2, LucideFileSignature, LucideHouse,
+    LucideKeyRound, LucideLayoutDashboard, LucideLogOut, LucideMail, LucideMenu,
+    LucideShield, LucideTags, LucideUser, LucideUsers, LucideWallet, LucideWrench
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

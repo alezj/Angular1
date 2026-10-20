@@ -132,7 +132,7 @@ body {
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.875rem;
   padding: 0.85rem 1.25rem;
   color: #aebbd0;
   text-decoration: none;
@@ -147,12 +147,32 @@ body {
   color: #ffffff;
 }
 
+.nav-item:focus-visible,
+.close-btn:focus-visible,
+.menu-toggle:focus-visible,
+.logout-mini-btn:focus-visible {
+  outline: 2px solid #53b8f2;
+  outline-offset: 2px;
+}
+
 .nav-item.active {
-  background: #1e2b41;
+  background: #1b2c47;
   color: #ffffff;
   border-color: rgba(89, 184, 235, 0.2);
-  box-shadow: inset 3px 0 #35a9e5;
+  box-shadow: inset 3px 0 #53b8f2;
 }
+
+.nav-item .item-icon {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  color: #a7b4c8;
+  stroke-width: 1.8;
+  transition: color var(--transition-normal), transform var(--transition-normal);
+}
+
+.nav-item:hover .item-icon { color: #d7e6f7; }
+.nav-item.active .item-icon { color: #53b8f2; }
 
 .nav-icon {
   transition: transform 0.3s ease;
@@ -348,7 +368,7 @@ body {
   .card { padding: 0; border-radius: 0; }
 
   /* Make nav icons slightly smaller */
-  .nav-icon { width: 18px; height: 18px; }
+  .nav-item .item-icon { width: 22px; height: 22px; }
 
   /* Ensure content container has comfortable padding */
   .content-container { padding: 0.75rem; }
@@ -670,7 +690,8 @@ img, video { max-width: 100%; height: auto; }
    ========================================================= */
 
 .crm-logo-icon {
-  font-size: 1.8rem;
+  color: #53b8f2;
+  flex: 0 0 auto;
 }
 
 .crm-brand {
@@ -696,8 +717,6 @@ img, video { max-width: 100%; height: auto; }
 }
 
 .item-icon {
-  font-size: 1.15rem;
-  width: 1.4rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
