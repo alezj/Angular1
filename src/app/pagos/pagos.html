@@ -67,6 +67,9 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16 9" /></svg>
                 Cobrar
               </button>
+              <button class="icon-action" type="button" title="Editar pago" [attr.aria-label]="'Editar pago ' + pago.id" (click)="editar(pago)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
+              </button>
               <button class="icon-action danger" type="button" title="Eliminar pago" [attr.aria-label]="'Eliminar pago ' + pago.id" (click)="eliminar(pago)">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6" /></svg>
               </button>
