@@ -1,32 +1,95 @@
 <section class="inicio-page">
-  <div class="hero">
+  <header class="dashboard-header">
     <div>
       <p class="eyebrow">Panel principal</p>
       <h2>Dashboard</h2>
-      <p class="hero-text">Resumen general de tu cartera y actividad inmobiliaria.</p>
+      <p class="hero-text">Resumen al {{ fechaActual | date: 'dd/MM/yyyy' }}</p>
     </div>
-  </div>
+  </header>
 
-  <div class="summary-grid" *ngIf="!cargando">
-    <div class="summary-card" *ngFor="let item of summaryCards">
-      <span class="summary-icon" [attr.data-tone]="item.tone" aria-hidden="true">{{ item.icon }}</span>
-      <span class="summary-label">{{ item.label }}</span>
-      <strong class="summary-value">{{ item.value }}</strong>
-    </div>
-  </div>
+  <p class="status" *ngIf="cargando">Cargando indicadores...</p>
+  <p class="status error" *ngIf="error" role="status">{{ error }}</p>
 
-  <p class="status" *ngIf="cargando">Cargando resumen...</p>
-  <p class="status error" *ngIf="error">{{ error }}</p>
-
-  <div class="dashboard-section-heading">
-    <h3>Accesos rápidos</h3>
-  </div>
-
-  <div class="dashboard-grid">
-    <a class="dashboard-card" *ngFor="let card of dashboardCards" [routerLink]="card.link">
-      <h3>{{ card.title }}</h3>
-      <p>{{ card.description }}</p>
-      <span>Ver detalles →</span>
+  <div class="dashboard-kpis" *ngIf="!cargando">
+    <a class="kpi-card" routerLink="/propiedades">
+      <div class="kpi-top"><span>Tasa de ocupación</span><span class="kpi-icon blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1M9 13h1m4 0h1M10 21v-4h4v4" /></svg></span></div>
+      <strong class="kpi-value">{{ ocupacionPorcentaje }}%</strong>
+      <span class="kpi-foot">{{ propiedadesAlquiladas }} de {{ totalPropiedades }} propiedades alquiladas</span>
     </a>
+    <a class="kpi-card" routerLink="/pagos">
+      <div class="kpi-top"><span>Ingresos del mes</span><span class="kpi-icon green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7h18v13H3zM3 7l2-3h14l2 3M16 13h5M7 13h.01" /></svg></span></div>
+      <strong class="kpi-value currency">RD$ {{ ingresosMes | number: '1.2-2' }}</strong>
+      <span class="kpi-foot">de RD$ {{ ingresosEsperados | number: '1.2-2' }} esperados</span>
+    </a>
+    <a class="kpi-card" routerLink="/pagos">
+      <div class="kpi-top"><span>Pagos atrasados</span><span class="kpi-icon red" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2M12 3v1" /></svg></span></div>
+      <strong class="kpi-value">{{ pagosAtrasados }}</strong>
+      <span class="kpi-foot">RD$ {{ montoAtrasado | number: '1.2-2' }} en mora · {{ pagosPendientes }} pendientes</span>
+    </a>
+    <a class="kpi-card" routerLink="/mantenimientos">
+      <div class="kpi-top"><span>Mantenimientos activos</span><span class="kpi-icon amber" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3 18l3 3 5.3-5.3a5 5 0 0 0 6.4-6.4L15 12l-3-3z" /></svg></span></div>
+      <strong class="kpi-value">{{ mantenimientosActivos }}</strong>
+      <span class="kpi-foot">Solicitudes abiertas</span>
+    </a>
+  </div>
+
+  <div class="dashboard-main-grid" *ngIf="!cargando">
+    <section class="dashboard-panel revenue-panel">
+      <header class="panel-heading">
+        <div><h3>Ingresos mensuales</h3><p>Cobrado vs esperado · últimos 6 meses</p></div>
+        <a routerLink="/pagos">Ver pagos <span aria-hidden="true">→</span></a>
+      </header>
+      <div class="chart-legend"><span><i class="legend-dot collected"></i>Cobrado</span><span><i class="legend-dot expected"></i>Esperado</span></div>
+      <div class="revenue-chart" role="img" aria-label="Comparación de ingresos cobrados y esperados durante los últimos seis meses">
+        <div class="chart-axis"><span>{{ formatoEje(maxIngresoGrafico) }}</span><span>{{ formatoEje(maxIngresoGrafico / 2) }}</span><span>RD$ 0</span></div>
+        <div class="chart-content">
+          <div class="chart-guides"><span></span><span></span><span></span></div>
+          <div class="chart-columns">
+            <div class="chart-month" *ngFor="let mes of ingresosMensuales">
+              <div class="bar-pair" [attr.aria-label]="mes.label + ': cobrado ' + mes.cobrado + ', esperado ' + mes.esperado">
+                <span class="chart-bar expected-bar" [style.height.%]="mes.esperadoHeight" [title]="'Esperado: RD$ ' + (mes.esperado | number: '1.0-0')"></span>
+                <span class="chart-bar collected-bar" [style.height.%]="mes.cobradoHeight" [title]="'Cobrado: RD$ ' + (mes.cobrado | number: '1.0-0')"></span>
+              </div>
+              <span class="month-label">{{ mes.label }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-panel states-panel">
+      <header class="panel-heading"><div><h3>Propiedades por estado</h3><p>Distribución del inventario</p></div><a routerLink="/propiedades">Ver todas <span aria-hidden="true">→</span></a></header>
+      <div class="property-state-content">
+        <div class="donut-chart" [style.background]="donutBackground" role="img" [attr.aria-label]="totalPropiedades + ' propiedades en inventario'"><span>{{ totalPropiedades }}<small>Total</small></span></div>
+        <ul class="state-legend">
+          <li><i class="legend-dot occupied"></i><span>Propiedades ocupadas</span><strong>{{ propiedadesAlquiladas }}</strong></li>
+          <li><i class="legend-dot available"></i><span>Propiedades disponibles</span><strong>{{ propiedadDisponible }}</strong></li>
+          <li><i class="legend-dot maintenance"></i><span>Mantenimiento</span><strong>{{ propiedadEnMantenimiento }}</strong></li>
+          <li *ngIf="propiedadInactiva"><i class="legend-dot inactive"></i><span>Inactiva</span><strong>{{ propiedadInactiva }}</strong></li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <div class="dashboard-lists-grid" *ngIf="!cargando">
+    <section class="dashboard-panel list-panel">
+      <header class="panel-heading"><div><h3>Contratos por vencer</h3><p>En los próximos 60 días</p></div><a routerLink="/alquileres">Ver todos <span aria-hidden="true">→</span></a></header>
+      <div class="empty-list" *ngIf="contratosPorVencer.length === 0">No hay contratos próximos a vencer.</div>
+      <a class="list-row contract-row" *ngFor="let item of contratosPorVencer" routerLink="/alquileres">
+        <span class="list-avatar contract-avatar" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7m-7 4h7" /></svg></span>
+        <span class="list-main"><strong>{{ item.propiedad?.nombre || 'Propiedad' }}</strong><small>{{ item.inquilino?.nombreApellido || 'Inquilino' }} · vence {{ item.alquiler.fechaFin | date: 'dd/MM/yyyy' }}</small></span>
+        <span class="expiry-badge" [class.urgent]="item.diasRestantes <= 15">{{ item.diasRestantes === 0 ? 'Hoy' : item.diasRestantes + ' días' }}</span>
+      </a>
+    </section>
+
+    <section class="dashboard-panel list-panel">
+      <header class="panel-heading"><div><h3>Últimos pagos registrados</h3><p>Actividad reciente de cobros</p></div><a routerLink="/pagos">Ver todos <span aria-hidden="true">→</span></a></header>
+      <div class="empty-list" *ngIf="pagosRecientes.length === 0">Todavía no hay pagos registrados.</div>
+      <a class="list-row payment-row" *ngFor="let pago of pagosRecientes" routerLink="/pagos">
+        <span class="list-avatar payment-avatar" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 10h16M8 15h3" /><path d="M8 3v3m8-3v3" /></svg></span>
+        <span class="list-main"><strong>{{ nombreInquilino(pago.idInquilino) }}</strong><small>{{ propiedadDePago(pago) }} · {{ pago.periodo || (pago.fechaPago | date: 'MMM yyyy') }} · {{ fechaPago(pago) }}</small></span>
+        <strong class="payment-amount">RD$ {{ pago.monto | number: '1.2-2' }}</strong>
+      </a>
+    </section>
   </div>
 </section>
