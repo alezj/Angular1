@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Profile, Role } from '../auth/auth.models';
+import { Permission, Profile, Role } from '../auth/auth.models';
 import { AuthService } from '../auth/auth.service';
 import { SupabaseService } from '../supabase.service';
 
@@ -15,6 +15,13 @@ import { SupabaseService } from '../supabase.service';
 export class Usuarios implements OnInit {
   usuarios = signal<Profile[]>([]);
   roles = signal<Role[]>([]);
+  companyRoles = signal<Array<{ id: string; role_key: string; name: string; built_in: boolean }>>([]);
+  permissions = signal<Permission[]>([]);
+  rolePermissionIds = signal<Record<string, string[]>>({});
+  companies = signal<Array<{ id: string; nombre: string }>>([]);
+  selectedCompanyId = signal<string | null>(null);
+  nuevoRolKey = '';
+  nuevoRolNombre = '';
   cargando = signal<boolean>(true);
   error = signal<string | null>(null);
   mensajeExito = signal<string | null>(null);
@@ -39,26 +46,107 @@ export class Usuarios implements OnInit {
 
     try {
       // 1. Cargar roles
+      if (this.authService.isSysAdmin()) {
+        const { data: companies, error: companyError } = await this.supabaseService.client
+          .from('companies').select('id,nombre').order('nombre');
+        if (companyError) throw companyError;
+        this.companies.set(companies || []);
+        if (!this.selectedCompanyId()) this.selectedCompanyId.set(this.authService.companyId() || companies?.[0]?.id || null);
+      } else {
+        this.selectedCompanyId.set(this.authService.companyId());
+      }
+      const companyId = this.selectedCompanyId();
+      if (!companyId) throw new Error('No hay una empresa activa asignada a tu cuenta.');
       const { data: rolesData, error: errRoles } = await this.supabaseService.client
-        .from('roles')
-        .select('*')
-        .order('id');
+        .from('company_roles')
+        .select('id,role_key,name,built_in')
+        .eq('company_id', companyId)
+        .order('role_key');
       if (errRoles) throw errRoles;
-      this.roles.set((rolesData || []) as Role[]);
+      this.companyRoles.set((rolesData || []) as Array<{ id: string; role_key: string; name: string; built_in: boolean }>);
+      this.roles.set((rolesData || []).map((r: any) => ({ id: r.role_key, name: r.name })) as Role[]);
+
+      const [{ data: permissionData, error: permissionError }, { data: rolePermissionData, error: rolePermissionError }] = await Promise.all([
+        this.supabaseService.client.from('permissions').select('id,module,description').order('module').order('id'),
+        this.supabaseService.client.from('company_role_permissions').select('role_id,permission_id').eq('company_id', companyId)
+      ]);
+      if (permissionError) throw permissionError;
+      if (rolePermissionError) throw rolePermissionError;
+      this.permissions.set((permissionData || []) as Permission[]);
+      const configured: Record<string, string[]> = {};
+      for (const mapping of rolePermissionData || []) {
+        (configured[mapping.role_id] ||= []).push(mapping.permission_id);
+      }
+      this.rolePermissionIds.set(configured);
 
       // 2. Cargar perfiles con rol
-      const { data: profilesData, error: errProfiles } = await this.supabaseService.client
-        .from('profiles')
-        .select('*, role:roles(*)')
-        .order('created_at', { ascending: false });
+      const { data: memberships, error: membershipError } = await this.supabaseService.client
+        .from('company_memberships').select('user_id,role_id,status').eq('company_id', companyId);
+      if (membershipError) throw membershipError;
+      const userIds = (memberships || []).map((m: any) => m.user_id);
+      const { data: profilesData, error: errProfiles } = userIds.length
+        ? await this.supabaseService.client.from('profiles').select('*').in('id', userIds).order('created_at', { ascending: false })
+        : { data: [], error: null };
       if (errProfiles) throw errProfiles;
-
-      this.usuarios.set((profilesData || []) as Profile[]);
+      const membershipByUser = new Map((memberships || []).map((m: any) => [m.user_id, m]));
+      this.usuarios.set((profilesData || []).map((profile: any) => {
+        const membership = membershipByUser.get(profile.id);
+        return {
+          ...profile,
+          role_id: membership?.role_id || profile.role_id,
+          is_active: membership?.status === 'approved',
+          approval_status: membership?.status || profile.approval_status
+        } as Profile;
+      }));
     } catch (err: any) {
       this.error.set(err.message || 'Error al cargar los usuarios.');
     } finally {
       this.cargando.set(false);
       this.cdr.markForCheck();
+    }
+  }
+
+  seleccionarEmpresa(companyId: string): void {
+    this.selectedCompanyId.set(companyId);
+    this.cargarDatos();
+  }
+
+  tienePermisoRol(roleId: string, permissionId: string): boolean {
+    return this.rolePermissionIds()[roleId]?.includes(permissionId) ?? false;
+  }
+
+  async cambiarPermisoRol(roleId: string, permissionId: string, checked: boolean): Promise<void> {
+    const companyId = this.selectedCompanyId();
+    if (!companyId) return;
+    const query = this.supabaseService.client.from('company_role_permissions');
+    const result = checked
+      ? await query.insert({ company_id: companyId, role_id: roleId, permission_id: permissionId })
+      : await query.delete().eq('company_id', companyId).eq('role_id', roleId).eq('permission_id', permissionId);
+    if (result.error) {
+      this.error.set(result.error.message);
+      return;
+    }
+    this.rolePermissionIds.update((current) => {
+      const values = new Set(current[roleId] || []);
+      checked ? values.add(permissionId) : values.delete(permissionId);
+      return { ...current, [roleId]: [...values] };
+    });
+  }
+
+  async crearRolEmpresa(): Promise<void> {
+    const companyId = this.selectedCompanyId();
+    const roleKey = this.nuevoRolKey.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+    const name = this.nuevoRolNombre.trim();
+    if (!companyId || !roleKey || !name) return;
+    const { error } = await this.supabaseService.client.from('company_roles').insert({
+      company_id: companyId, role_key: roleKey, name, built_in: false
+    });
+    if (error) this.error.set(error.message);
+    else {
+      this.nuevoRolKey = '';
+      this.nuevoRolNombre = '';
+      await this.cargarDatos();
+      this.mensajeExito.set('Rol creado. Asigna sus permisos antes de incorporarlo al equipo.');
     }
   }
 
@@ -108,7 +196,7 @@ export class Usuarios implements OnInit {
           updated_at: new Date().toISOString()
         })
         .eq('id', usuario.id)
-        .select('*, role:roles(*)')
+        .select('*')
         .single();
 
       if (error) throw error;
@@ -133,15 +221,12 @@ export class Usuarios implements OnInit {
     if (usuario.role_id === nuevoRol) return;
 
     try {
-      const { error } = await this.supabaseService.client
-        .from('profiles')
-        .update({ role_id: nuevoRol, updated_at: new Date().toISOString() })
-        .eq('id', usuario.id);
-
-      if (error) throw error;
+      await this.authService.aprobarMiembro(usuario.id, nuevoRol, this.selectedCompanyId() || undefined);
 
       usuario.role_id = nuevoRol;
       usuario.role = this.roles().find((r) => r.id === nuevoRol);
+      usuario.is_active = true;
+      usuario.approval_status = 'approved';
       this.mensajeExito.set(`Rol de ${usuario.full_name || usuario.email} actualizado a ${nuevoRol}.`);
       setTimeout(() => this.mensajeExito.set(null), 3000);
     } catch (err: any) {
@@ -154,14 +239,12 @@ export class Usuarios implements OnInit {
   async toggleEstado(usuario: Profile): Promise<void> {
     const nuevoEstado = !usuario.is_active;
     try {
-      const { error } = await this.supabaseService.client
-        .from('profiles')
-        .update({ is_active: nuevoEstado, updated_at: new Date().toISOString() })
-        .eq('id', usuario.id);
-
-      if (error) throw error;
+      await this.authService.actualizarEstadoMiembro(
+        usuario.id, nuevoEstado ? 'approved' : 'disabled', this.selectedCompanyId() || undefined
+      );
 
       usuario.is_active = nuevoEstado;
+      usuario.approval_status = nuevoEstado ? 'approved' : 'disabled';
       this.mensajeExito.set(`Usuario ${nuevoEstado ? 'activado' : 'suspendido'} exitosamente.`);
       setTimeout(() => this.mensajeExito.set(null), 3000);
     } catch (err: any) {

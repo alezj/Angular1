@@ -41,11 +41,11 @@ export class App {
     public readonly authService: AuthService,
     private readonly router: Router
   ) {
-    this.isLoginRoute.set(this.router.url.split('?')[0] === '/login');
+    this.isLoginRoute.set(['/login', '/acceso-pendiente'].includes(this.router.url.split('?')[0]));
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event) => {
-        this.isLoginRoute.set(event.urlAfterRedirects.split('?')[0] === '/login');
+        this.isLoginRoute.set(['/login', '/acceso-pendiente'].includes(event.urlAfterRedirects.split('?')[0]));
         this.closeMenu();
       });
   }

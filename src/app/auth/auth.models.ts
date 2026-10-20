@@ -5,6 +5,11 @@ export interface Role {
   created_at?: string;
 }
 
+export interface Company {
+  id: string;
+  nombre: string;
+}
+
 export interface Permission {
   id: string;
   module: string;
@@ -19,6 +24,8 @@ export interface Profile {
   avatar_url?: string;
   role_id: string;
   is_active: boolean;
+  empresa_id?: string | null;
+  approval_status?: 'pending' | 'approved' | 'rejected' | 'disabled';
   created_at?: string;
   updated_at?: string;
   role?: Role;

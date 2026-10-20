@@ -9,6 +9,13 @@
     </button>
   </div>
 
+  <div class="toolbar-card" *ngIf="authService.isSysAdmin() && companies().length > 0">
+    <label for="admin-company-select">Empresa administrada</label>
+    <select id="admin-company-select" class="filter-input" [ngModel]="selectedCompanyId()" (ngModelChange)="seleccionarEmpresa($event)">
+      <option *ngFor="let company of companies()" [value]="company.id">{{ company.nombre }}</option>
+    </select>
+  </div>
+
   <!-- Métricas Rápidas -->
   <div class="metrics-grid">
     <div class="metric-card">
@@ -44,6 +51,27 @@
   <!-- Banners de Alerta -->
   <div *ngIf="mensajeExito()" class="alert alert-success">{{ mensajeExito() }}</div>
   <div *ngIf="error()" class="alert alert-danger">{{ error() }}</div>
+
+  <section class="table-card role-permissions-panel" *ngIf="!cargando()">
+    <div class="role-panel-heading">
+      <div><h3>Roles y permisos de la empresa</h3><p>Los permisos se aplican en la interfaz y también mediante RLS en Supabase.</p></div>
+    </div>
+    <form class="new-role-form" (ngSubmit)="crearRolEmpresa()">
+      <input name="nuevoRolKey" [(ngModel)]="nuevoRolKey" placeholder="Clave (ej. supervisor)" aria-label="Clave del nuevo rol" required>
+      <input name="nuevoRolNombre" [(ngModel)]="nuevoRolNombre" placeholder="Nombre del rol" aria-label="Nombre del nuevo rol" required>
+      <button type="submit" class="action-btn">Crear rol</button>
+    </form>
+    <details *ngFor="let role of companyRoles()" class="role-permission-item">
+      <summary>{{ role.name }} <small>{{ role.role_key }}{{ role.built_in ? ' · integrado' : '' }}</small></summary>
+      <div class="permission-grid">
+        <label *ngFor="let permission of permissions()">
+          <input type="checkbox" [checked]="tienePermisoRol(role.id, permission.id)"
+            (change)="cambiarPermisoRol(role.id, permission.id, $any($event.target).checked)">
+          <span>{{ permission.id }} <small>{{ permission.description }}</small></span>
+        </label>
+      </div>
+    </details>
+  </section>
 
   <!-- Barra de Filtros -->
   <div class="toolbar-card">
@@ -105,12 +133,12 @@
               [disabled]="u.id === authService.currentUser()?.id"
               title="Cambiar rol"
             >
-              <option *ngFor="let r of roles()" [value]="r.id">{{ r.name }}</option>
+              <option *ngFor="let r of roles()" [value]="r.id" [hidden]="r.id === 'admin' && !authService.isSysAdmin()">{{ r.name }}</option>
             </select>
           </td>
           <td>
             <span class="status-pill" [class.active]="u.is_active" [class.inactive]="!u.is_active">
-              {{ u.is_active ? 'Activo' : 'Suspendido' }}
+              {{ u.approval_status === 'pending' ? 'Pendiente' : u.approval_status === 'rejected' ? 'Rechazado' : u.is_active ? 'Activo' : 'Suspendido' }}
             </span>
           </td>
           <td>
@@ -129,7 +157,7 @@
               class="action-btn"
               [title]="u.is_active ? 'Suspender cuenta' : 'Activar cuenta'"
             >
-              {{ u.is_active ? '⏸️ Desactivar' : '▶️ Activar' }}
+              {{ u.is_active ? '⏸️ Desactivar' : u.approval_status === 'pending' ? '✓ Aprobar' : '▶️ Activar' }}
             </button>
           </td>
         </tr>

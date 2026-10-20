@@ -10,7 +10,11 @@ export const authGuard: CanActivateFn = async (_route, state) => {
   await authService.esperarInicializacion();
 
   if (authService.isAuthenticated()) {
-    return true;
+    await authService.cargarPerfilYPermisos(authService.currentUser()!.id);
+    if (authService.isAuthorized()) return true;
+    return router.createUrlTree(['/acceso-pendiente'], {
+      queryParams: { estado: authService.approvalStatus() || 'pending' }
+    });
   }
 
   // Redirigir a login con returnUrl
@@ -25,6 +29,8 @@ export const roleGuard = (allowedRoles: string[]): CanActivateFn => {
     if (!authService.isAuthenticated()) {
       return router.createUrlTree(['/login']);
     }
+
+    if (!authService.isAuthorized()) return router.createUrlTree(['/acceso-pendiente']);
 
     if (authService.isAdmin() || authService.hasRole(allowedRoles)) {
       return true;
@@ -43,6 +49,8 @@ export const permissionGuard = (permission: string): CanActivateFn => {
     if (!authService.isAuthenticated()) {
       return router.createUrlTree(['/login']);
     }
+
+    if (!authService.isAuthorized()) return router.createUrlTree(['/acceso-pendiente']);
 
     if (authService.hasPermission(permission)) {
       return true;

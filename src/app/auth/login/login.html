@@ -101,23 +101,22 @@
         />
       </div>
 
-      <!-- Campo Rol Inicial (solo en registro) -->
+      <!-- Empresa a la que solicita incorporarse -->
       <div *ngIf="isRegistro" class="form-group">
-        <label for="rolSeleccionado">Rol en la Empresa</label>
+        <label for="empresaSeleccionada">Empresa</label>
         <select
-          id="rolSeleccionado"
-          name="rolSeleccionado"
-          [(ngModel)]="rolSeleccionado"
+          id="empresaSeleccionada"
+          name="empresaSeleccionada"
+          [(ngModel)]="empresaSeleccionada"
           class="form-input select-input"
+          required
         >
-          <option *ngFor="let r of authService.roles()" [value]="r.id">
-            {{ r.name }}
-          </option>
-          <option *ngIf="authService.roles().length === 0" value="agente">
-            Agente Inmobiliario
+          <option value="" disabled>Selecciona una empresa</option>
+          <option *ngFor="let empresa of authService.companies()" [value]="empresa.id">
+            {{ empresa.nombre }}
           </option>
         </select>
-        <span class="field-hint">El primer usuario que se registre será Super Administrador automáticamente.</span>
+        <span class="field-hint">Tu solicitud quedará pendiente hasta que un administrador autorice tu acceso.</span>
       </div>
 
       <!-- Campo Email -->

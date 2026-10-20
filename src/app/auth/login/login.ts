@@ -19,7 +19,7 @@ export class Login implements OnInit {
   password = '';
   nombreCompleto = '';
   telefono = '';
-  rolSeleccionado = 'agente';
+  empresaSeleccionada = '';
 
   cargando = false;
   errorMensaje: string | null = null;
@@ -34,6 +34,7 @@ export class Login implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    await this.authService.cargarEmpresas();
 
     // Esperar la restauración de Supabase para no mostrar el login durante una recarga.
     await this.authService.esperarInicializacion();
@@ -46,6 +47,7 @@ export class Login implements OnInit {
     this.isRegistro = registro;
     this.errorMensaje = null;
     this.exitoMensaje = null;
+    if (registro && this.authService.companies().length === 0) void this.authService.cargarEmpresas();
   }
 
   async handleSubmit(event: Event): Promise<void> {
@@ -61,20 +63,24 @@ export class Login implements OnInit {
           this.cargando = false;
           return;
         }
+        if (!this.empresaSeleccionada) {
+          this.errorMensaje = 'Selecciona la empresa a la que solicitas incorporarte.';
+          this.cargando = false;
+          return;
+        }
 
         const res = await this.authService.registrarse(
           this.email.trim(),
           this.password,
           this.nombreCompleto.trim(),
           this.telefono.trim(),
-          this.rolSeleccionado
+          this.empresaSeleccionada
         );
 
         if (!res.success) {
           this.errorMensaje = res.error || 'Error al crear la cuenta.';
         } else {
-          this.exitoMensaje = '¡Cuenta creada con éxito! Redirigiendo al panel...';
-          setTimeout(() => this.router.navigateByUrl(this.returnUrl), 1000);
+          this.exitoMensaje = 'Solicitud enviada. El acceso estará disponible cuando el administrador apruebe tu incorporación.';
         }
       } else {
         const res = await this.authService.iniciarSesion(this.email.trim(), this.password);
@@ -82,7 +88,7 @@ export class Login implements OnInit {
         if (!res.success) {
           this.errorMensaje = res.error || 'Credenciales inválidas.';
         } else {
-          this.router.navigateByUrl(this.returnUrl);
+          if (this.authService.isAuthorized()) this.router.navigateByUrl(this.returnUrl);
         }
       }
     } catch (err: any) {

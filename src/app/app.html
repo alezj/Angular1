@@ -116,6 +116,10 @@
           <svg lucideShield class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
           <span>Equipo & Roles</span>
         </a>
+        <a *ngIf="authService.isSysAdmin()" routerLink="/admin/empresas" routerLinkActive="active" (click)="closeMenu()" class="nav-item">
+          <svg lucideBuilding2 class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
+          <span>Empresas</span>
+        </a>
       </ng-container>
 
       <!-- Cuenta de Usuario -->

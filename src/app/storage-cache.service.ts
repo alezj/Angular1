@@ -41,6 +41,16 @@ export class StorageCacheService {
     localStorage.removeItem(key);
   }
 
+  invalidateAll(): void {
+    this.memory.clear();
+    this.pending.clear();
+    if (!this.browser) return;
+    for (let index = localStorage.length - 1; index >= 0; index--) {
+      const key = localStorage.key(index);
+      if (key?.startsWith('angular1:')) localStorage.removeItem(key);
+    }
+  }
+
   private read<T>(key: string): T | null {
     const memoryEntry = this.memory.get(key) as CacheEntry<T> | undefined;
     if (memoryEntry && memoryEntry.expiresAt > Date.now()) return memoryEntry.value;

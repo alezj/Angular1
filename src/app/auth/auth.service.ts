@@ -2,7 +2,8 @@ import { computed, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from '@supabase/supabase-js';
 import { SupabaseService } from '../supabase.service';
-import { Profile, Role } from './auth.models';
+import { Company, Profile, Role } from './auth.models';
+import { StorageCacheService } from '../storage-cache.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,17 +14,30 @@ export class AuthService {
   readonly currentProfile = signal<Profile | null>(null);
   readonly permissions = signal<string[]>([]);
   readonly roles = signal<Role[]>([]);
+  readonly companies = signal<Company[]>([]);
+  readonly companyId = signal<string | null>(null);
+  readonly globalRole = signal<string | null>(null);
+  readonly approvalStatus = signal<string | null>(null);
+  readonly companyActive = signal<boolean>(false);
+  readonly isSysAdmin = computed(() => this.globalRole() === 'sysAdmin');
+  readonly isAuthorized = computed(() => this.isSysAdmin() || (
+    this.currentProfile()?.is_active === true &&
+    this.currentProfile()?.approval_status === 'approved' &&
+    this.companyActive() &&
+    !!this.companyId()
+  ));
   readonly cargando = signal<boolean>(true);
 
   readonly isAuthenticated = computed(() => !!this.currentUser());
-  readonly isAdmin = computed(() => this.currentProfile()?.role_id === 'admin');
+  readonly isAdmin = computed(() => this.isSysAdmin() || this.currentProfile()?.role_id === 'admin');
   readonly isAgente = computed(() => this.currentProfile()?.role_id === 'agente');
   readonly isMantenimiento = computed(() => this.currentProfile()?.role_id === 'mantenimiento');
   readonly isCliente = computed(() => this.currentProfile()?.role_id === 'cliente');
 
   constructor(
     private readonly supabaseService: SupabaseService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly cache: StorageCacheService
   ) {
     this.inicializacion = this.inicializarAuth();
   }
@@ -39,14 +53,27 @@ export class AuthService {
     }
 
     // Escuchar primero para capturar la sesión que Supabase restaura del almacenamiento local.
+    let previousUserId: string | null = null;
     this.supabaseService.client.auth.onAuthStateChange((_event, session) => {
       const user = session?.user ?? null;
       this.currentUser.set(user);
+      if (previousUserId !== user?.id) this.cache.invalidateAll();
+      previousUserId = user?.id ?? null;
       if (user) {
+        this.currentProfile.set(null);
+        this.permissions.set([]);
+        this.companyId.set(null);
+        this.globalRole.set(null);
+        this.approvalStatus.set(null);
+        this.companyActive.set(false);
         void this.cargarPerfilYPermisos(user.id);
       } else {
         this.currentProfile.set(null);
         this.permissions.set([]);
+        this.companyId.set(null);
+        this.globalRole.set(null);
+        this.approvalStatus.set(null);
+        this.companyActive.set(false);
       }
       this.cargando.set(false);
     });
@@ -77,25 +104,46 @@ export class AuthService {
     }
   }
 
+  async cargarEmpresas(): Promise<void> {
+    const { data } = await this.supabaseService.client.rpc('list_active_companies');
+    this.companies.set((data || []) as Company[]);
+  }
+
   async cargarPerfilYPermisos(userId: string): Promise<void> {
     try {
+      const [{ data: roleData }, { data: membership }] = await Promise.all([
+        this.supabaseService.client.from('global_user_roles').select('role').eq('user_id', userId).maybeSingle(),
+        this.supabaseService.client.from('company_memberships')
+          .select('company_id, role_id, company_role_id, status, company:companies(estado)')
+          .eq('user_id', userId).maybeSingle()
+      ]);
+      this.globalRole.set(roleData?.role ?? null);
+      this.companyId.set(membership?.company_id ?? null);
+      this.approvalStatus.set(membership?.status ?? null);
+      const associatedCompany = membership?.company as { estado?: string } | { estado?: string }[] | null;
+      this.companyActive.set(Array.isArray(associatedCompany)
+        ? associatedCompany[0]?.estado === 'activa'
+        : associatedCompany?.estado === 'activa');
+
       // Perfil con rol
       const { data: perfil, error: errPerfil } = await this.supabaseService.client
         .from('profiles')
-        .select('*, role:roles(*)')
+        .select('*')
         .eq('id', userId)
         .single();
 
       if (!errPerfil && perfil) {
-        this.currentProfile.set(perfil as Profile);
+        this.currentProfile.set({ ...perfil, approval_status: membership?.status ?? perfil.approval_status } as Profile);
       }
 
       // Permisos asociados al rol
-      const roleId = perfil?.role_id;
-      if (roleId) {
+      const roleId = membership?.company_role_id;
+      this.permissions.set([]);
+      if (roleId && membership?.status === 'approved') {
         const { data: perms } = await this.supabaseService.client
-          .from('role_permissions')
+          .from('company_role_permissions')
           .select('permission_id')
+          .eq('company_id', membership.company_id)
           .eq('role_id', roleId);
 
         if (perms) {
@@ -122,6 +170,10 @@ export class AuthService {
       if (data.user) {
         this.currentUser.set(data.user);
         await this.cargarPerfilYPermisos(data.user.id);
+        if (!this.isAuthorized()) {
+          const status = this.approvalStatus();
+          await this.router.navigate(['/acceso-pendiente'], { queryParams: { estado: status || 'pending' } });
+        }
       }
 
       return { success: true };
@@ -135,7 +187,7 @@ export class AuthService {
     password: string,
     nombreCompleto: string,
     telefono: string = '',
-    roleId?: string
+    companyId?: string
   ): Promise<{ success: boolean; error?: string }> {
     this.cargando.set(true);
     try {
@@ -146,7 +198,7 @@ export class AuthService {
           data: {
             full_name: nombreCompleto,
             phone: telefono,
-            role_id: roleId || 'agente'
+            company_id: companyId || ''
           }
         }
       });
@@ -158,6 +210,7 @@ export class AuthService {
       if (data.user) {
         this.currentUser.set(data.user);
         await this.cargarPerfilYPermisos(data.user.id);
+        await this.router.navigate(['/acceso-pendiente'], { queryParams: { estado: 'pending' } });
       }
 
       return { success: true };
@@ -171,6 +224,11 @@ export class AuthService {
     this.currentUser.set(null);
     this.currentProfile.set(null);
     this.permissions.set([]);
+    this.companyId.set(null);
+    this.globalRole.set(null);
+    this.approvalStatus.set(null);
+    this.companyActive.set(false);
+    this.cache.invalidateAll();
     this.router.navigate(['/login']);
   }
 
@@ -192,7 +250,7 @@ export class AuthService {
   }
 
   hasPermission(permiso: string): boolean {
-    if (this.isAdmin()) return true;
+    if (this.isSysAdmin() || this.isAdmin()) return true;
     return this.permissions().includes(permiso);
   }
 
@@ -200,7 +258,30 @@ export class AuthService {
     const rolActual = this.currentProfile()?.role_id;
     if (!rolActual) return false;
     const arrayRoles = Array.isArray(rolesPermitidos) ? rolesPermitidos : [rolesPermitidos];
-    return arrayRoles.includes(rolActual);
+    return this.isSysAdmin() || arrayRoles.includes(rolActual);
+  }
+
+  async aprobarMiembro(userId: string, roleId: string, targetCompany?: string): Promise<void> {
+    const companyId = this.isSysAdmin() ? (targetCompany || this.companyId()) : this.companyId();
+    if (!companyId) throw new Error('No hay una empresa activa seleccionada.');
+    const { error } = await this.supabaseService.client.rpc('approve_company_membership', {
+      target_company: companyId,
+      target_user: userId,
+      target_role: roleId,
+      approve: true
+    });
+    if (error) throw error;
+  }
+
+  async actualizarEstadoMiembro(userId: string, status: 'pending' | 'approved' | 'rejected' | 'disabled', targetCompany?: string): Promise<void> {
+    const companyId = this.isSysAdmin() ? (targetCompany || this.companyId()) : this.companyId();
+    if (!companyId) throw new Error('No hay una empresa activa seleccionada.');
+    const { error } = await this.supabaseService.client.rpc('set_company_membership_status', {
+      target_company: companyId,
+      target_user: userId,
+      target_status: status
+    });
+    if (error) throw error;
   }
 
   private traducirErrorAuth(msg: string): string {
