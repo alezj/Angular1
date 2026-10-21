@@ -7,7 +7,8 @@ export interface Role {
 
 export interface Company {
   id: string;
-  nombre: string;
+  name: string;
+  status?: string;
 }
 
 export interface Permission {

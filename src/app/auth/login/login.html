@@ -113,7 +113,7 @@
         >
           <option value="" disabled>Selecciona una empresa</option>
           <option *ngFor="let empresa of authService.companies()" [value]="empresa.id">
-            {{ empresa.nombre }}
+            {{ empresa.name }}
           </option>
         </select>
         <span class="field-hint">Tu solicitud quedará pendiente hasta que un administrador autorice tu acceso.</span>

@@ -5,15 +5,16 @@ import { SupabaseService } from '../supabase.service';
 
 interface EmpresaAdmin {
   id: string;
-  nombre: string;
-  estado: 'activa' | 'suspendida';
+  name: string;
+  status: 'active' | 'suspended';
   created_at: string;
 }
 
 interface SolicitudEmpresa {
   user_id: string;
   company_id: string;
-  role_id: string;
+  app_role_id: string;
+  role: string;
   email?: string;
   full_name?: string;
 }
@@ -38,21 +39,21 @@ interface SolicitudEmpresa {
       <section class="company-list" *ngIf="!cargando()">
         <article class="company-card" *ngFor="let empresa of empresas()">
           <div class="company-info">
-            <input [ngModel]="empresa.nombre" (ngModelChange)="empresa.nombre = $event" [attr.aria-label]="'Nombre de ' + empresa.nombre">
-            <span [class.suspended]="empresa.estado === 'suspendida'">{{ empresa.estado === 'activa' ? 'Activa' : 'Suspendida' }}</span>
+            <input [ngModel]="empresa.name" (ngModelChange)="empresa.name = $event" [attr.aria-label]="'Nombre de ' + empresa.name">
+            <span [class.suspended]="empresa.status === 'suspended'">{{ empresa.status === 'active' ? 'Activa' : 'Suspendida' }}</span>
           </div>
           <div class="company-actions">
             <button type="button" class="secondary" (click)="guardarEmpresa(empresa)" [disabled]="guardando()">Guardar</button>
-            <button type="button" [class.danger]="empresa.estado === 'activa'" (click)="cambiarEstado(empresa)" [disabled]="guardando()">
-              {{ empresa.estado === 'activa' ? 'Suspender' : 'Reactivar' }}
+            <button type="button" [class.danger]="empresa.status === 'active'" (click)="cambiarEstado(empresa)" [disabled]="guardando()">
+              {{ empresa.status === 'active' ? 'Suspender' : 'Reactivar' }}
             </button>
           </div>
         </article>
         <section class="requests-card" *ngFor="let empresa of empresas()">
-          <h2>Solicitudes para {{ empresa.nombre }}</h2>
+          <h2>Solicitudes para {{ empresa.name }}</h2>
           <div class="request-row" *ngFor="let request of solicitudes()[empresa.id] || []">
             <div><strong>{{ request.full_name || 'Usuario' }}</strong><small>{{ request.email }}</small></div>
-            <select [(ngModel)]="request.role_id" aria-label="Rol para la solicitud">
+            <select [(ngModel)]="request.app_role_id" aria-label="Rol para la solicitud">
               <option value="admin">Administrador de empresa</option>
               <option value="agente">Agente</option>
               <option value="mantenimiento">Mantenimiento</option>
@@ -108,12 +109,12 @@ export class EmpresasAdmin implements OnInit {
 
   async cargar(): Promise<void> {
     this.cargando.set(true);
-    const { data, error } = await this.supabase.client.from('companies').select('id,nombre,estado,created_at').order('nombre');
+    const { data, error } = await this.supabase.client.from('companies').select('id,name,status,created_at').order('name');
     if (error) this.error.set(error.message);
     else {
       this.empresas.set((data || []) as EmpresaAdmin[]);
       const { data: memberships, error: membershipError } = await this.supabase.client
-        .from('company_memberships').select('company_id,user_id,role_id').eq('status', 'pending');
+        .from('company_memberships').select('company_id,user_id,app_role_id,role').eq('status', 'pending');
       if (membershipError) this.error.set(membershipError.message);
       else {
         const ids = [...new Set((memberships || []).map((m: any) => m.user_id))];
@@ -144,7 +145,7 @@ export class EmpresasAdmin implements OnInit {
   async guardarEmpresa(empresa: EmpresaAdmin): Promise<void> {
     this.guardando.set(true); this.error.set(null);
     const { error } = await this.supabase.client.rpc('update_company', {
-      target_company: empresa.id, company_name: empresa.nombre.trim(), target_status: empresa.estado
+      target_company: empresa.id, company_name: empresa.name.trim(), target_status: empresa.status
     });
     if (error) this.error.set(error.message);
     else this.mensaje.set('Datos de empresa actualizados.');
@@ -152,7 +153,7 @@ export class EmpresasAdmin implements OnInit {
   }
 
   async cambiarEstado(empresa: EmpresaAdmin): Promise<void> {
-    empresa.estado = empresa.estado === 'activa' ? 'suspendida' : 'activa';
+    empresa.status = empresa.status === 'active' ? 'suspended' : 'active';
     await this.guardarEmpresa(empresa);
   }
 
@@ -161,7 +162,7 @@ export class EmpresasAdmin implements OnInit {
     const result = aprobar
       ? await this.supabase.client.rpc('approve_company_membership', {
           target_company: request.company_id, target_user: request.user_id,
-          target_role: request.role_id, approve: true
+          target_role: request.app_role_id || request.role, approve: true
         })
       : await this.supabase.client.rpc('set_company_membership_status', {
           target_company: request.company_id, target_user: request.user_id, target_status: 'rejected'

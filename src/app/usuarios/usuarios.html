@@ -12,7 +12,7 @@
   <div class="toolbar-card" *ngIf="authService.isSysAdmin() && companies().length > 0">
     <label for="admin-company-select">Empresa administrada</label>
     <select id="admin-company-select" class="filter-input" [ngModel]="selectedCompanyId()" (ngModelChange)="seleccionarEmpresa($event)">
-      <option *ngFor="let company of companies()" [value]="company.id">{{ company.nombre }}</option>
+      <option *ngFor="let company of companies()" [value]="company.id">{{ company.name }}</option>
     </select>
   </div>
 
@@ -54,15 +54,10 @@
 
   <section class="table-card role-permissions-panel" *ngIf="!cargando()">
     <div class="role-panel-heading">
-      <div><h3>Roles y permisos de la empresa</h3><p>Los permisos se aplican en la interfaz y también mediante RLS en Supabase.</p></div>
+      <div><h3>Roles y permisos de la empresa</h3><p>Gestiona permisos de los roles existentes.</p></div>
     </div>
-    <form class="new-role-form" (ngSubmit)="crearRolEmpresa()">
-      <input name="nuevoRolKey" [(ngModel)]="nuevoRolKey" placeholder="Clave (ej. supervisor)" aria-label="Clave del nuevo rol" required>
-      <input name="nuevoRolNombre" [(ngModel)]="nuevoRolNombre" placeholder="Nombre del rol" aria-label="Nombre del nuevo rol" required>
-      <button type="submit" class="action-btn">Crear rol</button>
-    </form>
-    <details *ngFor="let role of companyRoles()" class="role-permission-item">
-      <summary>{{ role.name }} <small>{{ role.role_key }}{{ role.built_in ? ' · integrado' : '' }}</small></summary>
+    <details *ngFor="let role of roles()" class="role-permission-item">
+      <summary>{{ role.name }} <small>{{ role.id }}</small></summary>
       <div class="permission-grid">
         <label *ngFor="let permission of permissions()">
           <input type="checkbox" [checked]="tienePermisoRol(role.id, permission.id)"

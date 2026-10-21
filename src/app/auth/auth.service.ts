@@ -114,16 +114,16 @@ export class AuthService {
       const [{ data: roleData }, { data: membership }] = await Promise.all([
         this.supabaseService.client.from('global_user_roles').select('role').eq('user_id', userId).maybeSingle(),
         this.supabaseService.client.from('company_memberships')
-          .select('company_id, role_id, company_role_id, status, company:companies(estado)')
+          .select('company_id, app_role_id, role, status, company:companies(status)')
           .eq('user_id', userId).maybeSingle()
       ]);
       this.globalRole.set(roleData?.role ?? null);
       this.companyId.set(membership?.company_id ?? null);
       this.approvalStatus.set(membership?.status ?? null);
-      const associatedCompany = membership?.company as { estado?: string } | { estado?: string }[] | null;
+      const associatedCompany = membership?.company as { status?: string } | { status?: string }[] | null;
       this.companyActive.set(Array.isArray(associatedCompany)
-        ? associatedCompany[0]?.estado === 'activa'
-        : associatedCompany?.estado === 'activa');
+        ? associatedCompany[0]?.status === 'active'
+        : associatedCompany?.status === 'active');
 
       // Perfil con rol
       const { data: perfil, error: errPerfil } = await this.supabaseService.client
@@ -133,11 +133,15 @@ export class AuthService {
         .single();
 
       if (!errPerfil && perfil) {
-        this.currentProfile.set({ ...perfil, approval_status: membership?.status ?? perfil.approval_status } as Profile);
+        this.currentProfile.set({
+          ...perfil,
+          role_id: membership?.app_role_id || membership?.role || perfil.role_id,
+          approval_status: membership?.status ?? perfil.approval_status
+        } as Profile);
       }
 
       // Permisos asociados al rol
-      const roleId = membership?.company_role_id;
+      const roleId = membership?.app_role_id || membership?.role;
       this.permissions.set([]);
       if (roleId && membership?.status === 'approved') {
         const { data: perms } = await this.supabaseService.client

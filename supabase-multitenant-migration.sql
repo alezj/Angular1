@@ -17,15 +17,15 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE IF NOT EXISTS public.companies (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  nombre TEXT NOT NULL UNIQUE,
-  estado TEXT NOT NULL DEFAULT 'activa' CHECK (estado IN ('activa', 'suspendida')),
+  name TEXT NOT NULL UNIQUE,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-INSERT INTO public.companies (nombre)
+-- The existing Supabase companies table uses `name` and `status`.
+INSERT INTO public.companies (name)
 VALUES ('InmoGestión República Dominicana')
-ON CONFLICT (nombre) DO NOTHING;
+ON CONFLICT (name) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS public.global_user_roles (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -40,39 +40,26 @@ SELECT id, 'sysAdmin' FROM auth.users
 ON CONFLICT (user_id) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS public.company_memberships (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'approved', 'rejected', 'disabled')),
-  role_id TEXT NOT NULL DEFAULT 'agente',
+  role TEXT NOT NULL DEFAULT 'agente',
+  app_role_id TEXT NOT NULL DEFAULT 'agente',
   requested_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   approved_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   approved_at TIMESTAMPTZ,
-  PRIMARY KEY (company_id, user_id)
-);
-
-CREATE TABLE IF NOT EXISTS public.company_roles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
-  role_key TEXT NOT NULL,
-  name TEXT NOT NULL,
-  description TEXT,
-  built_in BOOLEAN NOT NULL DEFAULT false,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE (company_id, role_key),
-  UNIQUE (company_id, id)
+  UNIQUE (company_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.company_role_permissions (
-  company_id UUID NOT NULL,
-  role_id UUID NOT NULL,
+  company_id UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
+  role_id TEXT NOT NULL REFERENCES public.roles(id) ON DELETE CASCADE,
   permission_id TEXT NOT NULL REFERENCES public.permissions(id) ON DELETE CASCADE,
-  PRIMARY KEY (company_id, role_id, permission_id),
-  FOREIGN KEY (company_id, role_id)
-    REFERENCES public.company_roles(company_id, id) ON DELETE CASCADE
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (company_id, role_id, permission_id)
 );
-
-ALTER TABLE public.company_memberships ADD COLUMN IF NOT EXISTS company_role_id UUID;
 
 CREATE INDEX IF NOT EXISTS company_memberships_user_status_idx
   ON public.company_memberships (user_id, status);
@@ -83,21 +70,17 @@ CREATE UNIQUE INDEX IF NOT EXISTS company_memberships_one_company_per_user
 
 -- Create the confirmed tenant and preserve every existing profile as an
 -- approved member with its current in-company role.
-INSERT INTO public.company_memberships (company_id, user_id, status, role_id, approved_at)
+INSERT INTO public.company_memberships (company_id, user_id, status, role, app_role_id, approved_at)
 SELECT c.id, p.id, 'approved',
+       CASE WHEN EXISTS (SELECT 1 FROM public.roles r WHERE r.id = p.role_id)
+            THEN p.role_id ELSE 'agente' END,
        CASE WHEN EXISTS (SELECT 1 FROM public.roles r WHERE r.id = p.role_id)
             THEN p.role_id ELSE 'agente' END,
        now()
 FROM public.companies c
 CROSS JOIN public.profiles p
-WHERE c.nombre = 'InmoGestión República Dominicana'
-ON CONFLICT (company_id, user_id) DO NOTHING;
-
-INSERT INTO public.company_roles (company_id, role_key, name, description, built_in)
-SELECT c.id, r.id, r.name, r.description, true
-FROM public.companies c CROSS JOIN public.roles r
-WHERE c.nombre = 'InmoGestión República Dominicana'
-ON CONFLICT (company_id, role_key) DO NOTHING;
+WHERE c.name = 'InmoGestión República Dominicana'
+ON CONFLICT DO NOTHING;
 
 INSERT INTO public.permissions (id, module, description)
 VALUES ('pagos:update', 'Finanzas y Pagos', 'Editar cobros y datos de pagos registrados')
@@ -111,32 +94,19 @@ SELECT 'agente', 'pagos:update'
 WHERE EXISTS (SELECT 1 FROM public.roles WHERE id = 'agente')
 ON CONFLICT DO NOTHING;
 
-UPDATE public.company_memberships m
-SET company_role_id = cr.id
-FROM public.companies c
-JOIN public.company_roles cr ON cr.company_id = c.id
-WHERE c.nombre = 'InmoGestión República Dominicana'
-  AND m.company_id = c.id AND cr.role_key = m.role_id AND m.company_role_id IS NULL;
-
-ALTER TABLE public.company_memberships
-  ADD CONSTRAINT company_memberships_company_role_fkey
-  FOREIGN KEY (company_id, company_role_id)
-  REFERENCES public.company_roles(company_id, id);
-
 INSERT INTO public.company_role_permissions (company_id, role_id, permission_id)
-SELECT c.id, cr.id, rp.permission_id
+SELECT c.id, rp.role_id, rp.permission_id
 FROM public.companies c
-JOIN public.company_roles cr ON cr.company_id = c.id
-JOIN public.role_permissions rp ON rp.role_id = cr.role_key
-WHERE c.nombre = 'InmoGestión República Dominicana'
+CROSS JOIN public.role_permissions rp
+WHERE c.name = 'InmoGestión República Dominicana'
 ON CONFLICT DO NOTHING;
 
 -- A pending user's company selection is not an authorization. Return only the
 -- public identifiers and names needed by the signup selector.
 CREATE OR REPLACE FUNCTION public.list_active_companies()
-RETURNS TABLE (id UUID, nombre TEXT)
+RETURNS TABLE (id UUID, name TEXT)
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public
-AS $$ SELECT c.id, c.nombre FROM public.companies c WHERE c.estado = 'activa' ORDER BY c.nombre $$;
+AS $$ SELECT c.id, c.name FROM public.companies c WHERE c.status = 'active' ORDER BY c.name $$;
 REVOKE ALL ON FUNCTION public.list_active_companies() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.list_active_companies() TO anon, authenticated;
 
@@ -144,23 +114,10 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS approval_status TEXT NOT NU
   CHECK (approval_status IN ('pending', 'approved', 'rejected', 'disabled'));
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS empresa_id UUID REFERENCES public.companies(id);
 
--- Membership and profile role keys now resolve within company_roles. Remove
--- the old global role foreign keys so company-specific roles can be used.
-DO $$
-DECLARE c RECORD;
-BEGIN
-  FOR c IN SELECT conname, conrelid::regclass AS tbl FROM pg_constraint
-    WHERE contype = 'f' AND confrelid = 'public.roles'::regclass
-      AND conrelid IN ('public.profiles'::regclass, 'public.company_memberships'::regclass)
-  LOOP
-    EXECUTE format('ALTER TABLE %s DROP CONSTRAINT %I', c.tbl, c.conname);
-  END LOOP;
-END $$;
-
 UPDATE public.profiles p
 SET empresa_id = c.id, approval_status = 'approved', is_active = true
 FROM public.companies c
-WHERE c.nombre = 'InmoGestión República Dominicana'
+WHERE c.name = 'InmoGestión República Dominicana'
   AND EXISTS (
     SELECT 1 FROM public.company_memberships m
     WHERE m.company_id = c.id AND m.user_id = p.id AND m.status = 'approved'
@@ -174,7 +131,7 @@ BEGIN
   FOREACH t IN ARRAY ARRAY['estados','propiedades','inquilinos','alquileres','pagos','mantenimientos'] LOOP
     EXECUTE format('ALTER TABLE public.%I ADD COLUMN IF NOT EXISTS empresa_id UUID REFERENCES public.companies(id)', t);
     EXECUTE format(
-      'UPDATE public.%I SET empresa_id = (SELECT id FROM public.companies WHERE nombre = %L) WHERE empresa_id IS NULL',
+      'UPDATE public.%I SET empresa_id = (SELECT id FROM public.companies WHERE name = %L) WHERE empresa_id IS NULL',
       t, 'InmoGestión República Dominicana'
     );
     EXECUTE format('ALTER TABLE public.%I ALTER COLUMN empresa_id SET NOT NULL', t);
@@ -206,7 +163,7 @@ CROSS JOIN (VALUES
   (5, 'Pendiente', 'mantenimientos'), (6, 'En proceso', 'mantenimientos'),
   (7, 'Finalizado', 'mantenimientos'), (8, 'Cancelado', 'mantenimientos')
 ) AS seed(id, descripcion, tabla)
-WHERE c.nombre = 'InmoGestión República Dominicana'
+WHERE c.name = 'InmoGestión República Dominicana'
 ON CONFLICT (empresa_id, id) DO NOTHING;
 
 SELECT setval(pg_get_serial_sequence('public.estados', 'id'), GREATEST(COALESCE((SELECT max(id) FROM public.estados), 1), 1));
@@ -258,7 +215,7 @@ AS $$
   SELECT min(m.company_id::text)::uuid
   FROM public.company_memberships m
   JOIN public.companies c ON c.id = m.company_id
-  WHERE m.user_id = auth.uid() AND m.status = 'approved' AND c.estado = 'activa'
+  WHERE m.user_id = auth.uid() AND m.status = 'approved' AND c.status = 'active'
   HAVING count(*) = 1
 $$;
 REVOKE ALL ON FUNCTION public.current_company_id() FROM PUBLIC, anon;
@@ -286,7 +243,7 @@ AS $$ SELECT public.is_sysadmin() OR EXISTS (
   SELECT 1 FROM public.company_memberships m
   JOIN public.companies c ON c.id = m.company_id
   WHERE m.company_id = target_company AND m.user_id = auth.uid()
-    AND m.status = 'approved' AND c.estado = 'activa'
+    AND m.status = 'approved' AND c.status = 'active'
 ) $$;
 
 CREATE OR REPLACE FUNCTION public.is_company_admin(target_company UUID)
@@ -296,7 +253,7 @@ AS $$ SELECT public.is_sysadmin() OR EXISTS (
   SELECT 1 FROM public.company_memberships m
   JOIN public.companies c ON c.id = m.company_id
   WHERE m.company_id = target_company AND m.user_id = auth.uid()
-    AND m.status = 'approved' AND m.role_id = 'admin' AND c.estado = 'activa'
+    AND m.status = 'approved' AND m.app_role_id = 'admin' AND c.status = 'active'
 ) $$;
 
 CREATE OR REPLACE FUNCTION public.has_company_permission(target_company UUID, permission_code TEXT)
@@ -306,9 +263,9 @@ AS $$ SELECT public.is_sysadmin() OR EXISTS (
   SELECT 1 FROM public.company_memberships m
   JOIN public.companies c ON c.id = m.company_id
   JOIN public.company_role_permissions crp
-    ON crp.company_id = m.company_id AND crp.role_id = m.company_role_id
+    ON crp.company_id = m.company_id AND crp.role_id = m.app_role_id
   WHERE m.company_id = target_company AND m.user_id = auth.uid()
-    AND m.status = 'approved' AND c.estado = 'activa'
+    AND m.status = 'approved' AND c.status = 'active'
     AND crp.permission_id = permission_code
 ) $$;
 
@@ -335,13 +292,13 @@ BEGIN
   IF NOT actor_is_sysadmin AND target_role = 'admin' THEN
     RAISE EXCEPTION 'Solo SysAdmin puede asignar administradores de empresa' USING ERRCODE = '42501';
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM public.company_roles cr WHERE cr.company_id = target_company AND cr.role_key = target_role) THEN
+  IF NOT EXISTS (SELECT 1 FROM public.roles r WHERE r.id = target_role) THEN
     RAISE EXCEPTION 'Rol no disponible en esta empresa';
   END IF;
   UPDATE public.company_memberships
   SET status = CASE WHEN approve THEN 'approved' ELSE 'rejected' END,
-      role_id = target_role,
-      company_role_id = (SELECT cr.id FROM public.company_roles cr WHERE cr.company_id = target_company AND cr.role_key = target_role),
+      role = target_role,
+      app_role_id = target_role,
       approved_by = auth.uid(),
       approved_at = CASE WHEN approve THEN now() ELSE NULL END
   WHERE company_id = target_company AND user_id = target_user;
@@ -373,23 +330,19 @@ BEGIN
   END IF;
   IF NOT public.is_sysadmin() AND EXISTS (
     SELECT 1 FROM public.company_memberships m
-    WHERE m.company_id = target_company AND m.user_id = target_user AND m.role_id = 'admin'
+    WHERE m.company_id = target_company AND m.user_id = target_user AND m.app_role_id = 'admin'
   ) THEN
     RAISE EXCEPTION 'Solo SysAdmin puede cambiar el estado de un administrador de empresa' USING ERRCODE = '42501';
   END IF;
   IF target_status = 'approved' AND NOT EXISTS (
     SELECT 1 FROM public.company_memberships m
-    JOIN public.company_roles cr ON cr.company_id = m.company_id AND cr.role_key = m.role_id
+    JOIN public.roles r ON r.id = m.app_role_id
     WHERE m.company_id = target_company AND m.user_id = target_user
   ) THEN
     RAISE EXCEPTION 'La membresía no tiene un rol válido para esta empresa';
   END IF;
   UPDATE public.company_memberships m
   SET status = target_status,
-      company_role_id = CASE WHEN target_status = 'approved' THEN (
-        SELECT cr.id FROM public.company_roles cr
-        WHERE cr.company_id = m.company_id AND cr.role_key = m.role_id
-      ) ELSE m.company_role_id END,
       approved_by = CASE WHEN target_status = 'approved' THEN auth.uid() ELSE approved_by END,
       approved_at = CASE WHEN target_status = 'approved' THEN now() ELSE NULL END
   WHERE m.company_id = target_company AND m.user_id = target_user;
@@ -414,14 +367,9 @@ BEGIN
     RAISE EXCEPTION 'Solo SysAdmin puede crear empresas' USING ERRCODE = '42501';
   END IF;
   IF length(trim(company_name)) < 2 THEN RAISE EXCEPTION 'El nombre debe tener al menos 2 caracteres'; END IF;
-  INSERT INTO public.companies (nombre) VALUES (trim(company_name)) RETURNING id INTO new_company;
-  INSERT INTO public.company_roles (company_id, role_key, name, description, built_in)
-  SELECT new_company, r.id, r.name, r.description, true FROM public.roles r
-  ON CONFLICT (company_id, role_key) DO NOTHING;
+  INSERT INTO public.companies (name) VALUES (trim(company_name)) RETURNING id INTO new_company;
   INSERT INTO public.company_role_permissions (company_id, role_id, permission_id)
-  SELECT new_company, cr.id, rp.permission_id
-  FROM public.company_roles cr JOIN public.role_permissions rp ON rp.role_id = cr.role_key
-  WHERE cr.company_id = new_company
+  SELECT new_company, rp.role_id, rp.permission_id FROM public.role_permissions rp
   ON CONFLICT DO NOTHING;
   INSERT INTO public.estados (id, empresa_id, "Origen", usuario, "Descripcion", "tabla")
   SELECT seed.id, new_company, 'web', auth.uid(), seed.descripcion, seed.tabla
@@ -442,9 +390,9 @@ BEGIN
   IF NOT public.is_sysadmin() THEN
     RAISE EXCEPTION 'Solo SysAdmin puede modificar empresas' USING ERRCODE = '42501';
   END IF;
-  IF target_status NOT IN ('activa', 'suspendida') THEN RAISE EXCEPTION 'Estado no válido'; END IF;
+  IF target_status NOT IN ('active', 'suspended') THEN RAISE EXCEPTION 'Estado no válido'; END IF;
   IF length(trim(company_name)) < 2 THEN RAISE EXCEPTION 'El nombre debe tener al menos 2 caracteres'; END IF;
-  UPDATE public.companies SET nombre = trim(company_name), estado = target_status, updated_at = now()
+  UPDATE public.companies SET name = trim(company_name), status = target_status, updated_at = now()
   WHERE id = target_company;
   IF NOT FOUND THEN RAISE EXCEPTION 'Empresa no encontrada'; END IF;
 END $$;
@@ -470,11 +418,11 @@ BEGIN
     requested_company := NULL;
   END;
   IF requested_company IS NOT NULL AND EXISTS (
-    SELECT 1 FROM public.companies WHERE id = requested_company AND estado = 'activa'
+    SELECT 1 FROM public.companies WHERE id = requested_company AND status = 'active'
   ) THEN
-    INSERT INTO public.company_memberships (company_id, user_id, status, role_id)
-    VALUES (requested_company, NEW.id, 'pending', 'agente')
-    ON CONFLICT (company_id, user_id) DO NOTHING;
+    INSERT INTO public.company_memberships (company_id, user_id, status, role, app_role_id)
+    VALUES (requested_company, NEW.id, 'pending', 'agente', 'agente')
+    ON CONFLICT DO NOTHING;
   END IF;
   RETURN NEW;
 END $$;
@@ -491,7 +439,7 @@ BEGIN
   FOREACH t IN ARRAY ARRAY[
     'estados','propiedades','inquilinos','alquileres','pagos','mantenimientos',
     'profiles','roles','permissions','role_permissions','companies',
-    'company_memberships','global_user_roles','company_roles','company_role_permissions'
+    'company_memberships','global_user_roles','company_role_permissions'
   ] LOOP
     IF to_regclass('public.' || t) IS NOT NULL THEN
       FOR p IN SELECT policyname FROM pg_policies WHERE schemaname = 'public' AND tablename = t LOOP
@@ -558,10 +506,6 @@ CREATE POLICY role_permissions_read ON public.role_permissions FOR SELECT TO aut
     SELECT 1 FROM public.company_memberships m
     WHERE m.user_id = auth.uid() AND m.status = 'approved'
   ));
-CREATE POLICY company_roles_read ON public.company_roles FOR SELECT TO authenticated
-  USING (public.has_company_access(company_id));
-CREATE POLICY company_roles_manage ON public.company_roles FOR ALL TO authenticated
-  USING (public.is_company_admin(company_id)) WITH CHECK (public.is_company_admin(company_id));
 CREATE POLICY company_role_permissions_read ON public.company_role_permissions FOR SELECT TO authenticated
   USING (public.has_company_access(company_id));
 CREATE POLICY company_role_permissions_manage ON public.company_role_permissions FOR ALL TO authenticated
@@ -569,13 +513,13 @@ CREATE POLICY company_role_permissions_manage ON public.company_role_permissions
 
 REVOKE ALL ON public.global_user_roles FROM anon, authenticated;
 REVOKE ALL ON public.companies, public.company_memberships, public.profiles,
-  public.company_roles, public.company_role_permissions FROM anon, authenticated;
+  public.company_role_permissions FROM anon, authenticated;
 GRANT SELECT ON public.global_user_roles, public.companies, public.company_memberships,
   public.profiles, public.roles, public.permissions, public.role_permissions,
-  public.company_roles, public.company_role_permissions TO authenticated;
+  public.company_role_permissions TO authenticated;
 REVOKE INSERT ON public.company_memberships FROM authenticated;
 REVOKE UPDATE ON public.company_memberships FROM authenticated;
-GRANT INSERT, UPDATE, DELETE ON public.company_roles, public.company_role_permissions TO authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.company_role_permissions TO authenticated;
 REVOKE UPDATE ON public.profiles FROM authenticated;
 GRANT UPDATE (full_name, phone, avatar_url, updated_at) ON public.profiles TO authenticated;
 REVOKE INSERT, DELETE ON public.profiles FROM anon, authenticated;
@@ -585,7 +529,7 @@ REVOKE ALL ON FUNCTION public.get_user_permissions(UUID) FROM PUBLIC, anon, auth
 COMMIT;
 
 -- Post-migration verification:
--- SELECT nombre, id, estado FROM public.companies;
+-- SELECT name, id, status FROM public.companies;
 -- SELECT role, count(*) FROM public.global_user_roles GROUP BY role;
 -- SELECT status, count(*) FROM public.company_memberships GROUP BY status;
 -- SELECT 'propiedades' AS tabla, count(*) FILTER (WHERE empresa_id IS NULL) AS sin_empresa FROM public.propiedades

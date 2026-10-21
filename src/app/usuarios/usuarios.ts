@@ -15,13 +15,10 @@ import { SupabaseService } from '../supabase.service';
 export class Usuarios implements OnInit {
   usuarios = signal<Profile[]>([]);
   roles = signal<Role[]>([]);
-  companyRoles = signal<Array<{ id: string; role_key: string; name: string; built_in: boolean }>>([]);
   permissions = signal<Permission[]>([]);
   rolePermissionIds = signal<Record<string, string[]>>({});
-  companies = signal<Array<{ id: string; nombre: string }>>([]);
+  companies = signal<Array<{ id: string; name: string }>>([]);
   selectedCompanyId = signal<string | null>(null);
-  nuevoRolKey = '';
-  nuevoRolNombre = '';
   cargando = signal<boolean>(true);
   error = signal<string | null>(null);
   mensajeExito = signal<string | null>(null);
@@ -48,7 +45,7 @@ export class Usuarios implements OnInit {
       // 1. Cargar roles
       if (this.authService.isSysAdmin()) {
         const { data: companies, error: companyError } = await this.supabaseService.client
-          .from('companies').select('id,nombre').order('nombre');
+          .from('companies').select('id,name').order('name');
         if (companyError) throw companyError;
         this.companies.set(companies || []);
         if (!this.selectedCompanyId()) this.selectedCompanyId.set(this.authService.companyId() || companies?.[0]?.id || null);
@@ -58,13 +55,9 @@ export class Usuarios implements OnInit {
       const companyId = this.selectedCompanyId();
       if (!companyId) throw new Error('No hay una empresa activa asignada a tu cuenta.');
       const { data: rolesData, error: errRoles } = await this.supabaseService.client
-        .from('company_roles')
-        .select('id,role_key,name,built_in')
-        .eq('company_id', companyId)
-        .order('role_key');
+        .from('roles').select('id,name,description').order('id');
       if (errRoles) throw errRoles;
-      this.companyRoles.set((rolesData || []) as Array<{ id: string; role_key: string; name: string; built_in: boolean }>);
-      this.roles.set((rolesData || []).map((r: any) => ({ id: r.role_key, name: r.name })) as Role[]);
+      this.roles.set((rolesData || []) as Role[]);
 
       const [{ data: permissionData, error: permissionError }, { data: rolePermissionData, error: rolePermissionError }] = await Promise.all([
         this.supabaseService.client.from('permissions').select('id,module,description').order('module').order('id'),
@@ -81,7 +74,7 @@ export class Usuarios implements OnInit {
 
       // 2. Cargar perfiles con rol
       const { data: memberships, error: membershipError } = await this.supabaseService.client
-        .from('company_memberships').select('user_id,role_id,status').eq('company_id', companyId);
+        .from('company_memberships').select('user_id,role,app_role_id,status').eq('company_id', companyId);
       if (membershipError) throw membershipError;
       const userIds = (memberships || []).map((m: any) => m.user_id);
       const { data: profilesData, error: errProfiles } = userIds.length
@@ -93,7 +86,7 @@ export class Usuarios implements OnInit {
         const membership = membershipByUser.get(profile.id);
         return {
           ...profile,
-          role_id: membership?.role_id || profile.role_id,
+          role_id: membership?.app_role_id || membership?.role || profile.role_id,
           is_active: membership?.status === 'approved',
           approval_status: membership?.status || profile.approval_status
         } as Profile;
@@ -133,22 +126,6 @@ export class Usuarios implements OnInit {
     });
   }
 
-  async crearRolEmpresa(): Promise<void> {
-    const companyId = this.selectedCompanyId();
-    const roleKey = this.nuevoRolKey.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
-    const name = this.nuevoRolNombre.trim();
-    if (!companyId || !roleKey || !name) return;
-    const { error } = await this.supabaseService.client.from('company_roles').insert({
-      company_id: companyId, role_key: roleKey, name, built_in: false
-    });
-    if (error) this.error.set(error.message);
-    else {
-      this.nuevoRolKey = '';
-      this.nuevoRolNombre = '';
-      await this.cargarDatos();
-      this.mensajeExito.set('Rol creado. Asigna sus permisos antes de incorporarlo al equipo.');
-    }
-  }
 
   usuariosFiltrados(): Profile[] {
     const q = this.filtroTexto().toLowerCase().trim();
