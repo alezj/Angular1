@@ -48,7 +48,8 @@ CREATE TABLE IF NOT EXISTS public.company_memberships (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'approved', 'rejected', 'disabled')),
-  role TEXT NOT NULL DEFAULT 'agente',
+  role TEXT NOT NULL DEFAULT 'usuario'
+    CHECK (role IN ('admin_empresa', 'usuario')),
   app_role_id TEXT NOT NULL DEFAULT 'agente',
   requested_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   approved_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -75,8 +76,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS company_memberships_one_company_per_user
 -- approved member with its current in-company role.
 INSERT INTO public.company_memberships (company_id, user_id, status, role, app_role_id, approved_at)
 SELECT c.id, p.id, 'approved',
-       CASE WHEN EXISTS (SELECT 1 FROM public.roles r WHERE r.id = p.role_id)
-            THEN p.role_id ELSE 'agente' END,
+       CASE WHEN p.role_id = 'admin' THEN 'admin_empresa' ELSE 'usuario' END,
        CASE WHEN EXISTS (SELECT 1 FROM public.roles r WHERE r.id = p.role_id)
             THEN p.role_id ELSE 'agente' END,
        now()
@@ -300,7 +300,7 @@ BEGIN
   END IF;
   UPDATE public.company_memberships
   SET status = CASE WHEN approve THEN 'approved' ELSE 'rejected' END,
-      role = target_role,
+      role = CASE WHEN target_role = 'admin' THEN 'admin_empresa' ELSE 'usuario' END,
       app_role_id = target_role,
       approved_by = auth.uid(),
       approved_at = CASE WHEN approve THEN now() ELSE NULL END
@@ -475,7 +475,7 @@ BEGIN
     SELECT 1 FROM public.companies WHERE id = requested_company AND status = 'active'
   ) THEN
     INSERT INTO public.company_memberships (company_id, user_id, status, role, app_role_id)
-    VALUES (requested_company, NEW.id, 'pending', 'agente', 'agente')
+    VALUES (requested_company, NEW.id, 'pending', 'usuario', 'agente')
     ON CONFLICT DO NOTHING;
   END IF;
   RETURN NEW;

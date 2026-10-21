@@ -107,7 +107,7 @@ BEGIN
   UPDATE public.company_memberships
   SET status = CASE WHEN approve THEN 'approved' ELSE 'rejected' END,
       app_role_id = target_role,
-      role = target_role,
+      role = CASE WHEN target_role = 'admin' THEN 'admin_empresa' ELSE 'usuario' END,
       approved_by = auth.uid(),
       approved_at = CASE WHEN approve THEN now() ELSE NULL END
   WHERE company_id = target_company AND user_id = target_user;
@@ -288,7 +288,7 @@ BEGIN
   ) THEN
     INSERT INTO public.company_memberships
       (company_id, user_id, role, app_role_id, status)
-    SELECT requested_company, NEW.id, 'agente', 'agente', 'pending'
+    SELECT requested_company, NEW.id, 'usuario', 'agente', 'pending'
     WHERE NOT EXISTS (
       SELECT 1 FROM public.company_memberships
       WHERE company_id = requested_company AND user_id = NEW.id
