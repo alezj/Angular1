@@ -17,7 +17,7 @@ export class Usuarios implements OnInit {
   roles = signal<Role[]>([]);
   permissions = signal<Permission[]>([]);
   rolePermissionIds = signal<Record<string, string[]>>({});
-  companies = signal<Array<{ id: string; name: string }>>([]);
+  companies = signal<Array<{ id: string; name: string; status?: string }>>([]);
   selectedCompanyId = signal<string | null>(null);
   cargando = signal<boolean>(true);
   error = signal<string | null>(null);
@@ -25,6 +25,8 @@ export class Usuarios implements OnInit {
   filtroTexto = signal<string>('');
   usuarioEditando = signal<Profile | null>(null);
   formularioEdicion = signal({ full_name: '', phone: '' });
+  empresaEdicionId = '';
+  private empresaOriginalEdicion = '';
   guardandoEdicion = signal(false);
 
   constructor(
@@ -45,7 +47,7 @@ export class Usuarios implements OnInit {
       // 1. Cargar roles
       if (this.authService.isSysAdmin()) {
         const { data: companies, error: companyError } = await this.supabaseService.client
-          .from('companies').select('id,name').order('name');
+          .from('companies').select('id,name,status').eq('status', 'active').order('name');
         if (companyError) throw companyError;
         this.companies.set(companies || []);
         if (!this.selectedCompanyId()) this.selectedCompanyId.set(this.authService.companyId() || companies?.[0]?.id || null);
@@ -145,6 +147,8 @@ export class Usuarios implements OnInit {
   abrirEdicion(usuario: Profile): void {
     this.usuarioEditando.set(usuario);
     this.formularioEdicion.set({ full_name: usuario.full_name || '', phone: usuario.phone || '' });
+    this.empresaEdicionId = this.selectedCompanyId() || '';
+    this.empresaOriginalEdicion = this.empresaEdicionId;
     this.error.set(null);
   }
 
@@ -165,6 +169,18 @@ export class Usuarios implements OnInit {
     this.guardandoEdicion.set(true);
     this.error.set(null);
     try {
+      const cambioEmpresa = this.authService.isSysAdmin()
+        && this.empresaEdicionId
+        && this.empresaEdicionId !== this.empresaOriginalEdicion;
+      if (cambioEmpresa) {
+        const { error: moveError } = await this.supabaseService.client.rpc('move_company_membership', {
+          target_user: usuario.id,
+          source_company: this.empresaOriginalEdicion,
+          target_company: this.empresaEdicionId
+        });
+        if (moveError) throw moveError;
+      }
+
       const { data, error } = await this.supabaseService.client
         .from('profiles')
         .update({
@@ -184,8 +200,11 @@ export class Usuarios implements OnInit {
         this.authService.currentProfile.set(perfilActualizado);
       }
       this.usuarioEditando.set(null);
-      this.mensajeExito.set(`Datos de ${perfilActualizado.full_name || perfilActualizado.email} actualizados.`);
+      this.mensajeExito.set(cambioEmpresa
+        ? `Usuario movido de empresa y datos actualizados.`
+        : `Datos de ${perfilActualizado.full_name || perfilActualizado.email} actualizados.`);
       setTimeout(() => this.mensajeExito.set(null), 3000);
+      if (cambioEmpresa) await this.cargarDatos();
     } catch (err: any) {
       this.error.set(err.message || 'No se pudieron guardar los cambios del usuario.');
     } finally {

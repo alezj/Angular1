@@ -194,6 +194,13 @@
         <span>Teléfono</span>
         <input class="filter-input" [ngModel]="formularioEdicion().phone" (ngModelChange)="actualizarCampoEdicion('phone', $event)" name="phone" type="tel" autocomplete="tel">
       </label>
+      <label *ngIf="authService.isSysAdmin() && companies().length > 0">
+        <span>Empresa donde trabaja</span>
+        <select class="filter-input" [(ngModel)]="empresaEdicionId" name="empresa" required>
+          <option *ngFor="let company of companies()" [value]="company.id">{{ company.name }}</option>
+        </select>
+        <small>Al guardar, el usuario se trasladará a la empresa seleccionada.</small>
+      </label>
       <footer class="user-edit-actions">
         <button class="filter-button secondary" type="button" (click)="cerrarEdicion()" [disabled]="guardandoEdicion()">Cancelar</button>
         <button class="filter-button" type="submit" [disabled]="guardandoEdicion()">{{ guardandoEdicion() ? 'Guardando...' : 'Guardar cambios' }}</button>

@@ -154,11 +154,45 @@ BEGIN
   WHERE id = target_user;
 END $$;
 
+CREATE OR REPLACE FUNCTION public.move_company_membership(
+  source_company UUID, target_user UUID, target_company UUID
+)
+RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+BEGIN
+  IF NOT public.is_sysadmin() THEN
+    RAISE EXCEPTION 'Solo SysAdmin puede cambiar la empresa de un usuario' USING ERRCODE = '42501';
+  END IF;
+  IF source_company = target_company THEN RETURN; END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.companies WHERE id = target_company AND status = 'active'
+  ) THEN
+    RAISE EXCEPTION 'La empresa seleccionada no existe o está suspendida';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.company_memberships
+    WHERE user_id = target_user AND company_id = target_company
+  ) THEN
+    RAISE EXCEPTION 'El usuario ya tiene una membresía en la empresa seleccionada';
+  END IF;
+  UPDATE public.company_memberships
+  SET company_id = target_company
+  WHERE user_id = target_user AND company_id = source_company;
+  IF NOT FOUND THEN RAISE EXCEPTION 'No se encontró la membresía actual del usuario'; END IF;
+  UPDATE public.profiles
+  SET empresa_id = target_company, updated_at = now()
+  WHERE id = target_user;
+END $$;
+
 CREATE OR REPLACE FUNCTION public.create_company(company_name TEXT)
 RETURNS UUID LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = pg_catalog, public
 AS $$
 DECLARE new_company UUID;
+        base_slug TEXT;
+        candidate_slug TEXT;
+        suffix_number INTEGER := 1;
 BEGIN
   IF NOT public.is_sysadmin() THEN
     RAISE EXCEPTION 'Solo SysAdmin puede crear empresas' USING ERRCODE = '42501';
@@ -166,8 +200,22 @@ BEGIN
   IF length(trim(company_name)) < 2 THEN
     RAISE EXCEPTION 'El nombre debe tener al menos 2 caracteres';
   END IF;
-  INSERT INTO public.companies (name, status)
-  VALUES (trim(company_name), 'active')
+  base_slug := trim(both '-' FROM regexp_replace(
+    lower(translate(trim(company_name), 'áéíóúüñÁÉÍÓÚÜÑ', 'aeiouunAEIOUUN')),
+    '[^a-z0-9]+', '-', 'g'
+  ));
+  IF base_slug = '' THEN base_slug := 'empresa'; END IF;
+
+  LOOP
+    candidate_slug := CASE WHEN suffix_number = 1
+      THEN base_slug ELSE base_slug || '-' || suffix_number::text END;
+    EXIT WHEN NOT EXISTS (
+      SELECT 1 FROM public.companies WHERE slug = candidate_slug
+    );
+    suffix_number := suffix_number + 1;
+  END LOOP;
+  INSERT INTO public.companies (name, slug, status)
+  VALUES (trim(company_name), candidate_slug, 'active')
   RETURNING id INTO new_company;
   INSERT INTO public.company_role_permissions (company_id, role_id, permission_id)
   SELECT new_company, rp.role_id, rp.permission_id
@@ -209,8 +257,16 @@ REVOKE ALL ON FUNCTION public.approve_company_membership(UUID, UUID, TEXT, BOOLE
 REVOKE ALL ON FUNCTION public.set_company_membership_status(UUID, UUID, TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.approve_company_membership(UUID, UUID, TEXT, BOOLEAN) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.set_company_membership_status(UUID, UUID, TEXT) TO authenticated;
+REVOKE ALL ON FUNCTION public.move_company_membership(UUID, UUID, UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.move_company_membership(UUID, UUID, UUID) TO authenticated;
 
 -- Keep sign-up aligned with the existing membership columns.
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS approval_status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (approval_status IN ('pending', 'approved', 'rejected', 'disabled'));
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS empresa_id UUID REFERENCES public.companies(id);
+
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = pg_catalog, public
