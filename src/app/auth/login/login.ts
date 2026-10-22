@@ -34,6 +34,9 @@ export class Login implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    if (this.route.snapshot.queryParams['sesion'] === 'expirada') {
+      this.errorMensaje = 'Tu sesión expiró después de 30 minutos. Inicia sesión nuevamente.';
+    }
     await this.authService.cargarEmpresas();
 
     // Esperar la restauración de Supabase para no mostrar el login durante una recarga.

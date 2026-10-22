@@ -9,6 +9,10 @@ import { StorageCacheService } from '../storage-cache.service';
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly sessionMaxAgeMs = 30 * 60 * 1000;
+  private readonly sessionStartedAtKey = 'crm-auth-session-started-at';
+  private sessionExpiryTimer: number | null = null;
+  private expiringSession = false;
   private readonly inicializacion: Promise<void>;
   readonly currentUser = signal<User | null>(null);
   readonly currentProfile = signal<Profile | null>(null);
@@ -54,12 +58,21 @@ export class AuthService {
 
     // Escuchar primero para capturar la sesión que Supabase restaura del almacenamiento local.
     let previousUserId: string | null = null;
-    this.supabaseService.client.auth.onAuthStateChange((_event, session) => {
+    window.addEventListener('focus', () => this.verificarExpiracionSesion());
+    window.addEventListener('storage', (event) => {
+      if (event.key === this.sessionStartedAtKey) this.verificarExpiracionSesion();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') this.verificarExpiracionSesion();
+    });
+
+    this.supabaseService.client.auth.onAuthStateChange((event, session) => {
       const user = session?.user ?? null;
       this.currentUser.set(user);
       if (previousUserId !== user?.id) this.cache.invalidateAll();
       previousUserId = user?.id ?? null;
       if (user) {
+        this.iniciarControlDeSesion(user.id, event === 'SIGNED_IN');
         this.currentProfile.set(null);
         this.permissions.set([]);
         this.companyId.set(null);
@@ -68,6 +81,7 @@ export class AuthService {
         this.companyActive.set(false);
         void this.cargarPerfilYPermisos(user.id);
       } else {
+        this.limpiarControlDeSesion();
         this.currentProfile.set(null);
         this.permissions.set([]);
         this.companyId.set(null);
@@ -83,6 +97,7 @@ export class AuthService {
       const { data: { session }, error } = await this.supabaseService.client.auth.getSession();
       if (error) throw error;
       this.currentUser.set(session?.user ?? null);
+      if (session?.user) this.iniciarControlDeSesion(session.user.id);
       this.cargando.set(false);
 
       // Los datos auxiliares no deben impedir que la ruta reconozca una sesión almacenada.
@@ -224,6 +239,7 @@ export class AuthService {
   }
 
   async cerrarSesion(): Promise<void> {
+    this.limpiarControlDeSesion();
     await this.supabaseService.client.auth.signOut();
     this.currentUser.set(null);
     this.currentProfile.set(null);
@@ -234,6 +250,99 @@ export class AuthService {
     this.companyActive.set(false);
     this.cache.invalidateAll();
     this.router.navigate(['/login']);
+  }
+
+  private iniciarControlDeSesion(userId: string, reiniciar = false): void {
+    if (typeof window === 'undefined') return;
+
+    let startedAt: number | null = null;
+    try {
+      const saved = localStorage.getItem(this.sessionStartedAtKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as { userId?: string; startedAt?: number };
+        if (parsed.userId === userId && Number.isFinite(parsed.startedAt)) {
+          startedAt = parsed.startedAt!;
+        }
+      }
+    } catch {
+      localStorage.removeItem(this.sessionStartedAtKey);
+    }
+
+    if (reiniciar || startedAt === null) {
+      startedAt = Date.now();
+      localStorage.setItem(this.sessionStartedAtKey, JSON.stringify({ userId, startedAt }));
+    }
+
+    this.expiringSession = false;
+    this.programarExpiracionSesion(userId, startedAt);
+  }
+
+  private verificarExpiracionSesion(): void {
+    const user = this.currentUser();
+    if (!user || typeof window === 'undefined') return;
+
+    try {
+      const saved = localStorage.getItem(this.sessionStartedAtKey);
+      const parsed = saved ? JSON.parse(saved) as { userId?: string; startedAt?: number } : null;
+      if (parsed?.userId !== user.id || !Number.isFinite(parsed?.startedAt)) {
+        this.iniciarControlDeSesion(user.id);
+        return;
+      }
+      this.programarExpiracionSesion(user.id, parsed.startedAt!);
+    } catch {
+      this.iniciarControlDeSesion(user.id, true);
+    }
+  }
+
+  private programarExpiracionSesion(userId: string, startedAt: number): void {
+    if (this.sessionExpiryTimer !== null) window.clearTimeout(this.sessionExpiryTimer);
+    const remaining = startedAt + this.sessionMaxAgeMs - Date.now();
+    this.sessionExpiryTimer = window.setTimeout(
+      () => void this.expirarSesion(userId),
+      Math.max(remaining, 0)
+    );
+  }
+
+  private async expirarSesion(userId: string): Promise<void> {
+    if (this.currentUser()?.id !== userId || this.expiringSession) return;
+
+    try {
+      const saved = localStorage.getItem(this.sessionStartedAtKey);
+      const parsed = saved ? JSON.parse(saved) as { userId?: string; startedAt?: number } : null;
+      if (parsed?.userId && parsed.userId !== userId) return;
+      if (parsed?.userId === userId && Number.isFinite(parsed.startedAt) &&
+          parsed.startedAt! + this.sessionMaxAgeMs > Date.now()) {
+        this.programarExpiracionSesion(userId, parsed.startedAt!);
+        return;
+      }
+    } catch {
+      // Si el reloj guardado está dañado, se cierra la sesión por seguridad.
+    }
+
+    this.expiringSession = true;
+    this.limpiarControlDeSesion();
+    try {
+      await this.supabaseService.client.auth.signOut({ scope: 'local' });
+    } finally {
+      this.currentUser.set(null);
+      this.currentProfile.set(null);
+      this.permissions.set([]);
+      this.companyId.set(null);
+      this.globalRole.set(null);
+      this.approvalStatus.set(null);
+      this.companyActive.set(false);
+      this.cache.invalidateAll();
+      await this.router.navigate(['/login'], { queryParams: { sesion: 'expirada' } });
+      this.expiringSession = false;
+    }
+  }
+
+  private limpiarControlDeSesion(): void {
+    if (typeof window !== 'undefined' && this.sessionExpiryTimer !== null) {
+      window.clearTimeout(this.sessionExpiryTimer);
+    }
+    this.sessionExpiryTimer = null;
+    if (typeof window !== 'undefined') localStorage.removeItem(this.sessionStartedAtKey);
   }
 
   async actualizarPerfil(datos: Partial<Profile>): Promise<{ success: boolean; error?: string }> {
