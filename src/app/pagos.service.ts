@@ -14,6 +14,7 @@ export interface Pago {
   idAlquiler?: number | string | null;
   periodo?: string | null;
   estado?: string | null;
+  retraso?: number | string | null;
   metodoPago?: string | null;
   banco?: string | null;
   referencia?: string | null;

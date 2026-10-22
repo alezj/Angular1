@@ -9,6 +9,8 @@ export interface Inquilino {
   nombreApellido: string;
   correo?: string;
   email?: string;
+  telefono?: string;
+  direccion?: string;
   fechaInicioContrato: string;
   fechaPagos: number;
 }

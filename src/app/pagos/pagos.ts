@@ -113,6 +113,16 @@ export class Pagos implements OnInit {
   }
   fechaCargo(pago: Pago): string { return pago.periodo || pago.fechaPago || ''; }
   fechaVencimiento(pago: Pago): string { return pago.fechaVencimiento || ''; }
+  private numeroSeguro(valor: number | string | null | undefined): number {
+    if (valor === null || valor === undefined) return 0;
+    const num = Number(valor);
+    return Number.isFinite(num) ? num : 0;
+  }
+
+  montoRecibido(factura: Pago): number { return this.numeroSeguro(factura.monto); }
+  retrasoRecibido(factura: Pago): number { return this.numeroSeguro(factura.retraso); }
+  subtotalRecibido(factura: Pago): number { return this.numeroSeguro(factura.monto) - this.numeroSeguro(factura.retraso); }
+
   detallePago(pago: Pago): string {
     if (!pago.fechaPago) return '—';
     const fecha = new Date(`${pago.fechaPago.substring(0, 10)}T00:00:00`);
@@ -279,33 +289,65 @@ getNombreInquilino(idInquilino: string | number | null ): string {
     const fecha = this.escaparHtml(pago.fechaPago);
     const nombre = this.escaparHtml(nombreInquilino);
     const monto = this.escaparHtml(String(pago.monto));
+    const retraso = this.escaparHtml(String(Number(pago.retraso) || 0));
+    const subtotal = this.escaparHtml(String(Number(pago.monto) - (Number(pago.retraso) || 0)));
 
     return `
       <div style="max-width:640px;margin:0 auto;padding:32px;font-family:Arial,sans-serif;color:#1e293b;border:1px solid #e2e8f0;border-radius:8px">
         <p style="margin:0 0 8px;color:#be185d;font-size:12px;font-weight:bold;letter-spacing:2px;text-transform:uppercase">Recibo de pago</p>
         <div style="display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #be185d;padding-bottom:16px">
           <h1 style="margin:0;font-size:28px;color:#0f172a">Recibo #${numero}</h1>
-          <strong style="font-size:16px">${fecha}</strong>
+          <div style="text-align:right">
+            <div style="font-size:12px;color:#64748b">FECHA:</div>
+            <div style="font-size:16px;font-weight:bold">${fecha}</div>
+            <div style="font-size:12px;color:#64748b">NÚMERO:</div>
+            <div style="font-size:16px;font-weight:bold">${numero}</div>
+          </div>
         </div>
-        <p style="margin:24px 0 4px;color:#64748b">Recibido de</p>
-        <p style="margin:0 0 24px;font-size:18px;font-weight:bold">${nombre}</p>
+        <div style="margin:24px 0 16px;padding:16px;border:1px solid #e2e8f0;border-radius:8px;background:#f7f9fc">
+          <p style="margin:0 0 8px;color:#64748b;font-size:11px;font-weight:bold;letter-spacing:0.08em;text-transform:uppercase">Información del cliente</p>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px 16px">
+            <div>
+              <div style="font-size:10px;color:#64748b;font-weight:bold;text-transform:uppercase">Nombre:</div>
+              <div style="font-size:14px;font-weight:600">${nombre}</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#64748b;font-weight:bold;text-transform:uppercase">Teléfono:</div>
+              <div style="font-size:14px;font-weight:600">—</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#64748b;font-weight:bold;text-transform:uppercase">Dirección:</div>
+              <div style="font-size:14px;font-weight:600">—</div>
+            </div>
+          </div>
+        </div>
         <table style="width:100%;border-collapse:collapse">
           <thead>
             <tr>
               <th style="padding:12px 0;text-align:left;border-bottom:1px solid #e2e8f0">Descripción</th>
-              <th style="padding:12px 0;text-align:right;border-bottom:1px solid #e2e8f0">Importe</th>
+              <th style="padding:12px 0;text-align:right;border-bottom:1px solid #e2e8f0">Moneda</th>
+              <th style="padding:12px 0;text-align:right;border-bottom:1px solid #e2e8f0">Total</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style="padding:12px 0;border-bottom:1px solid #e2e8f0">Pago de alquiler${pago.metodoPago ? ` · ${this.escaparHtml(pago.metodoPago)}` : ''}${pago.banco ? ` · ${this.escaparHtml(pago.banco)}` : ''}${pago.referencia ? ` · Ref. ${this.escaparHtml(pago.referencia)}` : ''}</td>
+              <td style="padding:12px 0;border-bottom:1px solid #e2e8f0">Pago de propiedad${pago.metodoPago ? ` · ${this.escaparHtml(pago.metodoPago)}` : ''}${pago.banco ? ` · ${this.escaparHtml(pago.banco)}` : ''}${pago.referencia ? ` · Ref. ${this.escaparHtml(pago.referencia)}` : ''}</td>
+              <td style="padding:12px 0;text-align:right;border-bottom:1px solid #e2e8f0">usd</td>
               <td style="padding:12px 0;text-align:right;border-bottom:1px solid #e2e8f0">${monto}</td>
             </tr>
           </tbody>
           <tfoot>
             <tr>
-              <th style="padding:16px 0 0;text-align:left;font-size:16px">Total pagado</th>
-              <th style="padding:16px 0 0;text-align:right;font-size:16px">${monto}</th>
+              <td style="padding:12px 0;text-align:right;color:#64748b;font-size:14px">Subtotal</td>
+              <td style="padding:12px 0;text-align:right;color:#64748b;font-size:14px">${subtotal}</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 0;text-align:right;color:#64748b;font-size:14px">Retraso</td>
+              <td style="padding:12px 0;text-align:right;color:#64748b;font-size:14px">${retraso}</td>
+            </tr>
+            <tr>
+              <td style="padding:16px 0 0;text-align:right;font-size:16px;font-weight:700;color:#0f172a">Total</td>
+              <td style="padding:16px 0 0;text-align:right;font-size:16px;font-weight:700;color:#0f172a">${monto}</td>
             </tr>
           </tfoot>
         </table>

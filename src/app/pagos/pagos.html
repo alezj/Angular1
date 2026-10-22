@@ -163,34 +163,85 @@
 
     <div class="invoice-document" *ngIf="facturaPago">
       <header class="invoice-header">
-        <div>
-          <p class="invoice-eyebrow">Recibo de pago</p>
-          <h2>Recibo #{{ facturaPago.id }}</h2>
+        <div class="invoice-brand">
+          <img src="/app-icon.png" alt="Logo" class="invoice-logo" />
+          <div class="invoice-brand-text">
+            <span class="invoice-eyebrow">Recibo de pago</span>
+            <h2>Recibo #{{ facturaPago.id }}</h2>
+          </div>
         </div>
         <div class="invoice-number">
-          <span>{{ facturaPago.fechaPago | date: 'dd/MM/yyyy' }}</span>
+          <span>FECHA:</span>
+          <strong>{{ facturaPago.fechaPago | date: 'dd/MM/yyyy' }}</strong>
+          <span>NÚMERO:</span>
+          <strong>{{ facturaPago.id }}</strong>
         </div>
       </header>
 
-      <div class="invoice-recipient">
-        <span>Recibido de</span>
-        <strong>{{ facturaInquilino?.nombreApellido || ('Inquilino #' + facturaPago.idInquilino) }}</strong>
-        <span *ngIf="facturaInquilino?.correo">{{ facturaInquilino?.correo }}</span>
+      <div class="invoice-client">
+        <h3>INFORMACIÓN DEL CLIENTE</h3>
+        <div class="client-grid">
+          <div class="client-field">
+            <label>NOMBRE:</label>
+            <span>{{ facturaInquilino?.nombreApellido || ('Inquilino #' + facturaPago.idInquilino) }}</span>
+          </div>
+          <div class="client-field">
+            <label>TELÉFONO:</label>
+            <span>{{ facturaInquilino?.telefono || '—' }}</span>
+          </div>
+          <div class="client-field">
+            <label>DIRECCIÓN:</label>
+            <span>{{ facturaInquilino?.direccion || '—' }}</span>
+          </div>
+        </div>
       </div>
 
       <table class="invoice-table">
         <thead>
-          <tr><th>Descripción</th><th class="amount">Importe</th></tr>
+          <tr><th>DESCRIPCIÓN</th>
+            <!-- <th class="amount">MONEDA</th> -->
+            <th class="amount">TOTAL</th></tr>
         </thead>
         <tbody>
-          <tr><td>Pago de alquiler <span *ngIf="facturaPago.metodoPago">· {{ facturaPago.metodoPago }}</span><span *ngIf="facturaPago.banco">· {{ facturaPago.banco }}</span><span *ngIf="facturaPago.referencia">· Ref. {{ facturaPago.referencia }}</span></td><td class="amount">{{ facturaPago.monto | number: '1.2-2' }}</td></tr>
+          <tr>
+            <td>
+              Pago de propiedad: {{ nombrePropiedad(facturaPago) }}
+              <span *ngIf="facturaPago.metodoPago"> · {{ facturaPago.metodoPago }}</span>
+              <span *ngIf="facturaPago.banco"> · {{ facturaPago.banco }}</span>
+              <span *ngIf="facturaPago.referencia"> · Ref. {{ facturaPago.referencia }}</span>
+            </td>
+            <!-- <td class="amount">usd</td> -->
+            <td class="amount">{{ facturaPago.monto | number: '1.2-2' }}</td>
+          </tr>
         </tbody>
-        <tfoot>
-          <tr><th>Total recibido</th><th class="amount">{{ facturaPago.monto | number: '1.2-2' }}</th></tr>
-        </tfoot>
+            <tfoot>
+              <tr>
+                <td class="amount-label">Subtotal</td>
+                <td class="amount">
+                  {{ subtotalRecibido(facturaPago) | number: '1.2-2' }}
+                </td>
+              </tr>
+              <tr>
+                <td class="amount-label">Retraso</td>
+                <td class="amount">
+                  {{ retrasoRecibido(facturaPago) | number: '1.2-2' }}
+                </td>
+              </tr>
+              <tr class="total-row">
+                <td class="amount-label">TOTAL</td>
+                <td class="amount">
+                  {{ montoRecibido(facturaPago) | number: '1.2-2' }}
+                </td>
+              </tr>
+            </tfoot>
+
       </table>
 
-      <p class="invoice-note">Gracias por su pago.</p>
+<footer class="invoice-footer">
+  <p>¡Gracias por su pago!</p>
+  <small>Comprobante de pago de alquiler</small>
+</footer>
+      <!-- <p class="invoice-note">Gracias por su pago.</p> -->
     </div>
   </article>
 </div>
