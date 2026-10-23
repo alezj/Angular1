@@ -93,6 +93,7 @@ export class Inquilinos implements OnInit {
     return lista.filter((inquilino) =>
       `${inquilino.nombreApellido}
        ${inquilino.correo}
+       ${inquilino.telefono}
        ${inquilino.fechaInicioContrato}
        ${inquilino.fechaPagos}`
         .toLowerCase()
@@ -167,6 +168,7 @@ export class Inquilinos implements OnInit {
     this.formulario = {
       nombreApellido: x.nombreApellido,
       correo: x.correo ?? x.email ?? '',
+      telefono: x.telefono,
       fechaInicioContrato:
         x.fechaInicioContrato.substring(0, 10),
       fechaPagos: x.fechaPagos
@@ -203,6 +205,7 @@ export class Inquilinos implements OnInit {
     this.formulario = {
       nombreApellido: '',
       correo: '',
+      telefono: '',
       fechaInicioContrato: '',
       fechaPagos: 1
     };
