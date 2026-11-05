@@ -9,7 +9,12 @@
 
     <div class="user-main-info">
       <h2>{{ nombreCompleto || 'Usuario del CRM' }}</h2>
-      <p class="email-text">{{ authService.currentUser()?.email }}</p>
+      <p class="email-text">
+        <span *ngIf="authService.currentProfile()?.usuarioSesion" style="font-weight: 600; color: var(--primary); margin-right: 0.5rem;">
+          @{{ authService.currentProfile()?.usuarioSesion }}
+        </span>
+        {{ authService.currentUser()?.email }}
+      </p>
       
       <!-- Badge de Rol -->
       <div class="role-pill" [attr.data-role]="authService.currentProfile()?.role_id">

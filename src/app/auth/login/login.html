@@ -30,7 +30,7 @@
     <div class="auth-header">
       <div class="auth-intro">
         <h1>{{ isRegistro ? 'Crear cuenta' : 'Iniciar sesión' }}</h1>
-        <p>{{ isRegistro ? 'Completa tus datos para acceder al CRM.' : 'Accede a tu panel de gestión inmobiliaria.' }}</p>
+        <p>{{ isRegistro ? 'Completa tus datos para registrarte en el CRM.' : 'Accede con tu nombre de usuario a tu panel de gestión.' }}</p>
       </div>
 
       <!-- Selector de Modo (Tabs) -->
@@ -86,6 +86,42 @@
         />
       </div>
 
+      <!-- Campo UsuarioSesion (solo en registro) -->
+      <div *ngIf="isRegistro" class="form-group">
+        <label for="usuarioSesion">Nombre de Usuario</label>
+        <span id="username-reg-hint" class="field-hint">Este será tu usuario para iniciar sesión (sin espacios)</span>
+        <input
+          type="text"
+          id="usuarioSesion"
+          name="usuarioSesion"
+          [(ngModel)]="usuarioSesion"
+          required
+          autocomplete="username"
+          autocapitalize="none"
+          aria-describedby="username-reg-hint"
+          placeholder="Ej. johancel"
+          class="form-input"
+        />
+      </div>
+
+      <!-- Campo Email (en registro se solicita para validar la cuenta) -->
+      <div *ngIf="isRegistro" class="form-group">
+        <label for="email">Correo Electrónico</label>
+        <span id="email-hint" class="field-hint">Se utilizará para validar tu cuenta y recuperar tu acceso</span>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="email"
+          required
+          autocomplete="email"
+          inputmode="email"
+          aria-describedby="email-hint"
+          placeholder="nombre@inmobiliaria.com"
+          class="form-input"
+        />
+      </div>
+
       <!-- Campo Teléfono (solo en registro) -->
       <div *ngIf="isRegistro" class="form-group">
         <label for="telefono">Teléfono / WhatsApp</label>
@@ -101,7 +137,7 @@
         />
       </div>
 
-      <!-- Empresa a la que solicita incorporarse -->
+      <!-- Empresa a la que solicita incorporarse (solo en registro) -->
       <div *ngIf="isRegistro" class="form-group">
         <label for="empresaSeleccionada">Empresa</label>
         <select
@@ -119,20 +155,20 @@
         <span class="field-hint">Tu solicitud quedará pendiente hasta que un administrador autorice tu acceso.</span>
       </div>
 
-      <!-- Campo Email -->
-      <div class="form-group">
-        <label for="email">Correo Electrónico</label>
-        <span id="email-hint" class="field-hint">Ingresa tu correo institucional o personal</span>
+      <!-- Campo Usuario para INICIAR SESIÓN (solo en login) -->
+      <div *ngIf="!isRegistro" class="form-group">
+        <label for="usuarioLogin">Usuario</label>
+        <span id="usuario-login-hint" class="field-hint">Ingresa tu nombre de usuario para acceder</span>
         <input
-          type="email"
-          id="email"
-          name="email"
-          [(ngModel)]="email"
+          type="text"
+          id="usuarioLogin"
+          name="usuarioLogin"
+          [(ngModel)]="usuarioLogin"
           required
-          autocomplete="email"
-          inputmode="email"
-          aria-describedby="email-hint"
-          placeholder="nombre@inmobiliaria.com"
+          autocomplete="username"
+          autocapitalize="none"
+          aria-describedby="usuario-login-hint"
+          placeholder="Ej. johancel"
           class="form-input"
         />
       </div>
@@ -147,7 +183,7 @@
           name="password"
           [(ngModel)]="password"
           required
-          minlength="6"
+          minlength="4"
           [attr.autocomplete]="isRegistro ? 'new-password' : 'current-password'"
           [attr.aria-describedby]="isRegistro ? 'password-hint' : null"
           placeholder="••••••••"
@@ -159,7 +195,7 @@
       <button
         type="submit"
         class="submit-btn"
-        [disabled]="cargando || !email || !password"
+        [disabled]="cargando || (!isRegistro ? (!usuarioLogin || !password) : (!email || !usuarioSesion || !password || !nombreCompleto))"
       >
         <span *ngIf="cargando" class="spinner"></span>
         <span *ngIf="!cargando">{{ isRegistro ? 'Crear Cuenta en el CRM' : 'Acceder al CRM' }}</span>

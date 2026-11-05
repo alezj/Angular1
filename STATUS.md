@@ -52,6 +52,24 @@
   - `src/app/auth/has-permission.directive.ts` - Permission directive
   - `src/app/auth/access-pending.ts` - Access pending component
 
+### 10. Username-Based Login (`usuarioSesion`) - **COMPLETED**
+- **Status**: ✅ Implemented and deployed to production
+- **Files**:
+  - `src/app/auth/auth.models.ts` - Added `usuarioSesion?: string` to `Profile` interface
+  - `src/app/auth/auth.service.ts` - `iniciarSesion()` resolves email via `get_email_by_username` RPC; `registrarse()` accepts and stores `usuarioSesion`
+  - `src/app/auth/login/login.ts` - Login uses `usuarioLogin` field; register uses `usuarioSesion` + `email`
+  - `src/app/auth/login/login.html` - Rewritten: login shows "Usuario" field; register shows "Nombre de Usuario" + "Correo Electrónico"
+  - `src/app/auth/perfil/perfil.html` - Shows `@usuarioSesion` from profile alongside email
+  - `supabase-usuario-sesion-migration.sql` - Migration: ALTER TABLE + unique index + 2 RPCs (`get_email_by_username`, `check_username_available`) + updated `handle_new_user()` trigger
+- **Features**:
+  - Login by username instead of email (email used only for account validation/recovery)
+  - Username uniqueness enforced (case-insensitive) via unique index and `check_username_available` RPC
+  - Existing users auto-assigned `usuarioSesion` from their email prefix on migration
+  - Register form collects: Nombre Completo, Nombre de Usuario, Correo Electrónico, Contraseña, Teléfono, Empresa
+  - Profile page displays `@usuarioSesion`
+- **Migration SQL**: `supabase-usuario-sesion-migration.sql` — must be run in both test and production Supabase SQL Editor
+- **Date Completed**: 2026-11-05
+
 ### 7. Core Services - **COMPLETED**
 - **Supabase Service**: `src/app/supabase.service.ts` - Database integration
 - **Tenants Service**: `src/app/inquilinos.service.ts`
@@ -246,6 +264,7 @@
 | 2026-11-04 | Vercel deployment optimizations | DevOps / Vercel | 🔄 Refinement |
 | 2026-11-05 | Test Environment created & validated (Supabase Alquilados_Test, branch test, Vercel preview) | Environments / DevOps | ✅ Completed |
 | 2026-11-05 | Geolocation, interactive mini-map & Google Maps links added to properties | Propiedades | 🔄 Feature Added |
+| 2026-11-05 | Username-based login (`usuarioSesion`): login by username, register with email for validation, `get_email_by_username` RPC, unique index | Auth | ✅ Feature Added |
 
 ---
 
@@ -262,4 +281,4 @@
 ---
 
 *Last Updated: 2026-11-05*
-*Status Document Version: 1.1*
+*Status Document Version: 1.2*

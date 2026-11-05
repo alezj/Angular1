@@ -15,6 +15,8 @@ export class Login implements OnInit {
   isRegistro = false;
 
   // Credenciales
+  usuarioLogin = ''; // Para iniciar sesión con nombre de usuario
+  usuarioSesion = ''; // Para registrarse con nombre de usuario único
   email = '';
   password = '';
   nombreCompleto = '';
@@ -66,6 +68,21 @@ export class Login implements OnInit {
           this.cargando = false;
           return;
         }
+        if (!this.usuarioSesion.trim()) {
+          this.errorMensaje = 'Por favor ingresa un nombre de usuario para iniciar sesión.';
+          this.cargando = false;
+          return;
+        }
+        if (/\s/.test(this.usuarioSesion.trim())) {
+          this.errorMensaje = 'El nombre de usuario no puede contener espacios.';
+          this.cargando = false;
+          return;
+        }
+        if (!this.email.trim()) {
+          this.errorMensaje = 'Por favor ingresa tu correo electrónico para validar la cuenta.';
+          this.cargando = false;
+          return;
+        }
         if (!this.empresaSeleccionada) {
           this.errorMensaje = 'Selecciona la empresa a la que solicitas incorporarte.';
           this.cargando = false;
@@ -76,6 +93,7 @@ export class Login implements OnInit {
           this.email.trim(),
           this.password,
           this.nombreCompleto.trim(),
+          this.usuarioSesion.trim().toLowerCase(),
           this.telefono.trim(),
           this.empresaSeleccionada
         );
@@ -86,7 +104,13 @@ export class Login implements OnInit {
           this.exitoMensaje = 'Solicitud enviada. El acceso estará disponible cuando el administrador apruebe tu incorporación.';
         }
       } else {
-        const res = await this.authService.iniciarSesion(this.email.trim(), this.password);
+        if (!this.usuarioLogin.trim()) {
+          this.errorMensaje = 'Por favor ingresa tu usuario.';
+          this.cargando = false;
+          return;
+        }
+
+        const res = await this.authService.iniciarSesion(this.usuarioLogin.trim(), this.password);
 
         if (!res.success) {
           this.errorMensaje = res.error || 'Credenciales inválidas.';

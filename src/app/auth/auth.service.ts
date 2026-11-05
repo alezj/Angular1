@@ -174,11 +174,30 @@ export class AuthService {
     }
   }
 
-  async iniciarSesion(email: string, password: string): Promise<{ success: boolean; error?: string }> {
+  async iniciarSesion(usuarioSesionOEmail: string, password: string): Promise<{ success: boolean; error?: string }> {
     this.cargando.set(true);
     try {
+      let emailFinal = usuarioSesionOEmail.trim();
+
+      // Resolver email a partir del nombre de usuario si no es un correo directo
+      try {
+        const { data: emailResuelto } = await this.supabaseService.client
+          .rpc('get_email_by_username', { p_username: emailFinal });
+
+        if (emailResuelto) {
+          emailFinal = emailResuelto;
+        } else if (!emailFinal.includes('@')) {
+          return { success: false, error: 'Usuario no encontrado. Verifica tu nombre de usuario.' };
+        }
+      } catch {
+        // En caso de que la función no esté disponible aún, si contiene '@' lo intenta directamente
+        if (!emailFinal.includes('@')) {
+          return { success: false, error: 'Usuario no encontrado. Verifica tu nombre de usuario.' };
+        }
+      }
+
       const { data, error } = await this.supabaseService.client.auth.signInWithPassword({
-        email,
+        email: emailFinal,
         password
       });
 
@@ -205,18 +224,34 @@ export class AuthService {
     email: string,
     password: string,
     nombreCompleto: string,
+    usuarioSesion: string,
     telefono: string = '',
     companyId?: string
   ): Promise<{ success: boolean; error?: string }> {
     this.cargando.set(true);
     try {
+      const usernameLimpio = usuarioSesion.trim().toLowerCase();
+
+      // Validar disponibilidad del usuarioSesion
+      try {
+        const { data: disponible } = await this.supabaseService.client
+          .rpc('check_username_available', { p_username: usernameLimpio });
+
+        if (disponible === false) {
+          return { success: false, error: 'El nombre de usuario ya está en uso. Por favor elige otro.' };
+        }
+      } catch {
+        // Si la RPC no existe aún, continúa con el registro
+      }
+
       const { data, error } = await this.supabaseService.client.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           data: {
-            full_name: nombreCompleto,
-            phone: telefono,
+            full_name: nombreCompleto.trim(),
+            usuarioSesion: usernameLimpio,
+            phone: telefono.trim(),
             company_id: companyId || ''
           }
         }

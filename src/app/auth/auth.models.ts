@@ -21,6 +21,7 @@ export interface Profile {
   id: string;
   email: string;
   full_name: string;
+  usuarioSesion?: string;
   phone?: string;
   avatar_url?: string;
   role_id: string;
