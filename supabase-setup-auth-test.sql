@@ -157,7 +157,6 @@ BEGIN
       email,
       encrypted_password,
       email_confirmed_at,
-      confirmed_at,
       last_sign_in_at,
       raw_app_meta_data,
       raw_user_meta_data,
@@ -172,7 +171,6 @@ BEGIN
       crypt('1234', gen_salt('bf')),
       now(),
       now(),
-      now(),
       '{"provider":"email","providers":["email"]}'::jsonb,
       '{"full_name":"johancel"}'::jsonb,
       now(),
@@ -182,7 +180,6 @@ BEGIN
     UPDATE auth.users
     SET encrypted_password = crypt('1234', gen_salt('bf')),
         email_confirmed_at = COALESCE(email_confirmed_at, now()),
-        confirmed_at = COALESCE(confirmed_at, now()),
         last_sign_in_at = now(),
         raw_user_meta_data = '{"full_name":"johancel"}'::jsonb
     WHERE id = v_user_id;
@@ -207,3 +204,4 @@ BEGIN
     SET status = 'approved', role = 'admin_empresa', app_role_id = 'admin';
   END IF;
 END $$;
+
