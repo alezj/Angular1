@@ -29,12 +29,22 @@
   <div class="auth-card">
     <div class="auth-header">
       <div class="auth-intro">
-        <h1>{{ isRegistro ? 'Crear cuenta' : 'Iniciar sesión' }}</h1>
-        <p>{{ isRegistro ? 'Completa tus datos para registrarte en el CRM.' : 'Accede con tu nombre de usuario a tu panel de gestión.' }}</p>
+        <h1>
+          {{ modoActualizarClave ? 'Crear nueva contraseña' : modoRestablecer ? 'Restablecer contraseña' : isRegistro ? 'Crear cuenta' : 'Iniciar sesión' }}
+        </h1>
+        <p>
+          {{ modoActualizarClave
+            ? 'Elige una contraseña nueva para tu cuenta.'
+            : modoRestablecer
+              ? 'Te enviaremos un enlace al correo asociado a tu cuenta.'
+              : isRegistro
+                ? 'Completa tus datos para registrarte en el CRM.'
+                : 'Accede con tu nombre de usuario a tu panel de gestión.' }}
+        </p>
       </div>
 
       <!-- Selector de Modo (Tabs) -->
-      <div class="auth-tabs" role="tablist">
+      <div *ngIf="!modoRestablecer && !modoActualizarClave" class="auth-tabs" role="tablist">
         <button
           type="button"
           class="tab-btn"
@@ -155,8 +165,23 @@
         <span class="field-hint">Tu solicitud quedará pendiente hasta que un administrador autorice tu acceso.</span>
       </div>
 
+      <div *ngIf="modoRestablecer" class="form-group">
+        <label for="resetEmail">Correo Electrónico</label>
+        <input
+          type="email"
+          id="resetEmail"
+          name="resetEmail"
+          [(ngModel)]="email"
+          required
+          autocomplete="email"
+          inputmode="email"
+          placeholder="nombre@inmobiliaria.com"
+          class="form-input"
+        />
+      </div>
+
       <!-- Campo Usuario para INICIAR SESIÓN (solo en login) -->
-      <div *ngIf="!isRegistro" class="form-group">
+      <div *ngIf="!isRegistro && !modoRestablecer && !modoActualizarClave" class="form-group">
         <label for="usuarioLogin">Usuario</label>
         <span id="usuario-login-hint" class="field-hint">Ingresa tu nombre de usuario para acceder</span>
         <input
@@ -174,18 +199,33 @@
       </div>
 
       <!-- Campo Contraseña -->
-      <div class="form-group">
+      <div *ngIf="!modoRestablecer" class="form-group">
         <label for="password">Contraseña</label>
-        <span *ngIf="isRegistro" id="password-hint" class="field-hint">Mínimo 6 caracteres</span>
+        <span *ngIf="isRegistro || modoActualizarClave" id="password-hint" class="field-hint">Mínimo 6 caracteres</span>
         <input
           type="password"
           id="password"
           name="password"
           [(ngModel)]="password"
           required
-          minlength="4"
-          [attr.autocomplete]="isRegistro ? 'new-password' : 'current-password'"
-          [attr.aria-describedby]="isRegistro ? 'password-hint' : null"
+          [attr.minlength]="isRegistro || modoActualizarClave ? 6 : 4"
+          [attr.autocomplete]="isRegistro || modoActualizarClave ? 'new-password' : 'current-password'"
+          [attr.aria-describedby]="isRegistro || modoActualizarClave ? 'password-hint' : null"
+          placeholder="••••••••"
+          class="form-input"
+        />
+      </div>
+
+      <div *ngIf="modoActualizarClave" class="form-group">
+        <label for="confirmarPassword">Confirmar nueva contraseña</label>
+        <input
+          type="password"
+          id="confirmarPassword"
+          name="confirmarPassword"
+          [(ngModel)]="confirmarPassword"
+          required
+          minlength="6"
+          autocomplete="new-password"
           placeholder="••••••••"
           class="form-input"
         />
@@ -195,21 +235,29 @@
       <button
         type="submit"
         class="submit-btn"
-        [disabled]="cargando || (!isRegistro ? (!usuarioLogin || !password) : (!email || !usuarioSesion || !password || !nombreCompleto))"
+        [disabled]="cargando || (modoRestablecer ? !email : modoActualizarClave ? (!password || !confirmarPassword) : isRegistro ? (!email || !usuarioSesion || !password || !nombreCompleto) : (!usuarioLogin || !password))"
       >
         <span *ngIf="cargando" class="spinner"></span>
-        <span *ngIf="!cargando">{{ isRegistro ? 'Crear Cuenta en el CRM' : 'Acceder al CRM' }}</span>
+        <span *ngIf="!cargando">
+          {{ modoRestablecer ? 'Enviar enlace' : modoActualizarClave ? 'Guardar contraseña' : isRegistro ? 'Crear Cuenta en el CRM' : 'Acceder al CRM' }}
+        </span>
       </button>
     </form>
 
     <div class="auth-footer">
-      <p *ngIf="!isRegistro">
+      <p *ngIf="!isRegistro && !modoRestablecer && !modoActualizarClave">
+        <button type="button" class="link-btn" (click)="solicitarCambioClave()">¿Olvidaste tu contraseña?</button>
+      </p>
+      <p *ngIf="!isRegistro && !modoRestablecer && !modoActualizarClave">
         ¿Aún no tienes cuenta?
         <button type="button" class="link-btn" (click)="toggleModo(true)">Regístrate aquí</button>
       </p>
       <p *ngIf="isRegistro">
         ¿Ya tienes cuenta creada?
         <button type="button" class="link-btn" (click)="toggleModo(false)">Inicia sesión aquí</button>
+      </p>
+      <p *ngIf="modoRestablecer || modoActualizarClave">
+        <button type="button" class="link-btn" (click)="toggleModo(false)">Volver al inicio de sesión</button>
       </p>
     </div>
   </div>

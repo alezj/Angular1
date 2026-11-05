@@ -14,7 +14,12 @@ export class AuthService {
   private sessionExpiryTimer: number | null = null;
   private expiringSession = false;
   private readonly inicializacion: Promise<void>;
+  private resolvePasswordRecovery: (() => void) | null = null;
+  private readonly passwordRecoveryDetected = new Promise<void>((resolve) => {
+    this.resolvePasswordRecovery = resolve;
+  });
   readonly currentUser = signal<User | null>(null);
+  readonly passwordRecoveryMode = signal(false);
   readonly currentProfile = signal<Profile | null>(null);
   readonly permissions = signal<string[]>([]);
   readonly roles = signal<Role[]>([]);
@@ -50,6 +55,24 @@ export class AuthService {
     await this.inicializacion;
   }
 
+  async esperarRecuperacionPassword(timeoutMs = 10000): Promise<boolean> {
+    if (this.passwordRecoveryMode()) return true;
+
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await Promise.race([
+        this.passwordRecoveryDetected,
+        new Promise<void>((resolve) => {
+          timeoutId = setTimeout(resolve, timeoutMs);
+        })
+      ]);
+    } finally {
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+    }
+
+    return this.passwordRecoveryMode();
+  }
+
   private async inicializarAuth(): Promise<void> {
     if (typeof window === 'undefined') {
       this.cargando.set(false);
@@ -68,6 +91,12 @@ export class AuthService {
 
     this.supabaseService.client.auth.onAuthStateChange((event, session) => {
       const user = session?.user ?? null;
+      if (event === 'PASSWORD_RECOVERY') {
+        this.passwordRecoveryMode.set(true);
+        this.resolvePasswordRecovery?.();
+        this.resolvePasswordRecovery = null;
+      }
+      if (event === 'SIGNED_OUT') this.passwordRecoveryMode.set(false);
       this.currentUser.set(user);
       if (previousUserId !== user?.id) this.cache.invalidateAll();
       previousUserId = user?.id ?? null;
@@ -180,18 +209,21 @@ export class AuthService {
       let emailFinal = usuarioSesionOEmail.trim();
 
       // Resolver email a partir del nombre de usuario si no es un correo directo
-      try {
-        const { data: emailResuelto } = await this.supabaseService.client
-          .rpc('get_email_by_username', { p_username: emailFinal });
+      const { data: emailResuelto, error: errorResolucion } = await this.supabaseService.client
+        .rpc('get_email_by_username', { p_username: emailFinal });
 
+      if (errorResolucion) {
+        console.error('Error al resolver usuarioSesion con get_email_by_username:', errorResolucion);
+        if (!emailFinal.includes('@')) {
+          return {
+            success: false,
+            error: 'No se pudo consultar el usuario. Verifica que la migración de usuarioSesion esté aplicada en este proyecto de Supabase.'
+          };
+        }
+      } else {
         if (emailResuelto) {
           emailFinal = emailResuelto;
         } else if (!emailFinal.includes('@')) {
-          return { success: false, error: 'Usuario no encontrado. Verifica tu nombre de usuario.' };
-        }
-      } catch {
-        // En caso de que la función no esté disponible aún, si contiene '@' lo intenta directamente
-        if (!emailFinal.includes('@')) {
           return { success: false, error: 'Usuario no encontrado. Verifica tu nombre de usuario.' };
         }
       }
@@ -217,6 +249,50 @@ export class AuthService {
       return { success: true };
     } finally {
       this.cargando.set(false);
+    }
+  }
+
+  async solicitarRestablecimientoClave(email: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (typeof window === 'undefined') {
+        return { success: false, error: 'Esta acción solo está disponible desde el navegador.' };
+      }
+
+      const { error } = await this.supabaseService.client.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/login?actualizarClave=1`
+      });
+
+      if (error) return { success: false, error: this.traducirErrorAuth(error.message) };
+      return { success: true };
+    } catch (err) {
+      console.error('Error al solicitar restablecimiento de contraseña:', err);
+      return { success: false, error: 'No se pudo enviar el correo de restablecimiento. Intenta nuevamente.' };
+    }
+  }
+
+  async actualizarClave(password: string): Promise<{ success: boolean; error?: string }> {
+    if (!this.passwordRecoveryMode()) {
+      return { success: false, error: 'Abre el enlace de recuperación enviado a tu correo para cambiar la contraseña.' };
+    }
+
+    try {
+      const { error } = await this.supabaseService.client.auth.updateUser({ password });
+      if (error) return { success: false, error: this.traducirErrorAuth(error.message) };
+
+      this.passwordRecoveryMode.set(false);
+      const { error: signOutError } = await this.supabaseService.client.auth.signOut();
+      if (signOutError) {
+        console.error('La contraseña se actualizó, pero no se pudo cerrar la sesión de recuperación:', signOutError);
+        return {
+          success: true,
+          error: 'La contraseña se actualizó, pero no se pudo cerrar la sesión. Cierra sesión manualmente antes de volver a ingresar.'
+        };
+      }
+
+      return { success: true };
+    } catch (err) {
+      console.error('Error al actualizar la contraseña:', err);
+      return { success: false, error: 'No se pudo actualizar la contraseña. Intenta nuevamente.' };
     }
   }
 
@@ -433,7 +509,10 @@ export class AuthService {
   }
 
   private traducirErrorAuth(msg: string): string {
-    if (msg.includes('Invalid login credentials')) return 'Correo electrónico o contraseña incorrectos.';
+    if (msg.includes('No API key found in request')) {
+      return 'No se pudo conectar con Supabase: falta la clave API en la solicitud. Verifica la configuración del proyecto y vuelve a desplegar la aplicación.';
+    }
+    if (msg.includes('Invalid login credentials')) return 'Usuario o contraseña incorrectos.';
     if (msg.includes('Email not confirmed')) return 'Por favor confirma tu correo electrónico antes de ingresar.';
     if (msg.includes('User already registered')) return 'Ya existe una cuenta registrada con este correo electrónico.';
     if (msg.includes('Password should be at least')) return 'La contraseña debe tener al menos 6 caracteres.';

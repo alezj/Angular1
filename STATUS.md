@@ -52,8 +52,8 @@
   - `src/app/auth/has-permission.directive.ts` - Permission directive
   - `src/app/auth/access-pending.ts` - Access pending component
 
-### 10. Username-Based Login (`usuarioSesion`) - **COMPLETED**
-- **Status**: ✅ Implemented and deployed to production
+### 10. Username-Based Login (`usuarioSesion`) - **IMPLEMENTED**
+- **Status**: ✅ Implemented; ⚠️ Supabase migration deployment must be verified in each environment
 - **Files**:
   - `src/app/auth/auth.models.ts` - Added `usuarioSesion?: string` to `Profile` interface
   - `src/app/auth/auth.service.ts` - `iniciarSesion()` resolves email via `get_email_by_username` RPC; `registrarse()` accepts and stores `usuarioSesion`
@@ -67,8 +67,11 @@
   - Existing users auto-assigned `usuarioSesion` from their email prefix on migration
   - Register form collects: Nombre Completo, Nombre de Usuario, Correo Electrónico, Contraseña, Teléfono, Empresa
   - Profile page displays `@usuarioSesion`
-- **Migration SQL**: `supabase-usuario-sesion-migration.sql` — must be run in both test and production Supabase SQL Editor
-- **Date Completed**: 2026-11-05
+- **Migration SQL**: `supabase-usuario-sesion-migration.sql` — must be run and verified in both test and production Supabase projects. Username login requires the `get_email_by_username` RPC and a populated `profiles."usuarioSesion"` value.
+- **Known diagnostics**: RPC failures now show an actionable migration/configuration error for username lookups. Supabase authentication errors caused by a missing API key now show a configuration/deployment hint; invalid credentials are shown as “Usuario o contraseña incorrectos.”
+- **Environment check**: Supabase URL and publishable key are configured in the local production, development, and test environment files. A “No API key found in request” response means the request reaching Supabase did not include its `apikey` header; verify the deployed build and that its environment points to the intended Supabase project.
+- **Password recovery**: Login screen includes email-based recovery and a new-password form. The app waits for Supabase's `PASSWORD_RECOVERY` event during callback initialization. Add the deployed `/login` URL to Supabase Auth's allowed redirect URLs for recovery links to return to the application.
+- **Date Implemented**: 2026-11-05
 
 ### 7. Core Services - **COMPLETED**
 - **Supabase Service**: `src/app/supabase.service.ts` - Database integration
@@ -264,7 +267,7 @@
 | 2026-11-04 | Vercel deployment optimizations | DevOps / Vercel | 🔄 Refinement |
 | 2026-11-05 | Test Environment created & validated (Supabase Alquilados_Test, branch test, Vercel preview) | Environments / DevOps | ✅ Completed |
 | 2026-11-05 | Geolocation, interactive mini-map & Google Maps links added to properties | Propiedades | 🔄 Feature Added |
-| 2026-11-05 | Username-based login (`usuarioSesion`): login by username, register with email for validation, `get_email_by_username` RPC, unique index | Auth | ✅ Feature Added |
+| 2026-11-05 | Username-based login (`usuarioSesion`): login by username, register with email for validation, `get_email_by_username` RPC, unique index | Auth | ⚠️ Implemented; Supabase migration deployment requires verification |
 
 ---
 

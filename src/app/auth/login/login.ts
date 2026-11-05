@@ -13,12 +13,15 @@ import { AuthService } from '../auth.service';
 })
 export class Login implements OnInit {
   isRegistro = false;
+  modoRestablecer = false;
+  modoActualizarClave = false;
 
   // Credenciales
   usuarioLogin = ''; // Para iniciar sesión con nombre de usuario
   usuarioSesion = ''; // Para registrarse con nombre de usuario único
   email = '';
   password = '';
+  confirmarPassword = '';
   nombreCompleto = '';
   telefono = '';
   empresaSeleccionada = '';
@@ -36,23 +39,40 @@ export class Login implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    this.modoActualizarClave = this.route.snapshot.queryParams['actualizarClave'] === '1';
     if (this.route.snapshot.queryParams['sesion'] === 'expirada') {
       this.errorMensaje = 'Tu sesión expiró después de 30 minutos. Inicia sesión nuevamente.';
     }
-    await this.authService.cargarEmpresas();
+    if (!this.modoActualizarClave) await this.authService.cargarEmpresas();
 
     // Esperar la restauración de Supabase para no mostrar el login durante una recarga.
     await this.authService.esperarInicializacion();
-    if (this.authService.isAuthenticated()) {
+    const recuperacionValida = this.modoActualizarClave
+      ? await this.authService.esperarRecuperacionPassword()
+      : false;
+    if (this.modoActualizarClave && !recuperacionValida) {
+      this.modoActualizarClave = false;
+      this.errorMensaje = 'El enlace de recuperación no es válido o venció. Solicita uno nuevo.';
+    } else if (!this.modoActualizarClave && this.authService.isAuthenticated()) {
       await this.router.navigateByUrl(this.returnUrl);
     }
   }
 
   toggleModo(registro: boolean): void {
     this.isRegistro = registro;
+    this.modoRestablecer = false;
+    this.modoActualizarClave = false;
     this.errorMensaje = null;
     this.exitoMensaje = null;
     if (registro && this.authService.companies().length === 0) void this.authService.cargarEmpresas();
+  }
+
+  solicitarCambioClave(): void {
+    this.isRegistro = false;
+    this.modoRestablecer = true;
+    this.modoActualizarClave = false;
+    this.errorMensaje = null;
+    this.exitoMensaje = null;
   }
 
   async handleSubmit(event: Event): Promise<void> {
@@ -62,7 +82,38 @@ export class Login implements OnInit {
     this.cargando = true;
 
     try {
-      if (this.isRegistro) {
+      if (this.modoRestablecer) {
+        if (!this.email.trim()) {
+          this.errorMensaje = 'Ingresa el correo electrónico asociado a tu cuenta.';
+          return;
+        }
+
+        const res = await this.authService.solicitarRestablecimientoClave(this.email);
+        if (!res.success) {
+          this.errorMensaje = res.error || 'No se pudo enviar el correo de restablecimiento.';
+        } else {
+          this.exitoMensaje = 'Si existe una cuenta con ese correo, recibirás un enlace para restablecer tu contraseña.';
+        }
+      } else if (this.modoActualizarClave) {
+        if (this.password.length < 6) {
+          this.errorMensaje = 'La contraseña debe tener al menos 6 caracteres.';
+          return;
+        }
+        if (this.password !== this.confirmarPassword) {
+          this.errorMensaje = 'Las contraseñas no coinciden.';
+          return;
+        }
+
+        const res = await this.authService.actualizarClave(this.password);
+        if (!res.success) {
+          this.errorMensaje = res.error || 'No se pudo actualizar la contraseña.';
+        } else {
+          this.modoActualizarClave = false;
+          this.password = '';
+          this.confirmarPassword = '';
+          this.exitoMensaje = res.error || 'Contraseña actualizada. Ya puedes iniciar sesión con tu nueva clave.';
+        }
+      } else if (this.isRegistro) {
         if (!this.nombreCompleto.trim()) {
           this.errorMensaje = 'Por favor ingresa tu nombre completo.';
           this.cargando = false;
