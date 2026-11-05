@@ -74,6 +74,19 @@
   - `backend/EmailServicios/SmtpEmailServicio.cs`
 - **Generic CRUD Endpoints**: inquilinos, propiedades, pagos, mantenimientos, alquileres, estados
 
+### 9. Test Environment & Branching (`test`) - **COMPLETED**
+- **Status**: ✅ Fully configured and operational
+- **Git Branch**: `test` (published and tracking `origin/test`)
+- **Database (Supabase)**: Isolated test project `Alquilados_Test` (`https://jhhujnqmjtdnhkkijafs.supabase.co`)
+- **Database Schema**: Full schema executed via `supabase-schema.sql` with default seed data
+- **Frontend Configuration**:
+  - `src/environments/environment.test.ts` - Test credentials
+  - `src/environments/environment.ts` - Configured for test project on `test` branch
+  - `angular.json` - Target `test` with automated `fileReplacements`
+  - `package.json` - Added scripts `build:test` and `start:test`
+- **Hosting / CI/CD**: Automatic Vercel branch preview deployment for `test`
+- **Date Completed**: 2026-11-05
+
 ---
 
 ## 🔄 IN PROGRESS / PARTIALLY IMPLEMENTED
@@ -196,6 +209,7 @@
 | States (Estados) | ✅ Complete | ✅ | ✅ | ✅ | ❌ |
 | Payments (Pagos) | ✅ Complete | ✅ | ✅ | ✅ | ❌ |
 | Authentication | ✅ Complete | ✅ | N/A | ✅ | ❌ |
+| Test Environment (test) | ✅ Complete | ✅ | ✅ (Supabase Test) | ✅ | ✅ |
 | Tenants (Inquilinos) | 🔄 Partial | ✅ | ✅ | ✅ | ❌ |
 | Properties (Propiedades) | 🔄 Partial | ✅ | ✅ | ✅ | ❌ |
 | Maintenance (Mantenimientos) | 🔄 Partial | ✅ | ✅ | ✅ | ❌ |
@@ -221,6 +235,11 @@
 | 2026-10-23 | Payments module implemented | Pagos | ✅ Completed |
 | 2026-10-23 | Angular build validated | Build | ✅ Completed |
 | 2026-10-23 | SSR tested and working | SSR | ✅ Completed |
+| 2026-10-27 | Session expiration set to 30 mins | Auth | 🔄 Refinement |
+| 2026-10-29 | Payment invoice printing & receipt improvements | Pagos | 🔄 Refinement |
+| 2026-10-31 | Tenant and Lease module updates | Inquilinos / Alquileres | 🔄 Refinement |
+| 2026-11-04 | Vercel deployment optimizations | DevOps / Vercel | 🔄 Refinement |
+| 2026-11-05 | Test Environment created & validated (Supabase Alquilados_Test, branch test, Vercel preview) | Environments / DevOps | ✅ Completed |
 
 ---
 
@@ -236,5 +255,5 @@
 
 ---
 
-*Last Updated: 2026-10-23*
-*Status Document Version: 1.0*
+*Last Updated: 2026-11-05*
+*Status Document Version: 1.1*

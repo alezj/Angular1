@@ -135,6 +135,29 @@ El catálogo fijo fue retirado y el backend ahora consulta `GET /api/backend/est
 6. Relacionar pagos con `alquilerID`, además del inquilino, para poder detectar cuotas pendientes.
 7. Añadir autenticación antes de usar datos reales.
 
+## Actualización de Sesión (2026-11-05) - Creación del Entorno de Pruebas (Test Environment)
+
+### Objetivo
+Establecer un entorno de pruebas aislado de producción para el frontend (Angular 20 SSR), la base de datos (Supabase) y el hosting (Vercel).
+
+### Acciones Realizadas
+1. **Rama Git `test`**:
+   - Creada y publicada en GitHub (`origin/test`).
+2. **Ambiente Supabase de Pruebas**:
+   - Proyecto creado: `Alquilados_Test` (`https://jhhujnqmjtdnhkkijafs.supabase.co`).
+   - Carga completa de la estructura de tablas y catálogos iniciales mediante `supabase-schema.sql`.
+   - Verificación de conectividad y endpoints REST exitosa.
+3. **Configuración en Angular**:
+   - Archivo `src/environments/environment.test.ts` creado con las credenciales de test.
+   - Archivo `src/environments/environment.ts` configurado en la rama `test` para apuntar a la base de pruebas.
+   - `angular.json` actualizado con la configuración `"test"` utilizando `fileReplacements`.
+   - `package.json` actualizado con los scripts `"build:test"` y `"start:test"`.
+   - Compilación exitosa validada mediante `npm run build:test`.
+4. **Vercel**:
+   - Despliegue automático Preview vinculado a los pushes de la rama `test`.
+
+---
+
 ## Referencia para próximas intervenciones
 
 Antes de realizar cambios, revisar `README.md` y este archivo. Mantener ambas referencias actualizadas cuando se modifique arquitectura, rutas, servicios, comportamiento asíncrono, validaciones o pendientes relevantes.

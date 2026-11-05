@@ -178,11 +178,12 @@ The backend exposes the following key endpoints:
 - **Angular 20** with latest features and capabilities
 - **Tailwind CSS** is used for styling (configured in `src/app/app.css`)
 
-## Current Status (as of 2026-10-23)
+## Current Status (as of 2026-11-05)
 
 - ✅ Dashboard (`/inicio`) implemented with metrics and quick access
 - ✅ States module fully implemented with frontend and backend
 - ✅ Payments module with tenant selection and invoice generation
+- ✅ Test Environment configured and validated (Supabase `Alquilados_Test`, Git branch `test`, Vercel Preview)
 - ✅ Angular build validated successfully
 - ✅ SSR manually tested and working
 
