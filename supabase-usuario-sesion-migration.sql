@@ -5,19 +5,37 @@
 -- 1. Agregar columna usuarioSesion en profiles
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS "usuarioSesion" TEXT;
 
--- Crear índice único case-insensitive para que ningún usuario repita nombre de usuario
-CREATE UNIQUE INDEX IF NOT EXISTS uq_profiles_usuario_sesion_lower 
-ON public.profiles (LOWER("usuarioSesion"));
+-- 2. Asignar usuarioSesion a perfiles existentes que no lo tengan todavía
+--    Usa un sufijo numérico en caso de colisión (idempotente)
+DROP INDEX IF EXISTS uq_profiles_usuario_sesion_lower;
 
--- 2. Asignar usuarioSesion a perfiles existentes que no lo tengan
-UPDATE public.profiles
-SET "usuarioSesion" = split_part(email, '@', 1)
-WHERE "usuarioSesion" IS NULL;
+WITH ranked AS (
+  SELECT
+    id,
+    split_part(email, '@', 1) AS base_username,
+    ROW_NUMBER() OVER (
+      PARTITION BY lower(split_part(email, '@', 1))
+      ORDER BY id
+    ) AS rn
+  FROM public.profiles
+  WHERE "usuarioSesion" IS NULL
+)
+UPDATE public.profiles p
+SET "usuarioSesion" = CASE
+    WHEN r.rn = 1 THEN r.base_username
+    ELSE r.base_username || r.rn::text
+  END
+FROM ranked r
+WHERE p.id = r.id;
 
--- Asegurar usuario 'johancel'
+-- Asegurar usuario 'johancel' para el perfil de prueba
 UPDATE public.profiles
 SET "usuarioSesion" = 'johancel'
 WHERE email = 'johancel131094@gmail.com';
+
+-- Recrear índice único case-insensitive (ahora sin riesgo de duplicados)
+CREATE UNIQUE INDEX IF NOT EXISTS uq_profiles_usuario_sesion_lower
+ON public.profiles (LOWER("usuarioSesion"));
 
 -- 3. FUNCIÓN RPC: Obtener correo a partir de usuarioSesion o email
 -- Usada en login para autenticar contra Supabase Auth
