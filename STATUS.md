@@ -97,11 +97,16 @@
 - **Service**: `src/app/inquilinos.service.ts` ✅
 - **Pending**: Verify full CRUD functionality, UI completeness
 
-### 2. Properties Module (`/propiedades`) - **PARTIAL**
-- **Status**: 🔄 Frontend structure exists, needs verification
+### 2. Properties Module (`/propiedades`) - **PARTIAL (Geolocalización agregada)**
+- **Status**: 🔄 Frontend structure exists, CRUD and Geolocation implemented
 - **Files**: `src/app/propiedades/propiedades.ts`, `src/app/propiedades/propiedades.html`, `src/app/propiedades/propiedades.css`
 - **Service**: `src/app/propiedades.service.ts` ✅
-- **Pending**: Verify full CRUD functionality, UI completeness
+- **Features**:
+  - Full CRUD operations with Supabase
+  - Campos de geolocalización: `latitud` y `longitud`
+  - Mini mapa interactivo (Leaflet + OpenStreetMap) con fijación de pin al hacer clic, arrastre de marcador y botón de "Mi ubicación actual"
+  - Botón directo para abrir la ubicación en Google Maps (tanto en vista de tarjetas como en tabla)
+- **Pending**: Verify full relationships with leases and payments
 
 ### 3. Maintenance Module (`/mantenimientos`) - **PARTIAL**
 - **Status**: 🔄 Frontend structure exists, needs verification
@@ -240,6 +245,7 @@
 | 2026-10-31 | Tenant and Lease module updates | Inquilinos / Alquileres | 🔄 Refinement |
 | 2026-11-04 | Vercel deployment optimizations | DevOps / Vercel | 🔄 Refinement |
 | 2026-11-05 | Test Environment created & validated (Supabase Alquilados_Test, branch test, Vercel preview) | Environments / DevOps | ✅ Completed |
+| 2026-11-05 | Geolocation, interactive mini-map & Google Maps links added to properties | Propiedades | 🔄 Feature Added |
 
 ---
 
