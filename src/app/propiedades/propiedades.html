@@ -35,6 +35,20 @@
         <p class="property-kind">{{ propiedad.codigo || ('PROP-' + propiedad.id) }} · {{ propiedad.tipo || 'Propiedad' }}</p>
         <h3>{{ propiedad.nombre }}</h3>
         <p class="property-address">{{ propiedad.sector ? propiedad.sector + ', ' : '' }}{{ propiedad.ciudad ? propiedad.ciudad + ' · ' : '' }}{{ propiedad.direccion }}</p>
+
+        <!-- Botón de Google Maps en la tarjeta si tiene coordenadas -->
+        <div class="property-geo-badge-row" *ngIf="tieneUbicacion(propiedad)">
+          <a class="property-gmaps-pill" [href]="obtenerUrlGoogleMaps(propiedad.latitud, propiedad.longitud)" target="_blank" rel="noopener noreferrer" title="Abrir ubicación en Google Maps">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="icon-geo">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+            </svg>
+            <span>Ver en Google Maps</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="icon-external">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6m4-3h6v6m-11 5L21 3"/>
+            </svg>
+          </a>
+        </div>
+
         <p class="property-specs" *ngIf="propiedad.habitaciones || propiedad.banos || propiedad.parqueos || propiedad.area">
           <span *ngIf="propiedad.habitaciones">{{ propiedad.habitaciones }} hab.</span>
           <span *ngIf="propiedad.banos">{{ propiedad.banos }} baños</span>
@@ -48,6 +62,17 @@
             <span>Renta mensual</span>
           </div>
           <div class="action-buttons">
+            <a *ngIf="tieneUbicacion(propiedad)"
+               class="icon-action map-btn"
+               [href]="obtenerUrlGoogleMaps(propiedad.latitud, propiedad.longitud)"
+               target="_blank"
+               rel="noopener noreferrer"
+               title="Ver en Google Maps"
+               [attr.aria-label]="'Ver en Google Maps ' + propiedad.nombre">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+              </svg>
+            </a>
             <button class="icon-action" type="button" title="Editar" [attr.aria-label]="'Editar ' + propiedad.nombre" (click)="editar(propiedad)">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
             </button>
@@ -68,6 +93,7 @@
           <th>ID</th>
           <th>Nombre</th>
           <th>Dirección</th>
+          <th>Ubicación</th>
           <th>Estado</th>
           <th>Precio mensual</th>
           <th>Notas</th>
@@ -79,25 +105,60 @@
           <td>{{ propiedad.id }}</td>
           <td>{{ propiedad.nombre }}</td>
           <td>{{ propiedad.direccion }}</td>
+          <td>
+            <a *ngIf="tieneUbicacion(propiedad)"
+               [href]="obtenerUrlGoogleMaps(propiedad.latitud, propiedad.longitud)"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="table-geo-pill"
+               title="Abrir en Google Maps">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="icon-geo">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+              </svg>
+              <span>Google Maps</span>
+            </a>
+            <span *ngIf="!tieneUbicacion(propiedad)" class="table-geo-none">Sin mapa</span>
+          </td>
           <td>{{ nombreEstado(propiedad.estado) }}</td>
-          <td>{{ propiedad.precioMensual | number: '1.2-2' }}</td>
+          <td>RD$ {{ propiedad.precioMensual | number: '1.2-2' }}</td>
           <td>{{ propiedad.notas || '-' }}</td>
-          <td><div class="action-buttons"><button class="icon-action" type="button" title="Editar" [attr.aria-label]="'Editar ' + propiedad.nombre" (click)="editar(propiedad)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg></button><button class="icon-action danger" type="button" title="Eliminar" [attr.aria-label]="'Eliminar ' + propiedad.nombre" (click)="eliminar(propiedad)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6" /></svg></button></div></td>
+          <td>
+            <div class="action-buttons">
+              <a *ngIf="tieneUbicacion(propiedad)"
+                 class="icon-action map-btn"
+                 [href]="obtenerUrlGoogleMaps(propiedad.latitud, propiedad.longitud)"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 title="Ver en Google Maps"
+                 [attr.aria-label]="'Ver en Google Maps ' + propiedad.nombre">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+                </svg>
+              </a>
+              <button class="icon-action" type="button" title="Editar" [attr.aria-label]="'Editar ' + propiedad.nombre" (click)="editar(propiedad)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
+              </button>
+              <button class="icon-action danger" type="button" title="Eliminar" [attr.aria-label]="'Eliminar ' + propiedad.nombre" (click)="eliminar(propiedad)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6" /></svg>
+              </button>
+            </div>
+          </td>
         </tr>
         <tr *ngIf="propiedadesFiltradas.length === 0">
-          <td colspan="7">No hay propiedades registradas.</td>
+          <td colspan="8">No hay propiedades registradas.</td>
         </tr>
       </tbody>
     </table>
   </div>
 </section>
 
+<!-- MODAL FORMULARIO DE PROPIEDAD -->
 <div class="property-modal-backdrop" *ngIf="formularioAbierto" (click)="cancelar()">
   <section class="property-modal" role="dialog" aria-modal="true" aria-labelledby="property-modal-title" (click)="$event.stopPropagation()">
     <header class="tenant-modal-header">
       <div>
         <h2 id="property-modal-title">{{ editandoId === null ? 'Nueva propiedad' : 'Editar propiedad' }}</h2>
-        <p>Completa la información del inmueble.</p>
+        <p>Completa la información del inmueble y su geolocalización.</p>
       </div>
       <button class="icon-action" type="button" aria-label="Cerrar" title="Cerrar" (click)="cancelar()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12" /></svg></button>
     </header>
@@ -115,11 +176,89 @@
       <label><span>Área (m²)</span><input class="filter-input" [(ngModel)]="formulario.area" name="area" type="number" min="0"></label>
       <label><span>Renta mensual (RD$)</span><input class="filter-input" [(ngModel)]="formulario.precioMensual" name="precioMensual" type="number" min="0" required></label>
       <label><span>Depósito (RD$)</span><input class="filter-input" [(ngModel)]="formulario.deposito" name="deposito" type="number" min="0"></label>
-      <label class="property-image-field"><span>URL de imagen (opcional)</span><input class="filter-input" [(ngModel)]="formulario.imagenUrl" name="imagenUrl" type="url" placeholder="https://..." (ngModelChange)="imagenPreviewError = false"><small *ngIf="!esEnlaceCompartidoGoogleFotos">Puedes pegar una URL pública directa o un enlace compartido de Google Fotos.</small><small *ngIf="esEnlaceCompartidoGoogleFotos" class="google-photos-note">Enlace de Google Fotos detectado. La aplicación intentará mostrar su vista previa pública.</small></label>
+
+      <label class="property-image-field">
+        <span>URL de imagen (opcional)</span>
+        <input class="filter-input" [(ngModel)]="formulario.imagenUrl" name="imagenUrl" type="url" placeholder="https://..." (ngModelChange)="imagenPreviewError = false">
+        <small *ngIf="!esEnlaceCompartidoGoogleFotos">Puedes pegar una URL pública directa o un enlace compartido de Google Fotos.</small>
+        <small *ngIf="esEnlaceCompartidoGoogleFotos" class="google-photos-note">Enlace de Google Fotos detectado. La aplicación intentará mostrar su vista previa pública.</small>
+      </label>
       <div class="property-image-preview property-image-field" *ngIf="formulario.imagenUrl">
         <img *ngIf="!imagenPreviewError" [src]="imagenVisible(formulario.imagenUrl || '')" [alt]="'Vista previa de ' + formulario.nombre" (error)="imagenPreviewError = true">
         <a *ngIf="imagenPreviewError" [href]="formulario.imagenUrl" target="_blank" rel="noopener noreferrer">{{ esEnlaceCompartidoGoogleFotos ? 'Abrir foto compartida de Google Fotos' : 'Abrir enlace de imagen' }}</a>
       </div>
+
+      <!-- SECCIÓN DE GEOLOCALIZACIÓN Y MINI MAPA INTERACTIVO -->
+      <section class="property-geo-field" aria-labelledby="geo-section-title">
+        <div class="geo-header">
+          <div>
+            <h4 id="geo-section-title" class="geo-title">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="icon-geo-header">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+              </svg>
+              Ubicación Geográfica y Mini Mapa
+            </h4>
+            <p class="geo-subtitle">Haz clic en el mapa para marcar la ubicación exacta, arrastra el marcador azul o usa los botones.</p>
+          </div>
+          <div class="geo-actions-toolbar">
+            <button type="button" class="btn-geo-action" (click)="obtenerUbicacionActual()" [disabled]="cargandoUbicacion" title="Obtener mi posición geográfica actual">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="icon-btn">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 2v3M12 19v3M2 12h3M19 12h3M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5z"/>
+              </svg>
+              <span>{{ cargandoUbicacion ? 'Localizando...' : 'Mi ubicación actual' }}</span>
+            </button>
+            <button *ngIf="tieneUbicacion(formulario)" type="button" class="btn-geo-action danger" (click)="limpiarCoordenadas()" title="Eliminar coordenadas guardadas">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="icon-btn">
+                <path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6"/>
+              </svg>
+              <span>Quitar ubicación</span>
+            </button>
+            <a *ngIf="tieneUbicacion(formulario)" [href]="obtenerUrlGoogleMaps(formulario.latitud, formulario.longitud)" target="_blank" rel="noopener noreferrer" class="btn-geo-action gmaps" title="Abrir estas coordenadas en Google Maps">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="icon-btn">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6m4-3h6v6m-11 5L21 3"/>
+              </svg>
+              <span>Google Maps</span>
+            </a>
+          </div>
+        </div>
+
+        <div *ngIf="errorUbicacion" class="geo-alert-error">
+          {{ errorUbicacion }}
+        </div>
+
+        <div class="geo-coordinates-row">
+          <label class="geo-input-label">
+            <span>Latitud</span>
+            <input class="filter-input"
+                   type="number"
+                   step="any"
+                   [(ngModel)]="formulario.latitud"
+                   name="latitud"
+                   (ngModelChange)="onCoordenadasChange()"
+                   placeholder="Ej. 18.486100">
+          </label>
+          <label class="geo-input-label">
+            <span>Longitud</span>
+            <input class="filter-input"
+                   type="number"
+                   step="any"
+                   [(ngModel)]="formulario.longitud"
+                   name="longitud"
+                   (ngModelChange)="onCoordenadasChange()"
+                   placeholder="Ej. -69.931200">
+          </label>
+        </div>
+
+        <!-- Contenedor del Mini Mapa Leaflet -->
+        <div class="geo-map-frame">
+          <div id="mapa-propiedad" class="leaflet-mini-map"></div>
+          <div class="geo-map-footer">
+            <span>💡 <strong>Tip:</strong> Puedes hacer clic en el mapa para posicionar el inmueble o arrastrar el pin si necesitas ajustar la posición con precisión.</span>
+          </div>
+        </div>
+      </section>
+
       <label class="property-notes-field"><span>Descripción</span><textarea class="filter-input" [(ngModel)]="formulario.notas" name="notas" rows="3"></textarea></label>
       <footer class="tenant-form-actions">
         <button class="filter-button secondary" type="button" (click)="cancelar()">Cancelar</button>

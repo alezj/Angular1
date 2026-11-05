@@ -48,6 +48,8 @@ CREATE TABLE IF NOT EXISTS public.propiedades (
     "deposito" NUMERIC DEFAULT 0,
     "imagenUrl" TEXT DEFAULT '',
     "notas" TEXT DEFAULT '',
+    "latitud" NUMERIC,
+    "longitud" NUMERIC,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (id, "Origen", usuario),
     CONSTRAINT uq_propiedades_legacy_id UNIQUE (id)
@@ -156,3 +158,8 @@ BEGIN
     DROP POLICY IF EXISTS "Acceso total a alquileres" ON public.alquileres;
     CREATE POLICY "Acceso total a alquileres" ON public.alquileres FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 END $$;
+
+-- 8. ACTUALIZACIÓN / MIGRACIONES (Geolocalización para propiedades)
+ALTER TABLE public.propiedades ADD COLUMN IF NOT EXISTS latitud NUMERIC;
+ALTER TABLE public.propiedades ADD COLUMN IF NOT EXISTS longitud NUMERIC;
+

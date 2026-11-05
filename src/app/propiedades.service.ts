@@ -23,6 +23,8 @@ export interface Propiedad {
   deposito?: number;
   imagenUrl?: string;
   notas: string;
+  latitud?: number | null;
+  longitud?: number | null;
 }
 
 export interface ApiResponse<T> {
