@@ -46,6 +46,27 @@
               ],
               "outputHashing": "all"
             },
+            "test": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "10kB",
+                  "maximumError": "15kB"
+                }
+              ],
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.test.ts"
+                }
+              ]
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
@@ -59,6 +80,9 @@
           "configurations": {
             "production": {
               "buildTarget": "Angular1:build:production"
+            },
+            "test": {
+              "buildTarget": "Angular1:build:test"
             },
             "development": {
               "buildTarget": "Angular1:build:development"
