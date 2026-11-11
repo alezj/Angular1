@@ -1,10 +1,37 @@
 .table-wrapper {
   overflow-x: auto;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .alquileres {
   display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
+}
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.alquileres .contract-actions-column {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  min-width: 130px;
+  background: #ffffff;
+  box-shadow: -4px 0 8px rgba(15, 28, 48, 0.08);
+}
+
+.alquileres th.contract-actions-column {
+  background: #f7f9fc;
+}
+
+.contract-actions > .filter-button {
+  width: auto;
+  white-space: nowrap;
 }
 
 .module-heading > .filter-button {
@@ -207,8 +234,53 @@
 }
 
 .contract-form .tenant-form-actions {
+  grid-column: 1 / -1;
   margin-top: 0.25rem;
 }
+
+.contract-guarantor {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+}
+
+.contract-guarantor legend {
+  padding: 0 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.contract-form-error { grid-column: 1 / -1; }
+
+.contract-actions { display: grid; gap: 0.5rem; }
+
+.contract-action-list {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: white;
+}
+
+.contract-action-list button {
+  padding: 0.5rem 0.7rem;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+}
+
+.contract-action-list button:hover,
+.contract-action-list button:focus-visible { background: #edf0f4; }
+.contract-action-list .danger { color: #b42318; }
 
 @media (max-width: 780px) {
   .contract-summary {
@@ -229,6 +301,8 @@
     grid-template-columns: 1fr;
   }
 
+  .contract-guarantor { grid-template-columns: 1fr; }
+
   .contract-form .tenant-form-actions {
     flex-direction: column-reverse;
   }
@@ -236,4 +310,26 @@
   .contract-form .tenant-form-actions .filter-button {
     width: 100%;
   }
+}
+
+.guarantor-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+.guarantor-heading {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.guarantor-heading .filter-button { width: auto; }
+.guarantor-help { grid-column: 1 / -1; margin: 0; color: var(--text-muted); }
+.guarantor-add { grid-column: 1 / -1; justify-self: start; }
+@media (max-width: 560px) {
+  .guarantor-row { grid-template-columns: 1fr; }
 }

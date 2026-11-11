@@ -228,7 +228,7 @@ export class Inicio implements OnInit {
 
   private rentaAlquiler(alquiler: Alquiler): number {
     const propiedad = this.propiedades.find(item => item.id === Number(alquiler.propiedadID));
-    return Number(propiedad?.precioMensual) || 0;
+    return Number(alquiler.montoPago ?? propiedad?.precioMensual) || 0;
   }
 
   private activoEnMes(alquiler: Alquiler, inicioMes: Date, siguienteMes: Date): boolean {

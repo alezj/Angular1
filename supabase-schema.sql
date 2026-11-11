@@ -114,6 +114,9 @@ CREATE TABLE IF NOT EXISTS public.alquileres (
     "inquilinoID" BIGINT REFERENCES public.inquilinos(id) ON DELETE CASCADE,
     "fechaInicio" TEXT NOT NULL,
     "fechaFin" TEXT NOT NULL,
+    "garanteCedula" TEXT,
+    "garanteNombreCompleto" TEXT,
+    "montoPago" NUMERIC(12, 2),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (id, "Origen", usuario),
     CONSTRAINT uq_alquileres_legacy_id UNIQUE (id)
@@ -163,3 +166,5 @@ END $$;
 ALTER TABLE public.propiedades ADD COLUMN IF NOT EXISTS latitud NUMERIC;
 ALTER TABLE public.propiedades ADD COLUMN IF NOT EXISTS longitud NUMERIC;
 
+
+-- Para habilitar varios garantes por contrato, ejecutar después supabase-garantes-schema.sql.

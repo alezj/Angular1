@@ -136,10 +136,25 @@
 - **Pending**: Verify full CRUD functionality, UI completeness
 
 ### 4. Leases Module (`/alquileres`) - **PARTIAL**
-- **Status**: 🔄 Frontend structure exists, needs verification
+- **Status**: 🔄 CRUD implementado; pendiente validación integral con sesión autenticada.
 - **Files**: `src/app/alquileres/alquileres.ts`, `src/app/alquileres/alquileres.html`, `src/app/alquileres/alquileres.css`
 - **Service**: `src/app/alquileres.service.ts` ✅
-- **Pending**: Verify full CRUD functionality, UI completeness
+- **Actualización 2026-11-11**:
+  - ✅ Cédula y nombre completo del garante al crear y editar (opcionales; se completan juntos).
+  - ✅ Monto mensual por contrato; el dashboard usa este importe cuando está registrado.
+  - ✅ Botón Acciones: editar, eliminar, generar contrato y renovar contrato.
+  - ✅ Generación de documento básico imprimible con datos del contrato, garante y firmas; permite guardar como PDF desde el navegador.
+  - ✅ Renovación precargada con datos actuales; permite modificar fechas y monto, y crea otro registro conservando el original.
+  - ✅ Campos adicionales aplicados y consultados en Supabase de prueba y producción; script reproducible `supabase-alquileres-garante-migration.sql`.
+  - ✅ Cinco pruebas de contratos aprobadas en ChromeHeadless (renovación, edición, validación, recuperación de errores y generación segura del documento).
+  - ✅ Build de producción con SSR completado: 19 rutas prerenderizadas; persisten avisos de tamaño y Leaflet CommonJS.
+  - ✅ Tabla `public.garantes` creada en prueba y producción: relación de varios garantes por contrato, índice de cédula por contrato y RLS (por empresa en producción, por propietario del contrato en prueba).
+  - ✅ Formulario con “Agregar garante” y “Quitar”; validación de datos completos y cédulas duplicadas. Renovación y documento imprimible incluyen todos los garantes.
+  - ✅ Función `guardar_contrato_con_garantes` con SECURITY INVOKER guarda contrato y garantes en una transacción; acceso exclusivo para usuarios autenticados.
+  - ✅ Migración reproducible `supabase-garantes-schema.sql`, conserva las columnas anteriores del primer garante. No había garantes anteriores que migrar en ninguno de los ambientes.
+  - ✅ CRUD de garantes y rollback ante duplicados verificados en las dos bases con datos temporales dentro de transacciones revertidas. Diez pruebas de contratos aprobadas y build SSR validado (19 rutas).
+  - ⚠️ La suite general tiene un error previo en `src/app/datos.spec.ts`: importa `Datos`, que no se exporta. Las pruebas de contratos se verificaron con una configuración temporal aislada.
+- **Pending**: Validación integral de CRUD y relaciones con pagos con una sesión autenticada.
 
 ---
 
