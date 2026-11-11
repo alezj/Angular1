@@ -142,3 +142,12 @@
     width: 100%;
   }
 }
+
+:host { display: block; min-width: 0; }
+.inquilinos { min-width: 0; }
+.table-wrapper { max-width: 100%; }
+.person-full-width { grid-column: 1 / -1; }
+.tenant-form .person-adult { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.6rem; }
+.person-adult input { width: auto; }
+.person-actions-column { position: sticky; right: 0; z-index: 1; background: white; box-shadow: -3px 0 6px #0f1c3014; }
+th.person-actions-column { background: var(--surface-muted); }

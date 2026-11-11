@@ -143,7 +143,7 @@
   - ✅ Cédula y nombre completo del garante al crear y editar (opcionales; se completan juntos).
   - ✅ Monto mensual por contrato; el dashboard usa este importe cuando está registrado.
   - ✅ Botón Acciones: editar, eliminar, generar contrato y renovar contrato.
-  - ✅ Generación de documento básico imprimible con datos del contrato, garante y firmas; permite guardar como PDF desde el navegador.
+  - ✅ Generación con plantilla basada en el contrato de referencia: siete cláusulas, bordes laterales dobles, título subrayado, garantes, firmas y espacio de certificación notarial; impresión en papel Legal o PDF.
   - ✅ Renovación precargada con datos actuales; permite modificar fechas y monto, y crea otro registro conservando el original.
   - ✅ Campos adicionales aplicados y consultados en Supabase de prueba y producción; script reproducible `supabase-alquileres-garante-migration.sql`.
   - ✅ Cinco pruebas de contratos aprobadas en ChromeHeadless (renovación, edición, validación, recuperación de errores y generación segura del documento).
@@ -153,6 +153,14 @@
   - ✅ Función `guardar_contrato_con_garantes` con SECURITY INVOKER guarda contrato y garantes en una transacción; acceso exclusivo para usuarios autenticados.
   - ✅ Migración reproducible `supabase-garantes-schema.sql`, conserva las columnas anteriores del primer garante. No había garantes anteriores que migrar en ninguno de los ambientes.
   - ✅ CRUD de garantes y rollback ante duplicados verificados en las dos bases con datos temporales dentro de transacciones revertidas. Diez pruebas de contratos aprobadas y build SSR validado (19 rutas).
+  - ✅ Plantilla reutilizable en `src/app/alquileres/contrato-template.ts`, usada por “Generar contrato”. Completa propiedad, inquilino, renta, vigencia, día de pago, depósitos y garantes; datos faltantes resaltados y texto editable antes de imprimir (ediciones solo en esa vista).
+  - ✅ Mantiene las condiciones de mora (5 %), renovación (10 %) y mantenimiento (5 días) de la referencia como texto editable. No copia identidades, firmas ni sellos del documento de ejemplo.
+  - ✅ Catorce pruebas aprobadas, build SSR validado y revisión visual de la vista de impresión con dos garantes (dos páginas Legal, sin contenido cortado).
+  - ✅ Tabla `public.propietario` creada en prueba y producción, con nombre, cédula, nacionalidad, domicilio, mayoría de edad y datos de contacto. RLS por empresa en producción y usuario en prueba; mantenimiento `/propietarios` bajo los permisos de Propiedades.
+  - ✅ Inquilinos solicita cédula, nacionalidad, domicilio y confirmación de mayoría de edad, conservando correo, teléfono, inicio contractual y día de pago. Registros anteriores se conservan y solicitan completar los datos al editar.
+  - ✅ Selección de propietario al crear, editar y renovar contratos; la plantilla completa los datos registrados de ambos comparecientes. Las relaciones impiden eliminar propietarios asociados y mezclar empresas.
+  - ✅ Script `supabase-propietario-contrato-schema.sql` aplicado en ambos ambientes. CRUD y aislamiento de propietarios comprobados con transacciones revertidas; los nuevos datos de identidad requieren una sesión autenticada.
+  - ✅ Veinte pruebas de propietarios, inquilinos, contratos y plantilla aprobadas en ChromeHeadless. Comprobación de TypeScript y plantillas de Angular aprobada. Build de producción con SSR aprobado: 20 rutas prerenderizadas; persisten avisos de tamaño y Leaflet CommonJS.
   - ⚠️ La suite general tiene un error previo en `src/app/datos.spec.ts`: importa `Datos`, que no se exporta. Las pruebas de contratos se verificaron con una configuración temporal aislada.
 - **Pending**: Validación integral de CRUD y relaciones con pagos con una sesión autenticada.
 

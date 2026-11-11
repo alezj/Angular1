@@ -1,3 +1,4 @@
+import { PropietariosService } from '../propietarios.service';
 import { ChangeDetectorRef } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { Alquileres } from './alquileres';
@@ -9,7 +10,7 @@ describe('Contratos', () => {
   let component: Alquileres;
   let service: jasmine.SpyObj<AlquileresService>;
   const contrato: Alquiler = {
-    id: 12, propiedadID: 1, inquilinoID: 2,
+    id: 12, propietarioID: 1, propiedadID: 1, inquilinoID: 2,
     fechaInicio: '2026-01-01', fechaFin: '2026-12-31', montoPago: 15000,
     garanteCedula: '001-0000000-1', garanteNombreCompleto: 'Ana Pérez',
     diaPago: 5, diasProrroga: 3, cantidadDepositos: 2
@@ -25,7 +26,7 @@ describe('Contratos', () => {
     const inquilinos = jasmine.createSpyObj('InquilinosService', ['obtenerInquilinos']);
     inquilinos.obtenerInquilinos.and.returnValue(of({ success: true, data: [] }));
     component = new Alquileres(service, propiedades as PropiedadesService,
-      inquilinos as InquilinosService, { markForCheck: () => {} } as ChangeDetectorRef);
+      inquilinos as InquilinosService, { markForCheck: () => {} } as ChangeDetectorRef, { obtenerPropietarios: () => of({ success: true, data: [] }) } as unknown as PropietariosService);
   });
 
   it('renueva con una inserción y conserva intacto el contrato original', () => {
@@ -91,7 +92,7 @@ describe('Varios garantes por contrato', () => {
   let component: Alquileres;
   let service: jasmine.SpyObj<AlquileresService>;
   const contrato: Alquiler = {
-    id: 24, propiedadID: 1, inquilinoID: 2, montoPago: 12000,
+    id: 24, propietarioID: 1, propiedadID: 1, inquilinoID: 2, montoPago: 12000,
     fechaInicio: '2026-01-01', fechaFin: '2026-12-31',
     garantes: [
       { id: 1, alquiler_id: 24, cedula: '001-01', nombre_completo: 'Primer garante' },
@@ -103,7 +104,7 @@ describe('Varios garantes por contrato', () => {
     service.crear.and.returnValue(throwError(() => new Error('prueba')));
     service.actualizar.and.returnValue(throwError(() => new Error('prueba')));
     component = new Alquileres(service, {} as PropiedadesService, {} as InquilinosService,
-      { markForCheck: () => {} } as ChangeDetectorRef);
+      { markForCheck: () => {} } as ChangeDetectorRef, { obtenerPropietarios: () => of({ success: true, data: [] }) } as unknown as PropietariosService);
   });
   it('renueva todos los garantes sin modificar la lista original ni copiar sus identidades', () => {
     component.renovar(contrato);

@@ -168,3 +168,5 @@ ALTER TABLE public.propiedades ADD COLUMN IF NOT EXISTS longitud NUMERIC;
 
 
 -- Para habilitar varios garantes por contrato, ejecutar después supabase-garantes-schema.sql.
+
+-- Para propietarios e identidad de inquilinos, ejecutar después supabase-propietario-contrato-schema.sql.

@@ -26,6 +26,11 @@
         <span>Dashboard</span>
       </a>
 
+      <a *ngIf="authService.hasPermission('propiedades:read')" routerLink="/propietarios" routerLinkActive="active" (click)="closeMenu()" class="nav-item">
+        <svg lucideUsers class="item-icon" [size]="22" [strokeWidth]="1.8" aria-hidden="true"></svg>
+        <span>Propietarios</span>
+      </a>
+
       <a
         *ngIf="authService.hasPermission('inquilinos:read')"
         routerLink="/inquilinos"

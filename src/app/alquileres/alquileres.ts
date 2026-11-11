@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Alquiler, AlquileresService, Garante } from '../alquileres.service';
 import { Inquilino, InquilinosService } from '../inquilinos.service';
 import { Propiedad, PropiedadesService } from '../propiedades.service';
+import { Propietario, PropietariosService } from '../propietarios.service';
+import { contenidoContrato, estilosContrato } from './contrato-template';
 
 @Component({
   selector: 'app-alquileres',
@@ -15,10 +17,11 @@ export class Alquileres implements OnInit {
   alquileres: Alquiler[] = [];
   propiedades: Propiedad[] = [];
   inquilinos: Inquilino[] = [];
+  propietarios: Propietario[] = [];
   cargando = true;
   error: string | null = null;
   editandoId: number | string | null = null;
-  formulario: Omit<Alquiler, 'id'> = { propiedadID: 0, inquilinoID: 0, fechaInicio: '', fechaFin: '', montoPago: null, garanteCedula: '', garanteNombreCompleto: '' };
+  formulario: Omit<Alquiler, 'id'> = { propietarioID: null, propiedadID: 0, inquilinoID: 0, fechaInicio: '', fechaFin: '', montoPago: null, garanteCedula: '', garanteNombreCompleto: '' };
   garantesFormulario: Garante[] = [];
   searchTerm = '';
   formularioAbierto = false;
@@ -45,7 +48,8 @@ export class Alquileres implements OnInit {
     private readonly alquileresService: AlquileresService,
     private readonly propiedadesService: PropiedadesService,
     private readonly inquilinosService: InquilinosService,
-    private readonly cdr: ChangeDetectorRef
+    private readonly cdr: ChangeDetectorRef,
+    private readonly propietariosService: PropietariosService
   ) {}
 
   ngOnInit(): void {
@@ -66,6 +70,10 @@ export class Alquileres implements OnInit {
         this.cargando = false;
         this.cdr.markForCheck();
       }
+    });
+    this.propietariosService.obtenerPropietarios().subscribe({
+      next: r => { if (r.success) this.propietarios = r.data; this.cdr.markForCheck(); },
+      error: () => { this.errorFormulario = 'No se pudieron cargar los propietarios. Vuelve a cargar la página.'; this.cdr.markForCheck(); }
     });
     this.propiedadesService.obtenerPropiedades().subscribe({
       next: (respuesta) => {
@@ -105,10 +113,10 @@ export class Alquileres implements OnInit {
     if (this.guardando) return;
     this.errorFormulario = null;
     const datos = this.formulario;
-    if (!datos.propiedadID || !datos.inquilinoID || !datos.fechaInicio || !datos.fechaFin
+    if (!datos.propietarioID || !datos.propiedadID || !datos.inquilinoID || !datos.fechaInicio || !datos.fechaFin
       || datos.fechaFin < datos.fechaInicio || !Number.isFinite(datos.montoPago)
       || Number(datos.montoPago) <= 0) {
-      this.errorFormulario = 'Selecciona propiedad e inquilino, un período válido y un monto mayor que cero.';
+      this.errorFormulario = 'Selecciona propietario, propiedad e inquilino, un período válido y un monto mayor que cero.';
       return;
     }
     const garantes = this.garantesFormulario.map(g => ({
@@ -173,6 +181,7 @@ export class Alquileres implements OnInit {
     this.editandoId = alquiler.id;
     this.garantesFormulario = this.garantesContrato(alquiler).map(({ cedula, nombre_completo }) => ({ cedula, nombre_completo }));
     this.formulario = {
+      propietarioID: alquiler.propietarioID ?? null,
       propiedadID: alquiler.propiedadID,
       inquilinoID: alquiler.inquilinoID,
       fechaInicio: alquiler.fechaInicio.substring(0, 10),
@@ -217,38 +226,28 @@ export class Alquileres implements OnInit {
     doc.documentElement.lang = 'es';
     doc.title = `Contrato de alquiler #${alquiler.id}`;
     const estilo = doc.createElement('style');
-    estilo.textContent = 'body{font:16px/1.6 Georgia,serif;color:#182333;max-width:760px;margin:48px auto;padding:24px}h1{font-size:26px;border-bottom:2px solid;padding-bottom:16px}p{white-space:pre-wrap}.firmas{display:flex;flex-wrap:wrap;justify-content:space-between;gap:70px 24px;margin-top:90px}.firmas span{border-top:1px solid;padding-top:8px;flex:1;min-width:180px;text-align:center}button{padding:10px 20px;cursor:pointer}@media print{button{display:none}body{margin:0;max-width:none}}';
+    estilo.textContent = estilosContrato;
     doc.head.append(estilo);
-    const titulo = doc.createElement('h1');
-    titulo.textContent = `Contrato de alquiler #${alquiler.id}`;
-    doc.body.append(titulo);
-    const monto = this.montoAlquiler(alquiler);
-    const garantes = this.garantesContrato(alquiler);
-    const datos = [
-      `Propiedad: ${this.nombrePropiedad(alquiler.propiedadID)}`,
-      `Inquilino: ${this.nombreInquilino(alquiler.inquilinoID)}`,
-      `Vigencia: ${alquiler.fechaInicio.substring(0, 10)} al ${alquiler.fechaFin.substring(0, 10)}`,
-      `Monto mensual de alquiler: ${monto === null ? 'No registrado' : new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(monto)}`,
-      ...(garantes.length ? garantes.map((g, i) => `Garante ${i + 1}: ${g.nombre_completo}\nCédula: ${g.cedula}`) : ['Garantes: No registrados'])
-    ];
-    for (const dato of datos) {
-      const parrafo = doc.createElement('p');
-      parrafo.textContent = dato;
-      doc.body.append(parrafo);
-    }
-    const firmas = doc.createElement('div');
-    firmas.className = 'firmas';
-    for (const nombre of ['Arrendador', 'Inquilino', ...garantes.map((_, i) => `Garante ${i + 1}`)]) {
-      const firma = doc.createElement('span');
-      firma.textContent = nombre;
-      firmas.append(firma);
-    }
-    doc.body.append(firmas);
-    const imprimir = doc.createElement('button');
-    imprimir.textContent = 'Imprimir / Guardar como PDF';
-    imprimir.addEventListener('click', () => ventana.print());
-    doc.body.append(imprimir);
+    const inquilino = this.inquilinos.find(item => item.id === Number(alquiler.inquilinoID));
+    doc.body.innerHTML = contenidoContrato({
+      numero: alquiler.id,
+      propiedad: this.nombrePropiedad(alquiler.propiedadID),
+      inquilino: this.nombreInquilino(alquiler.inquilinoID),
+      direccionInquilino: inquilino?.direccion,
+      cedulaInquilino: inquilino?.cedula,
+      nacionalidadInquilino: inquilino?.nacionalidad,
+      mayorEdadInquilino: inquilino?.mayorEdad,
+      propietario: this.propietarios.find(p => p.id === Number(alquiler.propietarioID)),
+      fechaInicio: alquiler.fechaInicio,
+      fechaFin: alquiler.fechaFin,
+      montoMensual: this.montoAlquiler(alquiler),
+      diaPago: alquiler.diaPago ?? inquilino?.fechaPagos,
+      cantidadDepositos: alquiler.cantidadDepositos,
+      garantes: this.garantesContrato(alquiler)
+    });
+    doc.getElementById('imprimir-contrato')?.addEventListener('click', () => ventana.print());
   }
+
   eliminar(id: number | string): void {
     if (id && confirm('¿Eliminar este contrato?')) {
       this.alquileresService.eliminar(id).subscribe({
@@ -265,7 +264,7 @@ export class Alquileres implements OnInit {
     this.errorFormulario = null;
     this.formularioAbierto = false;
     this.editandoId = null;
-    this.formulario = { propiedadID: 0, inquilinoID: 0, fechaInicio: '', fechaFin: '', montoPago: null, garanteCedula: '', garanteNombreCompleto: '' };
+    this.formulario = { propietarioID: null, propiedadID: 0, inquilinoID: 0, fechaInicio: '', fechaFin: '', montoPago: null, garanteCedula: '', garanteNombreCompleto: '' };
   }
   estado(alquiler: Alquiler): 'Próximo' | 'Vigente' | 'Finalizado' {
     const hoy = new Date();

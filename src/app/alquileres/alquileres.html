@@ -93,6 +93,14 @@
 
     <form #contratoForm="ngForm" (ngSubmit)="guardar()" class="contract-form">
       <label>
+        <span>Propietario</span>
+        <select class="filter-input" [(ngModel)]="formulario.propietarioID" name="propietario" required>
+          <option [ngValue]="null" disabled>Selecciona un propietario</option>
+          <option *ngFor="let p of propietarios" [ngValue]="p.id">{{ p.nombreCompleto }} · {{ p.cedula }}</option>
+        </select>
+        <small>Registra los datos desde el mantenimiento de Propietarios.</small>
+      </label>
+      <label>
         <span>Propiedad</span>
         <select class="filter-input" [(ngModel)]="formulario.propiedadID" name="propiedad" (ngModelChange)="seleccionarPropiedad()" required>
           <option [ngValue]="0" disabled>Selecciona una propiedad</option>

@@ -1,6 +1,7 @@
+import { Propietarios } from './propietarios/propietarios';
 import { Routes } from '@angular/router';
 import { Alquileres } from './alquileres/alquileres';
-import { authGuard, roleGuard } from './auth/auth.guard';
+import { authGuard, roleGuard, permissionGuard } from './auth/auth.guard';
 import { Login } from './auth/login/login';
 import { Perfil } from './auth/perfil/perfil';
 import { AccessPending } from './auth/access-pending';
@@ -28,6 +29,7 @@ export const routes: Routes = [
   { path: 'admin/empresas', component: EmpresasAdmin, canActivate: [authGuard, roleGuard(['sysAdmin'])] },
   { path: 'inicio', component: Inicio, canActivate: [authGuard] },
   { path: 'propiedades', component: Propiedades, canActivate: [authGuard] },
+  { path: 'propietarios', component: Propietarios, canActivate: [authGuard, permissionGuard('propiedades:read')] },
   { path: 'inquilinos', component: Inquilinos, canActivate: [authGuard] },
   { path: 'alquileres', component: Alquileres, canActivate: [authGuard] },
   { path: 'pagos', component: Pagos, canActivate: [authGuard] },

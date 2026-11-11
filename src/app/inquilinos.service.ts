@@ -7,6 +7,9 @@ import { SupabaseService } from './supabase.service';
 export interface Inquilino {
   id: number;
   nombreApellido: string;
+  cedula?: string;
+  nacionalidad?: string;
+  mayorEdad?: boolean;
   correo?: string;
   email?: string;
   telefono?: string;
@@ -22,7 +25,7 @@ export interface ApiResponse<T> {
 
 @Injectable({ providedIn: 'root' })
 export class InquilinosService {
-  private readonly cacheKey = 'angular1:inquilinos';
+  private readonly cacheKey = 'angular1:inquilinos:v2-identidad';
 
   constructor(
     private readonly supabaseService: SupabaseService,

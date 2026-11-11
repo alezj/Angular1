@@ -1,0 +1,40 @@
+<section class="inquilinos">
+  <header class="module-heading">
+    <div><h2>Propietarios</h2><p>Datos de identidad y contacto para los contratos de alquiler.</p></div>
+    <button class="filter-button" type="button" *ngIf="auth.hasPermission('propiedades:create')" (click)="nuevo()">+ Nuevo propietario</button>
+  </header>
+  <div class="filter-bar"><input class="filter-input" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" placeholder="Buscar por nombre, cédula o domicilio..." aria-label="Buscar propietarios"></div>
+  <p *ngIf="cargando()">Cargando propietarios...</p>
+  <p class="error" role="alert" *ngIf="error()">{{ error() }}</p>
+  <div class="table-wrapper" *ngIf="!cargando()">
+    <table>
+      <thead><tr><th>Nombre completo</th><th>Cédula</th><th>Nacionalidad</th><th>Domicilio</th><th>Teléfono</th><th>Correo</th><th class="person-actions-column">Acciones</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let p of filtrados()">
+          <td>{{ p.nombreCompleto }}</td><td>{{ p.cedula }}</td><td>{{ p.nacionalidad }}</td><td>{{ p.direccion }}</td><td>{{ p.telefono || '—' }}</td><td>{{ p.correo || '—' }}</td>
+          <td class="person-actions-column"><div class="action-buttons">
+            <button class="filter-button secondary" type="button" *ngIf="auth.hasPermission('propiedades:update')" (click)="editar(p)">Editar</button>
+            <button class="filter-button delete-button" type="button" *ngIf="auth.hasPermission('propiedades:delete')" (click)="eliminar(p)">Eliminar</button>
+          </div></td>
+        </tr>
+        <tr *ngIf="filtrados().length === 0"><td colspan="7">No hay propietarios que mostrar.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+<div class="tenant-modal-backdrop" *ngIf="formularioAbierto()" (click)="cancelar()">
+  <section class="tenant-modal" role="dialog" aria-modal="true" aria-labelledby="owner-title" (click)="$event.stopPropagation()">
+    <header class="tenant-modal-header"><h2 id="owner-title">{{ editandoId === null ? 'Nuevo propietario' : 'Editar propietario' }}</h2><button type="button" class="icon-action" aria-label="Cerrar" (click)="cancelar()">×</button></header>
+    <form class="tenant-form" #ownerForm="ngForm" (ngSubmit)="guardar()">
+      <label><span>Nombre completo</span><input class="filter-input" [(ngModel)]="formulario.nombreCompleto" name="nombre" maxlength="200" required></label>
+      <label><span>Cédula</span><input class="filter-input" [(ngModel)]="formulario.cedula" name="cedula" maxlength="30" required></label>
+      <label><span>Nacionalidad</span><input class="filter-input" [(ngModel)]="formulario.nacionalidad" name="nacionalidad" maxlength="80" required></label>
+      <label><span>Domicilio completo</span><input class="filter-input" [(ngModel)]="formulario.direccion" name="direccion" maxlength="500" required></label>
+      <label><span>Teléfono</span><input class="filter-input" [(ngModel)]="formulario.telefono" name="telefono" type="tel"></label>
+      <label><span>Correo electrónico</span><input class="filter-input" [(ngModel)]="formulario.correo" name="correo" type="email"></label>
+      <label class="person-adult"><input [(ngModel)]="formulario.mayorEdad" name="mayorEdad" type="checkbox" required><span>Confirmo que el propietario es mayor de edad</span></label>
+      <p class="error person-full-width" role="alert" *ngIf="errorFormulario()">{{ errorFormulario() }}</p>
+      <footer class="tenant-form-actions"><button class="filter-button secondary" type="button" [disabled]="guardando()" (click)="cancelar()">Cancelar</button><button class="filter-button" type="submit" [disabled]="guardando() || ownerForm.invalid">{{ guardando() ? 'Guardando...' : 'Guardar propietario' }}</button></footer>
+    </form>
+  </section>
+</div>
