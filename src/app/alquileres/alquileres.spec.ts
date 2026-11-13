@@ -11,7 +11,7 @@ describe('Contratos', () => {
   let service: jasmine.SpyObj<AlquileresService>;
   const contrato: Alquiler = {
     id: 12, propietarioID: 1, propiedadID: 1, inquilinoID: 2,
-    fechaInicio: '2026-01-01', fechaFin: '2026-12-31', montoPago: 15000,
+    fechaInicio: '2026-01-01', fechaFin: '2026-12-31', lugarFirma: 'Santo Domingo, Distrito Nacional', fechaFirma: '2026-01-01', montoPago: 15000,
     garanteCedula: '001-0000000-1', garanteNombreCompleto: 'Ana Pérez',
     diaPago: 5, diasProrroga: 3, cantidadDepositos: 2
   };
@@ -45,6 +45,77 @@ describe('Contratos', () => {
     expect(contrato).toEqual(original);
   });
 
+  it('calcula la vigencia y envía los meses y la fecha final al guardar', () => {
+    component.editar(contrato);
+    component.formulario.fechaInicio = '2026-11-13';
+    component.formulario.cantidadMeses = 12;
+    component.guardar();
+    expect(service.actualizar).toHaveBeenCalledWith(12, jasmine.objectContaining({ cantidadMeses: 12, fechaFin: '2027-11-13' }));
+  });
+  it('ajusta fines de mes, años bisiestos y cambios de año', () => {
+    for (const [inicio, meses, fin] of [
+      ['2026-01-31', 1, '2026-02-28'], ['2028-01-31', 1, '2028-02-29'],
+      ['2028-02-29', 12, '2029-02-28'], ['2026-11-13', 3, '2027-02-13']
+    ] as const) {
+      component.formulario.fechaInicio = inicio;
+      component.formulario.cantidadMeses = meses;
+      component.recalcularFechaFin();
+      expect(component.formulario.fechaFin).toBe(fin);
+    }
+  });
+  it('limpia la fecha calculada si faltan datos o son inválidos', () => {
+    component.formulario.fechaInicio = '2026-02-31';
+    component.formulario.cantidadMeses = 1;
+    component.recalcularFechaFin();
+    expect(component.formulario.fechaFin).toBe('');
+    component.formulario.fechaInicio = '2026-11-13';
+    for (const meses of [null, 0, -1, 1.5]) {
+      component.formulario.cantidadMeses = meses;
+      component.recalcularFechaFin();
+      expect(component.formulario.fechaFin).toBe('');
+    }
+  });
+  it('recupera los meses de contratos anteriores y recalcula al renovar', () => {
+    component.renovar(contrato);
+    expect(component.formulario.cantidadMeses).toBe(12);
+    expect(component.formulario.fechaFin).toBe(contrato.fechaFin);
+    component.formulario.fechaInicio = '2027-01-01';
+    component.recalcularFechaFin();
+    expect(component.formulario.fechaFin).toBe('2028-01-01');
+  });
+  it('calcula depósitos al cambiar la cantidad o la renta y permite guardar un total ajustado', () => {
+    component.editar(contrato);
+    component.formulario.cantidadDepositos = 3;
+    component.recalcularDepositos();
+    expect(component.formulario.montoTotalDepositos).toBe(45000);
+    component.formulario.montoPago = 17000;
+    component.recalcularDepositos();
+    expect(component.formulario.montoTotalDepositos).toBe(51000);
+    component.formulario.montoTotalDepositos = 50000;
+    component.guardar();
+    expect(service.actualizar).toHaveBeenCalledWith(12, jasmine.objectContaining({
+      cantidadDepositos: 3, montoTotalDepositos: 50000,
+      lugarFirma: 'Santo Domingo, Distrito Nacional', fechaFirma: '2026-01-01'
+    }));
+  });
+  it('conserva un total personalizado al editar y renovar', () => {
+    component.renovar({ ...contrato, montoTotalDepositos: 25000 });
+    expect(component.formulario.montoTotalDepositos).toBe(25000);
+    expect(component.formulario.fechaFirma).toBe(contrato.fechaFirma);
+    component.guardar();
+    expect(service.crear).toHaveBeenCalledWith(jasmine.objectContaining({ montoTotalDepositos: 25000 }));
+  });
+  it('valida depósitos no negativos y una fecha de firma real', () => {
+    component.editar(contrato);
+    component.formulario.cantidadDepositos = -1;
+    component.guardar();
+    expect(service.actualizar).not.toHaveBeenCalled();
+    component.formulario.cantidadDepositos = 2;
+    component.formulario.fechaFirma = '2026-02-31';
+    component.guardar();
+    expect(service.actualizar).not.toHaveBeenCalled();
+    expect(component.errorFormulario).toContain('firma');
+  });
   it('guarda garante y monto al editar el contrato existente', () => {
     component.editar(contrato);
     component.garantesFormulario[0].nombre_completo = 'Luis Gómez';
@@ -53,12 +124,12 @@ describe('Contratos', () => {
     expect(service.crear).not.toHaveBeenCalled();
   });
 
-  it('rechaza fechas invertidas y datos incompletos del garante', () => {
+  it('rechaza meses inválidos y datos incompletos del garante', () => {
     component.renovar(contrato);
-    component.formulario.fechaFin = '2025-01-01';
+    component.formulario.cantidadMeses = 0;
     component.guardar();
     expect(service.crear).not.toHaveBeenCalled();
-    component.formulario.fechaFin = '2027-01-01';
+    component.formulario.cantidadMeses = 12;
     component.garantesFormulario[0].cedula = ' ';
     component.guardar();
     expect(service.crear).not.toHaveBeenCalled();
@@ -93,7 +164,7 @@ describe('Varios garantes por contrato', () => {
   let service: jasmine.SpyObj<AlquileresService>;
   const contrato: Alquiler = {
     id: 24, propietarioID: 1, propiedadID: 1, inquilinoID: 2, montoPago: 12000,
-    fechaInicio: '2026-01-01', fechaFin: '2026-12-31',
+    fechaInicio: '2026-01-01', fechaFin: '2026-12-31', lugarFirma: 'Santo Domingo, Distrito Nacional', fechaFirma: '2026-01-01',
     garantes: [
       { id: 1, alquiler_id: 24, cedula: '001-01', nombre_completo: 'Primer garante' },
       { id: 2, alquiler_id: 24, cedula: '001-02', nombre_completo: 'Segundo garante' }

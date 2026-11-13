@@ -15,6 +15,9 @@ export interface DatosPlantillaContrato {
   montoMensual: number | null;
   diaPago?: number | null;
   cantidadDepositos?: number | null;
+  montoTotalDepositos?: number | null;
+  lugarFirma?: string | null;
+  fechaFirma?: string | null;
   garantes: Garante[];
 }
 
@@ -43,7 +46,8 @@ export function contenidoContrato(datos: DatosPlantillaContrato): string {
   const renta = datos.montoMensual === null ? campo('MONTO MENSUAL') : escapar(moneda(datos.montoMensual));
   const cantidad = datos.cantidadDepositos;
   const depositos = cantidad === null || cantidad === undefined ? campo('CANTIDAD DE DEPÓSITOS') : String(cantidad);
-  const totalDepositos = cantidad !== null && cantidad !== undefined && datos.montoMensual !== null
+  const totalDepositos = datos.montoTotalDepositos !== null && datos.montoTotalDepositos !== undefined
+    ? escapar(moneda(datos.montoTotalDepositos)) : cantidad !== null && cantidad !== undefined && datos.montoMensual !== null
     ? escapar(moneda(cantidad * datos.montoMensual)) : campo('MONTO TOTAL DE LOS DEPÓSITOS');
   const firma = (nombre: string, rol: string) => `<div class="firma"><span>${nombre}</span><small>${rol}</small></div>`;
   return `
@@ -64,8 +68,8 @@ export function contenidoContrato(datos: DatosPlantillaContrato): string {
       <p><strong>Párrafo:</strong> Queda entendido que el presente contrato concede <strong>cinco (5) días de gracia</strong> a <strong>EL INQUILINO</strong> para los mantenimientos requeridos antes de alojarse en el inmueble; después de dicho plazo, el contrato seguirá su curso.</p>
       <p><strong>SEXTO:</strong> <strong>EL INQUILINO</strong> entrega en calidad de <strong>${depositos}</strong> depósito(s) la suma total de <strong>${totalDepositos}</strong>, en moneda de curso legal, que <strong>EL PROPIETARIO</strong> declara haber recibido. Esta suma responderá y podrá aplicarse a los gastos ocasionados por cualquier acción legal derivada del incumplimiento de las obligaciones de <strong>EL INQUILINO</strong>, a los gastos que ocasione el desalojo y a las reparaciones previstas en la cláusula segunda que no hayan sido hechas y pagadas por <strong>EL INQUILINO</strong>.</p>
       <p><strong>SÉPTIMO:</strong> Queda claramente establecido que los servicios de teléfono, luz y cualesquiera otros servicios estarán a cargo de <strong>EL INQUILINO</strong>, quedando entendido que al momento de la firma del presente contrato no presentan atraso. El mantenimiento del inmueble correrá por cuenta de <strong>EL INQUILINO</strong>, conjuntamente con la cuota de la mensualidad. Para todo lo no previsto, las partes se remiten al derecho común.</p>
-      ${datos.garantes.length ? `<section class="garantes"><p><strong>GARANTES:</strong> Intervienen en calidad de garantes del presente contrato las siguientes personas:</p><ol>${datos.garantes.map(g => `<li><strong>${escapar(g.nombre_completo)}</strong>, cédula de identidad No. <strong>${escapar(g.cedula)}</strong>.</li>`).join('')}</ol><p>${campo('ALCANCE Y CONDICIONES DE LA GARANTÍA ACORDADOS POR LAS PARTES')}</p></section>` : ''}
-      <p><strong>HECHO Y FIRMADO</strong> en ${campo('CIUDAD Y PROVINCIA DE FIRMA')}, República Dominicana, a los ${campo('DÍA')} días del mes de ${campo('MES')} del año ${campo('AÑO')}.</p>
+      ${datos.garantes.length ? `<section class="garantes"><p><strong>GARANTES:</strong> Intervienen en calidad de garantes del presente contrato las siguientes personas:</p><ol>${datos.garantes.map(g => `<li><strong>${escapar(g.nombre_completo)}</strong>, cédula de identidad No. <strong>${escapar(g.cedula)}</strong>.</li>`).join('')}</ol></section>` : ''}
+      <p><strong>HECHO Y FIRMADO</strong> en ${valor(datos.lugarFirma ?? undefined, 'CIUDAD Y PROVINCIA DE FIRMA')}, República Dominicana, el ${datos.fechaFirma ? fecha(datos.fechaFirma) : campo('FECHA DE FIRMA')}.</p>
       <section class="firmas">
         ${firma(propietario, 'Propietario')}
         ${firma(inquilino, 'Inquilino')}

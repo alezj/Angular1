@@ -82,7 +82,7 @@ BEGIN
   WHERE a.attrelid = 'public.alquileres'::regclass AND a.attnum > 0 AND NOT a.attisdropped
     AND p_datos ? a.attname
     AND a.attname = ANY(ARRAY['propiedadID','inquilinoID','fechaInicio','fechaFin','montoPago',
-      'importe','cantidadDepositos','diaPago','cantidadMeses','diasProrroga',
+      'importe','cantidadDepositos','montoTotalDepositos','lugarFirma','fechaFirma','diaPago','cantidadMeses','diasProrroga',
       'garanteCedula','garanteNombreCompleto']);
   IF p_id IS NULL THEN
     EXECUTE format('INSERT INTO public.alquileres (%s) SELECT %s FROM jsonb_populate_record(NULL::public.alquileres, $1) v RETURNING *', columnas, valores)

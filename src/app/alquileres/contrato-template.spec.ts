@@ -57,4 +57,22 @@ describe('Plantilla del contrato de referencia', () => {
     expect(html).not.toContain('[CONFIRMAR MAYORÍA');
   });
 
+  it('usa el total personalizado y completa el lugar y la fecha de firma sin el texto de alcance', () => {
+    const html = contenidoContrato({ ...datos, montoTotalDepositos: 25000,
+      lugarFirma: 'Santiago de los Caballeros, Santiago', fechaFirma: '2026-11-13',
+      garantes: [{ cedula: 'G-01', nombre_completo: 'Garante de prueba' }]
+    });
+    expect(html).toContain('25,000.00');
+    expect(html).not.toContain('30,000.00');
+    expect(html).toContain('Santiago de los Caballeros, Santiago');
+    expect(html).toContain('13 de noviembre de 2026');
+    expect(html).not.toContain('[CIUDAD Y PROVINCIA DE FIRMA]');
+    expect(html).not.toContain('[FECHA DE FIRMA]');
+    expect(html).not.toContain('ALCANCE Y CONDICIONES');
+    expect(html).toContain('Garante de prueba');
+  });
+  it('respeta un total de depósitos de cero sin reemplazarlo por el cálculo', () => {
+    expect(contenidoContrato({ ...datos, montoTotalDepositos: 0 })).not.toContain('30,000.00');
+  });
+
 });

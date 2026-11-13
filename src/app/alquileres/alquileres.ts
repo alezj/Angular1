@@ -21,7 +21,7 @@ export class Alquileres implements OnInit {
   cargando = true;
   error: string | null = null;
   editandoId: number | string | null = null;
-  formulario: Omit<Alquiler, 'id'> = { propietarioID: null, propiedadID: 0, inquilinoID: 0, fechaInicio: '', fechaFin: '', montoPago: null, garanteCedula: '', garanteNombreCompleto: '' };
+  formulario: Omit<Alquiler, 'id'> = { propietarioID: null, propiedadID: 0, inquilinoID: 0, fechaInicio: '', fechaFin: '', cantidadMeses: null, montoPago: null, cantidadDepositos: 0, montoTotalDepositos: 0, lugarFirma: '', fechaFirma: '', garanteCedula: '', garanteNombreCompleto: '' };
   garantesFormulario: Garante[] = [];
   searchTerm = '';
   formularioAbierto = false;
@@ -112,11 +112,28 @@ export class Alquileres implements OnInit {
   guardar(): void {
     if (this.guardando) return;
     this.errorFormulario = null;
+    this.recalcularFechaFin();
     const datos = this.formulario;
+    if (!Number.isInteger(datos.cantidadMeses) || Number(datos.cantidadMeses) < 1 || !datos.fechaFin) {
+      this.errorFormulario = 'Indica una fecha de inicio válida y una cantidad entera de meses mayor que cero.';
+      return;
+    }
     if (!datos.propietarioID || !datos.propiedadID || !datos.inquilinoID || !datos.fechaInicio || !datos.fechaFin
       || datos.fechaFin < datos.fechaInicio || !Number.isFinite(datos.montoPago)
       || Number(datos.montoPago) <= 0) {
       this.errorFormulario = 'Selecciona propietario, propiedad e inquilino, un período válido y un monto mayor que cero.';
+      return;
+    }
+    if (!Number.isInteger(datos.cantidadDepositos) || Number(datos.cantidadDepositos) < 0
+      || !Number.isFinite(datos.montoTotalDepositos) || Number(datos.montoTotalDepositos) < 0) {
+      this.errorFormulario = 'Indica una cantidad entera de depósitos y un total mayor o igual que cero.';
+      return;
+    }
+    const fechaFirma = datos.fechaFirma ?? '';
+    const fecha = new Date(`${fechaFirma}T00:00:00Z`);
+    if (!datos.lugarFirma?.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(fechaFirma)
+      || !Number.isFinite(fecha.getTime()) || fecha.toISOString().substring(0, 10) !== fechaFirma) {
+      this.errorFormulario = 'Completa la ciudad y/o provincia y una fecha de firma válida.';
       return;
     }
     const garantes = this.garantesFormulario.map(g => ({
@@ -131,7 +148,7 @@ export class Alquileres implements OnInit {
       this.errorFormulario = 'Cada garante debe tener una cédula válida y diferente dentro del contrato.';
       return;
     }
-    const payload = { ...datos, garantes,
+    const payload = { ...datos, lugarFirma: datos.lugarFirma.trim(), garantes,
       garanteCedula: garantes[0]?.cedula ?? null,
       garanteNombreCompleto: garantes[0]?.nombre_completo ?? null };
     this.guardando = true;
@@ -173,8 +190,50 @@ export class Alquileres implements OnInit {
       ?? this.propiedades.find(item => item.id === Number(alquiler.propiedadID))?.precioMensual
       ?? null;
   }
+  recalcularDepositos(): void {
+    const { cantidadDepositos, montoPago } = this.formulario;
+    this.formulario.montoTotalDepositos = Number.isInteger(cantidadDepositos)
+      && Number(cantidadDepositos) >= 0 && Number.isFinite(montoPago) && Number(montoPago) >= 0
+      ? Math.round((Number(cantidadDepositos) * Number(montoPago) + Number.EPSILON) * 100) / 100
+      : null;
+  }
   seleccionarPropiedad(): void {
     this.formulario.montoPago = this.propiedades.find(item => item.id === Number(this.formulario.propiedadID))?.precioMensual ?? null;
+    this.recalcularDepositos();
+  }
+  recalcularFechaFin(): void {
+    this.formulario.fechaFin = this.fechaFinPorMeses(this.formulario.fechaInicio, this.formulario.cantidadMeses);
+  }
+  private fechaFinPorMeses(inicio: string, meses: number | null | undefined): string {
+    if (!Number.isInteger(meses) || Number(meses) < 1 || !/^\d{4}-\d{2}-\d{2}$/.test(inicio)) return '';
+    const [anio, mes, dia] = inicio.split('-').map(Number);
+    // UTC evita desplazamientos por zona horaria; setUTCFullYear admite también años 0001–0099.
+    const origen = new Date(0);
+    origen.setUTCFullYear(anio, mes - 1, dia);
+    if (anio < 1 || origen.getUTCFullYear() !== anio || origen.getUTCMonth() !== mes - 1 || origen.getUTCDate() !== dia) return '';
+    const mesDestino = mes - 1 + Number(meses);
+    const anioDestino = anio + Math.floor(mesDestino / 12);
+    if (anioDestino > 9999) return '';
+    const finMes = new Date(0);
+    finMes.setUTCFullYear(anioDestino, mesDestino % 12 + 1, 0);
+    return `${String(anioDestino).padStart(4, '0')}-${String(mesDestino % 12 + 1).padStart(2, '0')}-${String(Math.min(dia, finMes.getUTCDate())).padStart(2, '0')}`;
+  }
+  private mesesDelContrato(alquiler: Alquiler): number | null {
+    if (Number.isInteger(alquiler.cantidadMeses) && Number(alquiler.cantidadMeses) > 0) return alquiler.cantidadMeses!;
+    // Recupera la duración de contratos anteriores sin una cantidad de meses guardada.
+    const inicio = alquiler.fechaInicio.substring(0, 10);
+    const fin = alquiler.fechaFin.substring(0, 10);
+    const [anioInicio, mesInicio] = inicio.split('-').map(Number);
+    const [anioFin, mesFin] = fin.split('-').map(Number);
+    const diferencia = (anioFin - anioInicio) * 12 + mesFin - mesInicio;
+    for (const meses of [diferencia, diferencia + 1]) {
+      const aniversario = this.fechaFinPorMeses(inicio, meses);
+      if (!aniversario) continue;
+      const diaAnterior = new Date(`${aniversario}T00:00:00Z`);
+      diaAnterior.setUTCDate(diaAnterior.getUTCDate() - 1);
+      if (fin === aniversario || fin === diaAnterior.toISOString().substring(0, 10)) return meses;
+    }
+    return null;
   }
   editar(alquiler: Alquiler): void {
     this.cancelar();
@@ -186,12 +245,18 @@ export class Alquileres implements OnInit {
       inquilinoID: alquiler.inquilinoID,
       fechaInicio: alquiler.fechaInicio.substring(0, 10),
       fechaFin: alquiler.fechaFin.substring(0, 10),
+      cantidadMeses: this.mesesDelContrato(alquiler),
       montoPago: this.montoAlquiler(alquiler),
+      cantidadDepositos: alquiler.cantidadDepositos ?? 0,
+      montoTotalDepositos: alquiler.montoTotalDepositos
+        ?? (this.montoAlquiler(alquiler) === null ? null : Math.round((alquiler.cantidadDepositos ?? 0) * this.montoAlquiler(alquiler)! * 100) / 100),
+      lugarFirma: alquiler.lugarFirma ?? '',
+      fechaFirma: alquiler.fechaFirma?.substring(0, 10) ?? '',
       garanteCedula: alquiler.garanteCedula ?? '',
       garanteNombreCompleto: alquiler.garanteNombreCompleto ?? ''
     };
     // Conserva condiciones existentes, sin copiar identidad, propietario o auditoría.
-    for (const campo of ['importe', 'cantidadDepositos', 'diaPago', 'cantidadMeses', 'diasProrroga'] as const) {
+    for (const campo of ['importe', 'diaPago', 'diasProrroga'] as const) {
       if (alquiler[campo] !== undefined) this.formulario[campo] = alquiler[campo];
     }
     this.formularioAbierto = true;
@@ -243,6 +308,9 @@ export class Alquileres implements OnInit {
       montoMensual: this.montoAlquiler(alquiler),
       diaPago: alquiler.diaPago ?? inquilino?.fechaPagos,
       cantidadDepositos: alquiler.cantidadDepositos,
+      montoTotalDepositos: alquiler.montoTotalDepositos,
+      lugarFirma: alquiler.lugarFirma,
+      fechaFirma: alquiler.fechaFirma,
       garantes: this.garantesContrato(alquiler)
     });
     doc.getElementById('imprimir-contrato')?.addEventListener('click', () => ventana.print());
@@ -264,7 +332,7 @@ export class Alquileres implements OnInit {
     this.errorFormulario = null;
     this.formularioAbierto = false;
     this.editandoId = null;
-    this.formulario = { propietarioID: null, propiedadID: 0, inquilinoID: 0, fechaInicio: '', fechaFin: '', montoPago: null, garanteCedula: '', garanteNombreCompleto: '' };
+    this.formulario = { propietarioID: null, propiedadID: 0, inquilinoID: 0, fechaInicio: '', fechaFin: '', cantidadMeses: null, montoPago: null, cantidadDepositos: 0, montoTotalDepositos: 0, lugarFirma: '', fechaFirma: '', garanteCedula: '', garanteNombreCompleto: '' };
   }
   estado(alquiler: Alquiler): 'Próximo' | 'Vigente' | 'Finalizado' {
     const hoy = new Date();

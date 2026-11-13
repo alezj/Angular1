@@ -24,6 +24,9 @@ export interface Alquiler {
   montoPago?: number | null;
   importe?: number | null;
   cantidadDepositos?: number | null;
+  montoTotalDepositos?: number | null;
+  lugarFirma?: string | null;
+  fechaFirma?: string | null;
   diaPago?: number | null;
   cantidadMeses?: number | null;
   diasProrroga?: number | null;
@@ -36,7 +39,7 @@ export interface ApiResponse<T> {
 
 @Injectable({ providedIn: 'root' })
 export class AlquileresService {
-  private readonly cacheKey = 'angular1:alquileres:v3-propietario';
+  private readonly cacheKey = 'angular1:alquileres:v4-depositos-firma';
 
   constructor(
     private readonly supabaseService: SupabaseService,

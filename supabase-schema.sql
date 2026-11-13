@@ -114,6 +114,11 @@ CREATE TABLE IF NOT EXISTS public.alquileres (
     "inquilinoID" BIGINT REFERENCES public.inquilinos(id) ON DELETE CASCADE,
     "fechaInicio" TEXT NOT NULL,
     "fechaFin" TEXT NOT NULL,
+    "cantidadMeses" INTEGER,
+    "cantidadDepositos" INTEGER,
+    "montoTotalDepositos" NUMERIC(12, 2) CHECK ("montoTotalDepositos" >= 0),
+    "lugarFirma" TEXT,
+    "fechaFirma" DATE,
     "garanteCedula" TEXT,
     "garanteNombreCompleto" TEXT,
     "montoPago" NUMERIC(12, 2),
@@ -170,3 +175,5 @@ ALTER TABLE public.propiedades ADD COLUMN IF NOT EXISTS longitud NUMERIC;
 -- Para habilitar varios garantes por contrato, ejecutar después supabase-garantes-schema.sql.
 
 -- Para propietarios e identidad de inquilinos, ejecutar después supabase-propietario-contrato-schema.sql.
+
+-- Para depósitos y firma, ejecutar supabase-alquileres-depositos-firma-schema.sql.
