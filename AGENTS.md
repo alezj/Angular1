@@ -61,6 +61,25 @@ Angular1/
 
 ## Development Workflow
 
+### Supabase Environments (updated 2026-11-13)
+
+Durante el desarrollo y las pruebas locales se trabaja con el proyecto de Supabase
+**`Alquilados_Test`**. Los despliegues de producción desde el repositorio deben seguir
+trabajando con el proyecto **`alezj's Project`**.
+
+| Entorno | Proyecto de Supabase | Referencia del proyecto |
+| --- | --- | --- |
+| Desarrollo local y pruebas | `Alquilados_Test` | `jhhujnqmjtdnhkkijafs` |
+| Despliegues de producción desde el repositorio | `alezj's Project` | `plkbprmponbtwfxglmzm` |
+
+- Usar `Alquilados_Test` para desarrollar funcionalidades, probar migraciones y crear datos de prueba.
+- Verificar el proyecto efectivo antes de ejecutar consultas, migraciones o cambios de datos.
+- Mantener separadas las configuraciones de desarrollo y producción. Los cambios locales no deben
+  sustituir la URL ni la clave de Supabase que utilizan los despliegues de producción.
+- Validar primero los cambios de esquema en `Alquilados_Test` y conservar los scripts necesarios
+  para aplicarlos en producción cuando corresponda al despliegue o se solicite expresamente.
+- Subir código al repositorio no implica cambiar el proyecto de Supabase de producción a pruebas.
+
 ### Initial Setup
 
 1. **Install dependencies**
