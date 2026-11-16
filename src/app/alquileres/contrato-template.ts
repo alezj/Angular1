@@ -1,8 +1,12 @@
+import { Notario } from '../notarios.service';
 import { Propietario } from '../propietarios.service';
 import { Garante } from '../alquileres.service';
 
 export interface DatosPlantillaContrato {
   numero: number | string;
+  notario?: Pick<Notario, 'nombreCompleto' | 'cedula' | 'matricula' | 'jurisdiccion' | 'direccion'>;
+  lugarCertificacion?: string | null;
+  fechaCertificacion?: string | null;
   propiedad: string;
   inquilino: string;
   direccionInquilino?: string;
@@ -78,8 +82,8 @@ export function contenidoContrato(datos: DatosPlantillaContrato): string {
       <section class="notaria">
         <h2>CERTIFICACIÓN NOTARIAL</h2>
         <p class="nota-notaria">Espacio reservado para completar por el notario actuante al presenciar las firmas.</p>
-        <p>YO, ${campo('NOMBRE DEL NOTARIO')}, Abogado Notario Público de los del Número de ${campo('JURISDICCIÓN')}, matrícula No. ${campo('MATRÍCULA')}, <strong>CERTIFICO Y DOY FE</strong> que las firmas que aparecen estampadas en el presente documento han sido puestas en mi presencia, libre y voluntariamente, por ${campo('NOMBRES DE TODOS LOS COMPARECIENTES')}, quienes me han declarado bajo la fe del juramento que estas son las firmas que acostumbran usar en todos los actos de sus vidas. En ${campo('LUGAR')}, República Dominicana, a los ${campo('FECHA DE CERTIFICACIÓN')}.</p>
-        <div class="firma firma-notario"><span>${campo('NOMBRE DEL NOTARIO')}</span><small>Notario Público</small></div>
+        <p>YO, ${valor(datos.notario?.nombreCompleto, 'NOMBRE DEL NOTARIO')}, Abogado Notario Público de los del Número de ${valor(datos.notario?.jurisdiccion, 'JURISDICCIÓN')}, matrícula No. ${valor(datos.notario?.matricula, 'MATRÍCULA')}${datos.notario ? `, cédula No. ${valor(datos.notario.cedula, 'CÉDULA DEL NOTARIO')}, con estudio profesional en ${valor(datos.notario.direccion, 'DIRECCIÓN DEL DESPACHO')}` : ''}, <strong>CERTIFICO Y DOY FE</strong> que las firmas que aparecen estampadas en el presente documento han sido puestas en mi presencia, libre y voluntariamente, por ${[propietario, inquilino, ...datos.garantes.map(g => valor(g.nombre_completo, 'NOMBRE DEL GARANTE'))].join(', ')}, quienes me han declarado bajo la fe del juramento que estas son las firmas que acostumbran usar en todos los actos de sus vidas. En ${valor(datos.lugarCertificacion ?? undefined, 'LUGAR DE CERTIFICACIÓN')}, República Dominicana, a los ${datos.fechaCertificacion ? fecha(datos.fechaCertificacion) : campo('FECHA DE CERTIFICACIÓN')}.</p>
+        <div class="firma firma-notario"><span>${valor(datos.notario?.nombreCompleto, 'NOMBRE DEL NOTARIO')}</span><small>Notario Público</small></div>
       </section>
     </article>`;
 }

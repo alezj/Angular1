@@ -150,6 +150,24 @@
         <span>Fecha de firma (día, mes y año)</span>
         <input class="filter-input" [(ngModel)]="formulario.fechaFirma" name="fechaFirma" type="date" required>
       </label>
+      <label>
+        <span>Notario actuante</span>
+        <select class="filter-input" [(ngModel)]="formulario.notarioID" name="notario">
+          <option [ngValue]="null">Sin asignar (completar después)</option>
+          <option *ngIf="formulario.notarioID && !notarios.length" [ngValue]="formulario.notarioID">Notario #{{ formulario.notarioID }} (no disponible)</option>
+          <option *ngFor="let n of notarios" [ngValue]="n.id">{{ n.nombreCompleto }} · Matrícula {{ n.matricula }} · {{ n.jurisdiccion }}</option>
+        </select>
+        <small>Registra su identidad y acreditación en el mantenimiento de Notarios.</small>
+        <small class="error" role="alert" *ngIf="errorNotarios">{{ errorNotarios }}</small>
+      </label>
+      <label *ngIf="formulario.notarioID">
+        <span>Lugar de certificación notarial</span>
+        <input class="filter-input" [(ngModel)]="formulario.lugarCertificacion" name="lugarCertificacion" maxlength="200" placeholder="Ciudad y provincia donde se certifican las firmas" required>
+      </label>
+      <label *ngIf="formulario.notarioID">
+        <span>Fecha de certificación notarial</span>
+        <input class="filter-input" [(ngModel)]="formulario.fechaCertificacion" name="fechaCertificacion" type="date" required>
+      </label>
       <fieldset class="contract-guarantor" [disabled]="guardando">
         <legend>Garantes (opcional)</legend>
         <p class="guarantor-help" *ngIf="garantesFormulario.length === 0">Este contrato no tiene garantes. Puedes agregar uno o varios.</p>

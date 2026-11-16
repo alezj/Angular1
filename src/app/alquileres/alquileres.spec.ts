@@ -1,3 +1,4 @@
+import { NotariosService } from '../notarios.service';
 import { PropietariosService } from '../propietarios.service';
 import { ChangeDetectorRef } from '@angular/core';
 import { of, throwError } from 'rxjs';
@@ -26,9 +27,29 @@ describe('Contratos', () => {
     const inquilinos = jasmine.createSpyObj('InquilinosService', ['obtenerInquilinos']);
     inquilinos.obtenerInquilinos.and.returnValue(of({ success: true, data: [] }));
     component = new Alquileres(service, propiedades as PropiedadesService,
-      inquilinos as InquilinosService, { markForCheck: () => {} } as ChangeDetectorRef, { obtenerPropietarios: () => of({ success: true, data: [] }) } as unknown as PropietariosService);
+      inquilinos as InquilinosService, { markForCheck: () => {} } as ChangeDetectorRef, { obtenerPropietarios: () => of({ success: true, data: [] }) } as unknown as PropietariosService, { obtenerNotarios: () => of({ success: true, data: [] }) } as unknown as NotariosService);
   });
 
+
+  it('conserva el notario al editar y valida la fecha y lugar de certificación', () => {
+    component.notarios = [{ id: 7, nombreCompleto: 'Notario', cedula: 'N-1', matricula: 'M-1',
+      jurisdiccion: 'Santiago', direccion: 'Despacho' }];
+    component.editar({ ...contrato, notarioID: 7, lugarCertificacion: 'Santiago', fechaCertificacion: '2026-02-31' });
+    component.guardar();
+    expect(service.actualizar).not.toHaveBeenCalled();
+    expect(component.errorFormulario).toContain('certificación');
+    component.formulario.fechaCertificacion = '2026-11-15';
+    component.guardar();
+    expect(service.actualizar).toHaveBeenCalledWith(12, jasmine.objectContaining({
+      notarioID: 7, lugarCertificacion: 'Santiago', fechaCertificacion: '2026-11-15'
+    }));
+  });
+  it('impide imprimir con un notario asociado que no se pudo cargar', () => {
+    const abrir = spyOn(window, 'open');
+    component.generarContrato({ ...contrato, notarioID: 7 });
+    expect(abrir).not.toHaveBeenCalled();
+    expect(component.error).toContain('notario asociado');
+  });
   it('renueva con una inserción y conserva intacto el contrato original', () => {
     const original = { ...contrato };
     component.renovar(contrato);
@@ -175,7 +196,7 @@ describe('Varios garantes por contrato', () => {
     service.crear.and.returnValue(throwError(() => new Error('prueba')));
     service.actualizar.and.returnValue(throwError(() => new Error('prueba')));
     component = new Alquileres(service, {} as PropiedadesService, {} as InquilinosService,
-      { markForCheck: () => {} } as ChangeDetectorRef, { obtenerPropietarios: () => of({ success: true, data: [] }) } as unknown as PropietariosService);
+      { markForCheck: () => {} } as ChangeDetectorRef, { obtenerPropietarios: () => of({ success: true, data: [] }) } as unknown as PropietariosService, { obtenerNotarios: () => of({ success: true, data: [] }) } as unknown as NotariosService);
   });
   it('renueva todos los garantes sin modificar la lista original ni copiar sus identidades', () => {
     component.renovar(contrato);

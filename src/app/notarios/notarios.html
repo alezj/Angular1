@@ -1,0 +1,40 @@
+<section class="inquilinos">
+  <header class="module-heading">
+    <div><h2>Notarios</h2><p>Identidad, acreditación y contacto del notario que certifica los contratos.</p></div>
+    <button class="filter-button" type="button" *ngIf="auth.hasPermission('alquileres:create')" (click)="nuevo()">+ Nuevo notario</button>
+  </header>
+  <div class="filter-bar"><input class="filter-input" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" placeholder="Buscar por nombre, cédula, matrícula o jurisdicción..." aria-label="Buscar notarios"></div>
+  <p *ngIf="cargando()">Cargando notarios...</p>
+  <p class="error" role="alert" *ngIf="error()">{{ error() }}</p>
+  <div class="table-wrapper" *ngIf="!cargando()">
+    <table>
+      <thead><tr><th>Nombre completo</th><th>Cédula</th><th>Matrícula</th><th>Jurisdicción</th><th>Despacho</th><th>Teléfono</th><th>Correo</th><th class="person-actions-column">Acciones</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let p of filtrados()">
+          <td>{{ p.nombreCompleto }}</td><td>{{ p.cedula }}</td><td>{{ p.matricula }}</td><td>{{ p.jurisdiccion }}</td><td>{{ p.direccion }}</td><td>{{ p.telefono || '—' }}</td><td>{{ p.correo || '—' }}</td>
+          <td class="person-actions-column"><div class="action-buttons">
+            <button class="filter-button secondary" type="button" *ngIf="auth.hasPermission('alquileres:update')" (click)="editar(p)">Editar</button>
+            <button class="filter-button delete-button" type="button" *ngIf="auth.hasPermission('alquileres:delete')" (click)="eliminar(p)">Eliminar</button>
+          </div></td>
+        </tr>
+        <tr *ngIf="filtrados().length === 0"><td colspan="8">No hay notarios que mostrar.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+<div class="tenant-modal-backdrop" *ngIf="formularioAbierto()" (click)="cancelar()">
+  <section class="tenant-modal" role="dialog" aria-modal="true" aria-labelledby="notary-title" (click)="$event.stopPropagation()">
+    <header class="tenant-modal-header"><h2 id="notary-title">{{ editandoId === null ? 'Nuevo notario' : 'Editar notario' }}</h2><button type="button" class="icon-action" aria-label="Cerrar" (click)="cancelar()">×</button></header>
+    <form class="tenant-form" #notaryForm="ngForm" (ngSubmit)="guardar()">
+      <label><span>Nombre completo</span><input class="filter-input" [(ngModel)]="formulario.nombreCompleto" name="nombre" maxlength="200" required></label>
+      <label><span>Cédula</span><input class="filter-input" [(ngModel)]="formulario.cedula" name="cedula" maxlength="30" required></label>
+      <label><span>Matrícula del notario</span><input class="filter-input" [(ngModel)]="formulario.matricula" name="matricula" maxlength="30" required></label>
+      <label><span>Jurisdicción notarial</span><input class="filter-input" [(ngModel)]="formulario.jurisdiccion" name="jurisdiccion" maxlength="200" placeholder="Ej. Distrito Nacional" required></label>
+      <label><span>Dirección completa del despacho</span><input class="filter-input" [(ngModel)]="formulario.direccion" name="direccion" maxlength="500" required></label>
+      <label><span>Teléfono</span><input class="filter-input" [(ngModel)]="formulario.telefono" name="telefono" type="tel" maxlength="40"></label>
+      <label><span>Correo electrónico</span><input class="filter-input" [(ngModel)]="formulario.correo" name="correo" type="email" email maxlength="254"></label>
+      <p class="error person-full-width" role="alert" *ngIf="errorFormulario()">{{ errorFormulario() }}</p>
+      <footer class="tenant-form-actions"><button class="filter-button secondary" type="button" [disabled]="guardando()" (click)="cancelar()">Cancelar</button><button class="filter-button" type="submit" [disabled]="guardando() || notaryForm.invalid">{{ guardando() ? 'Guardando...' : 'Guardar notario' }}</button></footer>
+    </form>
+  </section>
+</div>

@@ -316,5 +316,15 @@
 
 ---
 
-*Last Updated: 2026-11-05*
+*Last Updated: 2026-11-15*
 *Status Document Version: 1.2*
+
+
+## Actualización 2026-11-15 — Notarios
+
+- ✅ Mantenimiento `/notarios`: identidad, matrícula, jurisdicción, despacho y contacto; alta, consulta, búsqueda, edición y eliminación.
+- ✅ Selección del notario por contrato y registro independiente de lugar/fecha de certificación; integración en la plantilla imprimible y los comparecientes.
+- ✅ Tabla `notario`, validaciones de duplicados, RLS, relación con alquileres y extensión de `guardar_contrato_con_garantes`, aplicadas exclusivamente en Alquilados_Test.
+- ✅ 32 pruebas de notarios/contratos, compilación Angular SSR y verificación transaccional de base de datos satisfactorias. Avisos de compilación por tamaño y Leaflet CommonJS.
+- ⏳ Aplicar `supabase-notarios-schema.sql` a producción antes del despliegue de la funcionalidad.
+- Observación de validación: la suite global presenta un error previo de importación en `src/app/datos.spec.ts`; las pruebas del alcance se ejecutaron con configuración temporal. La caché LMDB del equipo requiere desactivarse con `CI=true` para compilar.

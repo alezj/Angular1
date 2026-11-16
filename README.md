@@ -139,3 +139,13 @@ dotnet build
 ```powershell
 npm.cmd run build
 ```
+
+
+### Notarios y certificación de contratos (2026-11-15)
+
+- El menú **Notarios** (`/notarios`) permite crear, buscar, editar y eliminar notarios con nombre completo, cédula, matrícula, jurisdicción, dirección del despacho, teléfono y correo. Los cinco primeros datos son obligatorios; teléfono y correo son opcionales.
+- Usa los permisos existentes `alquileres:read/create/update/delete` para el catálogo. La ruta carga el módulo bajo demanda.
+- En **Contratos**, selecciona el notario e indica el lugar y la fecha de certificación del acto, independientes del lugar y fecha de firma. La certificación impresa incorpora sus datos y los nombres del propietario, inquilino y garantes. Los contratos anteriores pueden continuar sin notario asignado y muestran campos pendientes.
+- Ejecutar `supabase-notarios-schema.sql` después de `supabase-alquileres-depositos-firma-schema.sql` antes de desplegar esta versión. Ya aplicado y verificado en **Alquilados_Test** (`jhhujnqmjtdnhkkijafs`); queda pendiente aplicarlo a producción al desplegar. Mantiene RLS por usuario en el esquema de prueba y por empresa/permisos en el esquema multitenant. Impide eliminar notarios con contratos asociados.
+- Validación: compilación de prueba con SSR y 21 rutas prerenderizadas, 32 pruebas de notarios/contratos y verificación SQL transaccional de CRUD, duplicados, RPC, claves foráneas y aislamiento RLS. Los datos temporales de verificación se revirtieron.
+- En este equipo la caché nativa LMDB aborta al compilar: `CI=true NG_BUILD_MAX_WORKERS=2 npm run build:test` permite validar sin esa caché. La suite global tiene un error previo en `src/app/datos.spec.ts` (importa `Datos` desde un módulo que no lo exporta); se ejecutaron los tres archivos de pruebas de notarios y contratos con una configuración temporal limitada a ellos.

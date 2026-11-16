@@ -75,4 +75,32 @@ describe('Plantilla del contrato de referencia', () => {
     expect(contenidoContrato({ ...datos, montoTotalDepositos: 0 })).not.toContain('30,000.00');
   });
 
+  it('completa la certificación con el notario, comparecientes y fecha propia del acto', () => {
+    const html = contenidoContrato({ ...datos,
+      notario: { nombreCompleto: 'Notario de prueba', cedula: 'N-01', matricula: '1234',
+        jurisdiccion: 'Distrito Nacional', direccion: 'Calle del despacho' },
+      lugarCertificacion: 'Santiago', fechaCertificacion: '2026-11-15',
+      fechaFirma: '2026-11-13', garantes: [{ cedula: 'G-1', nombre_completo: 'Garante de prueba' }]
+    });
+    const notaria = html.substring(html.indexOf('<section class="notaria">'));
+    for (const texto of ['Notario de prueba', 'N-01', '1234', 'Distrito Nacional',
+      'Calle del despacho', 'Santiago', '15 de noviembre de 2026', 'Garante de prueba', 'Persona de prueba']) {
+      expect(notaria).toContain(texto);
+    }
+    expect(notaria).not.toContain('[NOMBRE DEL NOTARIO]');
+    expect(notaria).not.toContain('13 de noviembre de 2026');
+  });
+  it('escapa todos los datos del notario y conserva marcadores si falta la certificación', () => {
+    const html = contenidoContrato({ ...datos,
+      notario: { nombreCompleto: '<script>nombre</script>', cedula: '<img>', matricula: '<svg>',
+        jurisdiccion: '<iframe>', direccion: '<object>' }, lugarCertificacion: '<embed>'
+    });
+    expect(html).not.toMatch(/<(script|img|svg|iframe|object|embed)>/);
+    expect(html).toContain('&lt;script&gt;');
+    expect(html).toContain('[FECHA DE CERTIFICACIÓN]');
+    expect(contenidoContrato(datos)).toContain('[NOMBRE DEL NOTARIO]');
+    expect(contenidoContrato(datos)).toContain('[JURISDICCIÓN]');
+    expect(contenidoContrato(datos)).toContain('[MATRÍCULA]');
+  });
+
 });

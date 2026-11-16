@@ -31,6 +31,7 @@ export const routes: Routes = [
   { path: 'propiedades', component: Propiedades, canActivate: [authGuard] },
   { path: 'propietarios', component: Propietarios, canActivate: [authGuard, permissionGuard('propiedades:read')] },
   { path: 'inquilinos', component: Inquilinos, canActivate: [authGuard] },
+  { path: 'notarios', loadComponent: () => import('./notarios/notarios').then(m => m.Notarios), canActivate: [authGuard, permissionGuard('alquileres:read')] },
   { path: 'alquileres', component: Alquileres, canActivate: [authGuard] },
   { path: 'pagos', component: Pagos, canActivate: [authGuard] },
   { path: 'mantenimientos', component: Mantenimientos, canActivate: [authGuard] },

@@ -13,6 +13,9 @@ export interface Garante {
 
 export interface Alquiler {
   id: number | string;
+  notarioID?: number | null;
+  lugarCertificacion?: string | null;
+  fechaCertificacion?: string | null;
   propietarioID?: number | null;
   propiedadID: number;
   inquilinoID: number;
@@ -39,7 +42,7 @@ export interface ApiResponse<T> {
 
 @Injectable({ providedIn: 'root' })
 export class AlquileresService {
-  private readonly cacheKey = 'angular1:alquileres:v4-depositos-firma';
+  private readonly cacheKey = 'angular1:alquileres:v5-notario';
 
   constructor(
     private readonly supabaseService: SupabaseService,

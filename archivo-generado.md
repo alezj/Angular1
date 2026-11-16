@@ -165,3 +165,10 @@ Antes de realizar cambios, revisar `README.md` y este archivo. Mantener ambas re
 ## Skill de documentación
 
 Se solicitó una skill global para actualizar `README.md` y este archivo tras cada cambio. Su creación queda pendiente porque esta PC no tiene un intérprete de Python disponible, necesario para ejecutar la herramienta oficial de creación y validación de skills.
+
+
+## Actualización de sesión (2026-11-15) — Mantenimiento de notarios
+
+Se revisaron los campos de la certificación de `contrato-template.ts` y se agregó el mantenimiento `/notarios`, con nombre, cédula, matrícula, jurisdicción, despacho y contacto. Se integró la selección del notario y el lugar/fecha del acto en los contratos y su documento imprimible, incluyendo los nombres de todos los comparecientes.
+
+El script `supabase-notarios-schema.sql` se aplicó solo a Alquilados_Test y conserva la separación por usuario/empresa, los permisos y la protección de referencias. Producción queda pendiente para el despliegue. Se comprobaron CRUD, duplicados, asociación por RPC, bloqueo de borrado y aislamiento RLS en una transacción revertida. Pasaron 32 pruebas y la compilación SSR. README y STATUS recogen los detalles y las incidencias previas del entorno de validación.

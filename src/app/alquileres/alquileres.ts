@@ -5,6 +5,7 @@ import { Alquiler, AlquileresService, Garante } from '../alquileres.service';
 import { Inquilino, InquilinosService } from '../inquilinos.service';
 import { Propiedad, PropiedadesService } from '../propiedades.service';
 import { Propietario, PropietariosService } from '../propietarios.service';
+import { Notario, NotariosService } from '../notarios.service';
 import { contenidoContrato, estilosContrato } from './contrato-template';
 
 @Component({
@@ -18,10 +19,12 @@ export class Alquileres implements OnInit {
   propiedades: Propiedad[] = [];
   inquilinos: Inquilino[] = [];
   propietarios: Propietario[] = [];
+  notarios: Notario[] = [];
+  errorNotarios: string | null = null;
   cargando = true;
   error: string | null = null;
   editandoId: number | string | null = null;
-  formulario: Omit<Alquiler, 'id'> = { propietarioID: null, propiedadID: 0, inquilinoID: 0, fechaInicio: '', fechaFin: '', cantidadMeses: null, montoPago: null, cantidadDepositos: 0, montoTotalDepositos: 0, lugarFirma: '', fechaFirma: '', garanteCedula: '', garanteNombreCompleto: '' };
+  formulario: Omit<Alquiler, 'id'> = { notarioID: null, lugarCertificacion: '', fechaCertificacion: '', propietarioID: null, propiedadID: 0, inquilinoID: 0, fechaInicio: '', fechaFin: '', cantidadMeses: null, montoPago: null, cantidadDepositos: 0, montoTotalDepositos: 0, lugarFirma: '', fechaFirma: '', garanteCedula: '', garanteNombreCompleto: '' };
   garantesFormulario: Garante[] = [];
   searchTerm = '';
   formularioAbierto = false;
@@ -49,7 +52,8 @@ export class Alquileres implements OnInit {
     private readonly propiedadesService: PropiedadesService,
     private readonly inquilinosService: InquilinosService,
     private readonly cdr: ChangeDetectorRef,
-    private readonly propietariosService: PropietariosService
+    private readonly propietariosService: PropietariosService,
+    private readonly notariosService: NotariosService
   ) {}
 
   ngOnInit(): void {
@@ -70,6 +74,11 @@ export class Alquileres implements OnInit {
         this.cargando = false;
         this.cdr.markForCheck();
       }
+    });
+    this.errorNotarios = null;
+    this.notariosService.obtenerNotarios().subscribe({
+      next: r => { this.notarios = r.data; this.cdr.markForCheck(); },
+      error: () => { this.errorNotarios = 'No se pudieron cargar los notarios. Vuelve a cargar la página.'; this.cdr.markForCheck(); }
     });
     this.propietariosService.obtenerPropietarios().subscribe({
       next: r => { if (r.success) this.propietarios = r.data; this.cdr.markForCheck(); },
@@ -136,6 +145,12 @@ export class Alquileres implements OnInit {
       this.errorFormulario = 'Completa la ciudad y/o provincia y una fecha de firma válida.';
       return;
     }
+    if (datos.notarioID && !this.notarios.some(n => n.id === Number(datos.notarioID))) {
+      this.errorFormulario = 'El notario seleccionado no está disponible. Recarga la página.'; return;
+    }
+    if (datos.notarioID && (!datos.lugarCertificacion?.trim() || !this.fechaValida(datos.fechaCertificacion))) {
+      this.errorFormulario = 'Completa el lugar y una fecha válida de certificación notarial.'; return;
+    }
     const garantes = this.garantesFormulario.map(g => ({
       cedula: g.cedula.trim(), nombre_completo: g.nombre_completo.trim()
     }));
@@ -148,7 +163,9 @@ export class Alquileres implements OnInit {
       this.errorFormulario = 'Cada garante debe tener una cédula válida y diferente dentro del contrato.';
       return;
     }
-    const payload = { ...datos, lugarFirma: datos.lugarFirma.trim(), garantes,
+    const payload = { ...datos, notarioID: datos.notarioID ?? null,
+      lugarCertificacion: datos.lugarCertificacion?.trim() || null,
+      fechaCertificacion: datos.fechaCertificacion || null, lugarFirma: datos.lugarFirma.trim(), garantes,
       garanteCedula: garantes[0]?.cedula ?? null,
       garanteNombreCompleto: garantes[0]?.nombre_completo ?? null };
     this.guardando = true;
@@ -172,6 +189,11 @@ export class Alquileres implements OnInit {
         this.cdr.markForCheck();
       }
     });
+  }
+  private fechaValida(texto: string | null | undefined): boolean {
+    if (!texto || !/^\d{4}-\d{2}-\d{2}$/.test(texto)) return false;
+    const fecha = new Date(`${texto}T00:00:00Z`);
+    return Number.isFinite(fecha.getTime()) && fecha.toISOString().substring(0, 10) === texto;
   }
   garantesContrato(alquiler: Alquiler): Garante[] {
     if (alquiler.garantes?.length) return alquiler.garantes;
@@ -240,6 +262,9 @@ export class Alquileres implements OnInit {
     this.editandoId = alquiler.id;
     this.garantesFormulario = this.garantesContrato(alquiler).map(({ cedula, nombre_completo }) => ({ cedula, nombre_completo }));
     this.formulario = {
+      notarioID: alquiler.notarioID ?? null,
+      lugarCertificacion: alquiler.lugarCertificacion ?? '',
+      fechaCertificacion: alquiler.fechaCertificacion?.substring(0, 10) ?? '',
       propietarioID: alquiler.propietarioID ?? null,
       propiedadID: alquiler.propiedadID,
       inquilinoID: alquiler.inquilinoID,
@@ -281,6 +306,9 @@ export class Alquileres implements OnInit {
 
   generarContrato(alquiler: Alquiler): void {
     this.cerrarAcciones();
+    if (alquiler.notarioID && !this.notarios.some(n => n.id === Number(alquiler.notarioID))) {
+      this.error = 'No se puede generar el contrato sin cargar el notario asociado. Vuelve a cargar la página.'; return;
+    }
     const ventana = window.open('', '_blank');
     if (!ventana) {
       this.error = 'Permite las ventanas emergentes para generar el contrato.';
@@ -296,6 +324,9 @@ export class Alquileres implements OnInit {
     const inquilino = this.inquilinos.find(item => item.id === Number(alquiler.inquilinoID));
     doc.body.innerHTML = contenidoContrato({
       numero: alquiler.id,
+      notario: this.notarios.find(n => n.id === Number(alquiler.notarioID)),
+      lugarCertificacion: alquiler.lugarCertificacion,
+      fechaCertificacion: alquiler.fechaCertificacion,
       propiedad: this.nombrePropiedad(alquiler.propiedadID),
       inquilino: this.nombreInquilino(alquiler.inquilinoID),
       direccionInquilino: inquilino?.direccion,
@@ -332,7 +363,7 @@ export class Alquileres implements OnInit {
     this.errorFormulario = null;
     this.formularioAbierto = false;
     this.editandoId = null;
-    this.formulario = { propietarioID: null, propiedadID: 0, inquilinoID: 0, fechaInicio: '', fechaFin: '', cantidadMeses: null, montoPago: null, cantidadDepositos: 0, montoTotalDepositos: 0, lugarFirma: '', fechaFirma: '', garanteCedula: '', garanteNombreCompleto: '' };
+    this.formulario = { notarioID: null, lugarCertificacion: '', fechaCertificacion: '', propietarioID: null, propiedadID: 0, inquilinoID: 0, fechaInicio: '', fechaFin: '', cantidadMeses: null, montoPago: null, cantidadDepositos: 0, montoTotalDepositos: 0, lugarFirma: '', fechaFirma: '', garanteCedula: '', garanteNombreCompleto: '' };
   }
   estado(alquiler: Alquiler): 'Próximo' | 'Vigente' | 'Finalizado' {
     const hoy = new Date();
