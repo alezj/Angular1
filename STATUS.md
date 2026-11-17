@@ -116,7 +116,9 @@
 - **Status**: 🔄 Frontend structure exists, needs verification
 - **Files**: `src/app/inquilinos/inquilinos.ts`, `src/app/inquilinos/inquilinos.html`, `src/app/inquilinos/inquilinos.css`
 - **Service**: `src/app/inquilinos.service.ts` ✅
-- **Pending**: Verify full CRUD functionality, UI completeness
+- **Actualización 2026-11-17**: arrastre entre columnas, selector para móvil/teclado, guardado optimista con reversión individual, contadores y permisos de gestión. Catálogo de estados cargado desde el servicio y visibilidad de estados antiguos.
+- **Validación**: 12 pruebas satisfactorias de lógica, API e interacción; compilación SSR y consulta transaccional en Alquilados_Test.
+- **Pending**: Validación integral de los formularios CRUD con una sesión de usuario.
 
 ### 2. Properties Module (`/propiedades`) - **PARTIAL (Geolocalización agregada)**
 - **Status**: 🔄 Frontend structure exists, CRUD and Geolocation implemented
@@ -129,11 +131,13 @@
   - Botón directo para abrir la ubicación en Google Maps (tanto en vista de tarjetas como en tabla)
 - **Pending**: Verify full relationships with leases and payments
 
-### 3. Maintenance Module (`/mantenimientos`) - **PARTIAL**
-- **Status**: 🔄 Frontend structure exists, needs verification
+### 3. Maintenance Module (`/mantenimientos`) - **KANBAN IMPLEMENTED**
+- **Status**: ✅ Tablero Kanban con movimiento entre estados y persistencia verificados.
 - **Files**: `src/app/mantenimientos/mantenimientos.ts`, `src/app/mantenimientos/mantenimientos.html`, `src/app/mantenimientos/mantenimientos.css`
 - **Service**: `src/app/mantenimientos.service.ts` ✅
-- **Pending**: Verify full CRUD functionality, UI completeness
+- **Actualización 2026-11-17**: arrastre entre columnas, selector para móvil/teclado, guardado optimista con reversión individual, contadores y permisos de gestión. Catálogo de estados cargado desde el servicio y visibilidad de estados antiguos.
+- **Validación**: 12 pruebas satisfactorias de lógica, API e interacción; compilación SSR y consulta transaccional en Alquilados_Test.
+- **Pending**: Validación integral de los formularios CRUD con una sesión de usuario.
 
 ### 4. Leases Module (`/alquileres`) - **PARTIAL**
 - **Status**: 🔄 CRUD implementado; pendiente validación integral con sesión autenticada.
@@ -316,7 +320,7 @@
 
 ---
 
-*Last Updated: 2026-11-15*
+*Last Updated: 2026-11-17*
 *Status Document Version: 1.2*
 
 
@@ -324,7 +328,31 @@
 
 - ✅ Mantenimiento `/notarios`: identidad, matrícula, jurisdicción, despacho y contacto; alta, consulta, búsqueda, edición y eliminación.
 - ✅ Selección del notario por contrato y registro independiente de lugar/fecha de certificación; integración en la plantilla imprimible y los comparecientes.
-- ✅ Tabla `notario`, validaciones de duplicados, RLS, relación con alquileres y extensión de `guardar_contrato_con_garantes`, aplicadas exclusivamente en Alquilados_Test.
+- ✅ Tabla `notario`, validaciones de duplicados, RLS, relación con alquileres y extensión de `guardar_contrato_con_garantes`, aplicadas en Alquilados_Test y en producción (2026-11-17).
 - ✅ 32 pruebas de notarios/contratos, compilación Angular SSR y verificación transaccional de base de datos satisfactorias. Avisos de compilación por tamaño y Leaflet CommonJS.
-- ⏳ Aplicar `supabase-notarios-schema.sql` a producción antes del despliegue de la funcionalidad.
+- ✅ `supabase-notarios-schema.sql` aplicado a producción el 2026-11-17: migración `20261117102829_notarios_y_certificacion_contratos`.
 - Observación de validación: la suite global presenta un error previo de importación en `src/app/datos.spec.ts`; las pruebas del alcance se ejecutaron con configuración temporal. La caché LMDB del equipo requiere desactivarse con `CI=true` para compilar.
+
+
+## Corrección 2026-11-17 — NG0103 en Mantenimientos
+
+- ✅ Reproducido el ciclo infinito al renderizar solicitudes con estados antiguos.
+- ✅ Columnas y opciones identificadas por ID (`trackBy`) para conservar las vistas y evitar el registro continuo de NgModel.
+- ✅ 14 pruebas satisfactorias, con regresiones para tablero y formulario.
+- ✅ Resuelto el 2026-11-17: la tabla `public.notario` y su integración contractual ya están en producción.
+
+
+## Despliegue 2026-11-17 — Notarios en producción
+
+- ✅ Proyecto confirmado: alezj's Project (`plkbprmponbtwfxglmzm`).
+- ✅ Migración `20261117102829_notarios_y_certificacion_contratos` registrada y aplicada.
+- ✅ Verificados campos contractuales, claves foráneas, RLS por empresa, trigger, permisos y RPC; consulta de tabla con rol autenticado satisfactoria.
+- ✅ PostgREST notificado para recargar el esquema; sin datos de prueba persistidos en producción.
+
+
+## Verificación 2026-11-17 — Persistencia del error en localhost
+
+- ✅ Inspeccionada la pestaña real: recarga Vite desconectada y errores acumulados.
+- ✅ Referencias estables de columnas y selector nativo en las tarjetas, sin tareas asíncronas de NgModel en el tablero.
+- ✅ Servidor local reiniciado sin HMR; verificado en Chrome con los datos existentes y consola sin errores repetitivos.
+- ✅ 15 pruebas y compilación Angular SSR satisfactorias. Sin cambios en datos de mantenimiento.

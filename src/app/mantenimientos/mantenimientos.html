@@ -2,29 +2,45 @@
   <header class="module-heading maintenance-heading">
     <div>
       <h2>Mantenimientos</h2>
-      <p>Solicitudes de reparación organizadas por estado.</p>
+      <p>Organiza el trabajo y mueve las solicitudes entre etapas.</p>
     </div>
-    <button class="filter-button" type="button" (click)="nuevo()">+ Nueva solicitud</button>
+    <button class="filter-button" type="button" *ngIf="puedeGestionar" [disabled]="movimientosPendientes.size > 0" (click)="nuevo()">+ Nueva solicitud</button>
   </header>
 
+  <div class="board-guide">
+    <span class="board-guide-icon" aria-hidden="true">⠿</span>
+    <p *ngIf="puedeGestionar" id="kanban-help">Arrastra una tarjeta a otra columna o usa <strong>Mover a</strong>. Los cambios se guardan automáticamente.</p>
+    <p *ngIf="!puedeGestionar" id="kanban-help">Consulta el avance de las solicitudes en cada etapa.</p>
+    <span class="board-total">{{ mantenimientos.length }} solicitudes</span>
+  </div>
+  <p class="board-status" role="status" aria-live="polite">{{ mensaje }}</p>
   <p *ngIf="cargando">Cargando mantenimientos...</p>
-  <p *ngIf="error" class="error">{{ error }}</p>
+  <p *ngIf="error" class="error" role="alert">{{ error }}</p>
 
-  <div class="maintenance-board" *ngIf="!cargando && !error">
-    <section class="maintenance-column" *ngFor="let estado of estados" [attr.data-state]="estado.id" [attr.aria-label]="estado.nombre">
+  <div class="maintenance-board" *ngIf="!cargando" aria-label="Tablero de mantenimientos" aria-describedby="kanban-help">
+    <section class="maintenance-column" *ngFor="let estado of columnas; trackBy: identificarEstado; let i = index" [attr.data-state]="estado.id" [attr.data-position]="i" [attr.aria-label]="estado.nombre"
+      [class.drop-target]="columnaDestino === estado.id"
+      (dragover)="permitirSoltar($event, estado.id)" (dragleave)="salirColumna($event, estado.id)"
+      (drop)="soltar($event, estado.id)">
       <header class="maintenance-column-header">
-        <h3>{{ estado.nombre }}</h3>
+        <h3><span class="state-dot" aria-hidden="true"></span>{{ estado.nombre }}</h3>
         <span>{{ solicitudesPorEstado(estado.id).length }}</span>
       </header>
       <div class="maintenance-column-content">
-        <article class="maintenance-ticket" *ngFor="let mantenimiento of solicitudesPorEstado(estado.id)">
+        <article class="maintenance-ticket" *ngFor="let mantenimiento of solicitudesPorEstado(estado.id); trackBy: identificarSolicitud"
+          [draggable]="puedeGestionar && !movimientosPendientes.has(mantenimiento.id) && !formularioAbierto"
+          [class.is-dragging]="arrastrandoId === mantenimiento.id"
+          [class.is-saving]="movimientosPendientes.has(mantenimiento.id)"
+          [attr.aria-busy]="movimientosPendientes.has(mantenimiento.id)"
+          [attr.aria-label]="'Solicitud ' + mantenimiento.id + ': ' + mantenimiento.descripcion"
+          (dragstart)="iniciarArrastre($event, mantenimiento)" (dragend)="finalizarArrastre()">
           <header class="ticket-header">
-            <span>#{{ mantenimiento.id }}</span>
-            <div class="action-buttons">
-              <button class="icon-action" type="button" title="Editar" [attr.aria-label]="'Editar solicitud ' + mantenimiento.id" (click)="editar(mantenimiento)">
+            <span><span class="drag-grip" *ngIf="puedeGestionar" aria-hidden="true">⠿</span> #{{ mantenimiento.id }}</span>
+            <div class="action-buttons" *ngIf="puedeGestionar">
+              <button class="icon-action" type="button" [disabled]="movimientosPendientes.size > 0" title="Editar" [attr.aria-label]="'Editar solicitud ' + mantenimiento.id" (click)="editar(mantenimiento)">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
               </button>
-              <button class="icon-action danger" type="button" title="Eliminar" [attr.aria-label]="'Eliminar solicitud ' + mantenimiento.id" (click)="eliminar(mantenimiento.id)">
+              <button class="icon-action danger" type="button" [disabled]="movimientosPendientes.size > 0" title="Eliminar" [attr.aria-label]="'Eliminar solicitud ' + mantenimiento.id" (click)="eliminar(mantenimiento.id)">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6" /></svg>
               </button>
             </div>
@@ -35,8 +51,18 @@
             <span>{{ mantenimiento.fecha | date: 'dd/MM/yyyy' }}</span>
             <strong>RD$ {{ mantenimiento.costo | number: '1.2-2' }}</strong>
           </footer>
+          <label class="ticket-move" *ngIf="puedeGestionar">
+            <span>{{ movimientosPendientes.has(mantenimiento.id) ? 'Guardando…' : 'Mover a' }}</span>
+            <select class="ticket-state-select" [value]="mantenimiento.estado"
+              (change)="cambiarEstadoDesdeSelector(mantenimiento.id, $event)"
+              [disabled]="movimientosPendientes.has(mantenimiento.id) || formularioAbierto"
+              [attr.aria-label]="'Mover solicitud ' + mantenimiento.id + ' a otro estado'">
+              <option *ngIf="!estadoDisponible(mantenimiento.estado)" [value]="mantenimiento.estado" selected disabled>{{ nombreEstado(mantenimiento.estado) }}</option>
+              <option *ngFor="let destino of estados; trackBy: identificarEstado" [value]="destino.id" [selected]="destino.id === mantenimiento.estado">{{ destino.nombre }}</option>
+            </select>
+          </label>
         </article>
-        <p class="column-empty" *ngIf="solicitudesPorEstado(estado.id).length === 0">Sin solicitudes</p>
+        <p class="column-empty" *ngIf="solicitudesPorEstado(estado.id).length === 0">{{ arrastrandoId !== null ? 'Suelta aquí la solicitud' : 'Sin solicitudes en esta etapa' }}</p>
       </div>
     </section>
   </div>
@@ -51,15 +77,16 @@
       </div>
       <button class="icon-action" type="button" aria-label="Cerrar" title="Cerrar" (click)="cancelar()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12" /></svg></button>
     </header>
-    <form (ngSubmit)="guardar()" class="maintenance-form">
+    <form #solicitudForm="ngForm" (ngSubmit)="guardar()" class="maintenance-form">
       <label><span>ID de propiedad</span><input class="filter-input" [(ngModel)]="formulario.propiedadID" name="propiedad" type="number" min="1" required></label>
       <label><span>Fecha</span><input class="filter-input" [(ngModel)]="formulario.fecha" name="fecha" type="date" required></label>
       <label class="maintenance-description"><span>Descripción</span><input class="filter-input" [(ngModel)]="formulario.descripcion" name="descripcion" required></label>
-      <label><span>Costo (RD$)</span><input class="filter-input" [(ngModel)]="formulario.costo" name="costo" type="number" min="0" required></label>
-      <label><span>Estado</span><select class="filter-select" [(ngModel)]="formulario.estado" name="estado"><option *ngFor="let estado of estados" [ngValue]="estado.id">{{ estado.nombre }}</option></select></label>
+      <label><span>Costo (RD$)</span><input class="filter-input" [(ngModel)]="formulario.costo" name="costo" type="number" min="0" step="0.01" required></label>
+      <label><span>Estado</span><select class="filter-select" [(ngModel)]="formulario.estado" name="estado"><option *ngFor="let estado of columnas; trackBy: identificarEstado" [ngValue]="estado.id">{{ estado.nombre }}</option></select></label>
+      <p class="error maintenance-description" role="alert" *ngIf="errorFormulario">{{ errorFormulario }}</p>
       <footer class="tenant-form-actions">
-        <button class="filter-button secondary" type="button" (click)="cancelar()">Cancelar</button>
-        <button class="filter-button" type="submit">{{ editandoId === null ? 'Crear solicitud' : 'Guardar cambios' }}</button>
+        <button class="filter-button secondary" type="button" [disabled]="guardando" (click)="cancelar()">Cancelar</button>
+        <button class="filter-button" type="submit" [disabled]="guardando || solicitudForm.invalid">{{ guardando ? 'Guardando…' : editandoId === null ? 'Crear solicitud' : 'Guardar cambios' }}</button>
       </footer>
     </form>
   </section>

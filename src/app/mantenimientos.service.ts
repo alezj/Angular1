@@ -75,6 +75,23 @@ export class MantenimientosService {
     );
   }
 
+  cambiarEstado(id: number, estado: number): Observable<ApiResponse<Mantenimiento>> {
+    return from(
+      this.supabaseService.client
+        .from('mantenimientos')
+        .update({ estado })
+        .eq('id', id)
+        .select()
+        .single()
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return { success: true, data: data as Mantenimiento };
+      }),
+      tap(() => this.cache.invalidate(this.cacheKey))
+    );
+  }
+
   eliminar(id: number): Observable<ApiResponse<null>> {
     return from(
       this.supabaseService.client

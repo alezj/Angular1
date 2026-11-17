@@ -172,3 +172,33 @@ Se solicitó una skill global para actualizar `README.md` y este archivo tras ca
 Se revisaron los campos de la certificación de `contrato-template.ts` y se agregó el mantenimiento `/notarios`, con nombre, cédula, matrícula, jurisdicción, despacho y contacto. Se integró la selección del notario y el lugar/fecha del acto en los contratos y su documento imprimible, incluyendo los nombres de todos los comparecientes.
 
 El script `supabase-notarios-schema.sql` se aplicó solo a Alquilados_Test y conserva la separación por usuario/empresa, los permisos y la protección de referencias. Producción queda pendiente para el despliegue. Se comprobaron CRUD, duplicados, asociación por RPC, bloqueo de borrado y aislamiento RLS en una transacción revertida. Pasaron 32 pruebas y la compilación SSR. README y STATUS recogen los detalles y las incidencias previas del entorno de validación.
+
+
+## Actualización de sesión (2026-11-17) — Kanban de mantenimientos
+
+Se habilitó el arrastre de tarjetas entre columnas con guardado automático del estado, destino resaltado, contadores, indicador de guardado y recuperación individual ante errores. El selector Mover a ofrece una alternativa para móvil y teclado. Los usuarios sin `mantenimientos:manage` conservan acceso de consulta. Se preservan formularios y acciones de mantenimiento con validación y protección ante guardados duplicados.
+
+Se detectó que la vista usaba IDs 1–4 mientras el catálogo de mantenimientos usa 5–8. Las columnas ahora se cargan desde EstadosService; los registros con estados antiguos o desconocidos permanecen visibles. El nuevo método cambiarEstado actualiza solo ese campo, confirma la fila afectada e invalida la caché. No se modificó el esquema ni producción.
+
+Validación: 12 pruebas de lógica, servicio y eventos de arrastre/selector en ChromeHeadless; compilación Angular SSR con 21 rutas prerenderizadas. Se confirmó en una transacción revertida de Alquilados_Test que el cambio de estado conserva descripción y costo. Se mantuvieron los avisos de compilación de tamaño y Leaflet CommonJS. README y STATUS actualizados.
+
+
+### Corrección del ciclo de renderizado del Kanban (2026-11-17)
+
+Los registros con estados antiguos provocaban `NG0103` (detección de cambios infinita): el getter de columnas construía objetos nuevos y Angular recreaba sus vistas y los controles `NgModel` continuamente. Las columnas y opciones ahora se identifican por el ID del estado mediante `trackBy`. Las pruebas reproducen el error previo y comprueban que los nodos se conservan al repintar, tanto en el tablero como en el formulario. Las 14 pruebas del módulo pasan en ChromeHeadless.
+
+La consulta de diagnóstico también confirmó que `public.notario` aún no existe en producción (`plkbprmponbtwfxglmzm`); la migración de notarios continúa pendiente allí. No se modificó la base de producción. Para desarrollo y pruebas locales usar `npm run start:test` y Alquilados_Test.
+
+
+## Actualización de sesión (2026-11-17) — Migración de Notarios en producción
+
+Por solicitud expresa del usuario se aplicó `supabase-notarios-schema.sql` al proyecto de producción `alezj's Project` (`plkbprmponbtwfxglmzm`), tras revisar el esquema y confirmar sus dependencias. La migración quedó registrada como `20261117102829_notarios_y_certificacion_contratos`. Se verificaron la tabla notario, los campos de certificación de alquileres, las referencias por empresa, el trigger, las políticas RLS, los permisos y la RPC de guardado. La consulta ordenada por nombre funciona bajo el rol authenticated y se notificó la recarga de esquema a PostgREST. Sin datos de prueba en producción ni nuevos avisos de seguridad sobre los objetos de esta migración. README y STATUS actualizados para cerrar el pendiente del 404.
+
+
+### Verificación directa de localhost y estabilización adicional (2026-11-17)
+
+Ante la persistencia reportada se inspeccionó la pestaña real de `localhost:4200/mantenimientos`: acumulaba más de 13.000 errores y la consola mostraba fallos de conexión del WebSocket de Vite. Se confirmó por HTTP que los archivos corregidos estaban disponibles, pero la vista abierta no recibía la actualización.
+
+El tablero conserva ahora la referencia del arreglo de columnas cuando no cambia su contenido. El selector de cada tarjeta usa valores y eventos nativos del navegador en lugar de `NgModel`; el formulario mantiene Angular Forms. Se añadió una prueba de carga asíncrona con estado antiguo y veinte ciclos de actualización del catálogo, comprobando que no se crean errores ni se reemplazan los nodos.
+
+Se reinició únicamente el servidor Angular de este proyecto con `CI=true NG_BUILD_MAX_WORKERS=2 npm start -- --hmr=false --host=127.0.0.1 --port=4200`, preservando la configuración de entorno. Verificación final en Chrome: tablero cargado con la solicitud existente y consola sin errores, solo mensajes normales de desarrollo e hidratación. Pasaron las 15 pruebas del módulo y la compilación SSR. No se modificaron datos de mantenimiento durante la comprobación.
