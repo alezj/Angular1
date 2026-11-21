@@ -179,3 +179,10 @@ Ante la persistencia reportada se inspeccionó la pestaña real de `localhost:42
 El tablero conserva ahora la referencia del arreglo de columnas cuando no cambia su contenido. El selector de cada tarjeta usa valores y eventos nativos del navegador en lugar de `NgModel`; el formulario mantiene Angular Forms. Se añadió una prueba de carga asíncrona con estado antiguo y veinte ciclos de actualización del catálogo, comprobando que no se crean errores ni se reemplazan los nodos.
 
 Se reinició únicamente el servidor Angular de este proyecto con `CI=true NG_BUILD_MAX_WORKERS=2 npm start -- --hmr=false --host=127.0.0.1 --port=4200`, preservando la configuración de entorno. Verificación final en Chrome: tablero cargado con la solicitud existente y consola sin errores, solo mensajes normales de desarrollo e hidratación. Pasaron las 15 pruebas del módulo y la compilación SSR. No se modificaron datos de mantenimiento durante la comprobación.
+
+
+### Formulario de mantenimientos (2026-11-21)
+
+La creación y edición usan un modal adaptable con secciones de propiedad, detalles y seguimiento. La propiedad se elige desde el catálogo por código/nombre/dirección, con una vista de la dirección seleccionada; la carga tiene estados de espera, vacío, error y reintento. La descripción admite varias líneas y hasta 2,000 caracteres. La fecha inicial corresponde al día actual de Santo Domingo; el costo admite cero y hasta dos decimales. Los errores aparecen junto al campo y el formulario conserva sus valores si falla el guardado.
+
+Al editar se puede mantener la propiedad o estado original aunque no figuren en el catálogo. Durante el guardado se bloquean controles y cierre; el foco permanece dentro del diálogo y vuelve al control de origen al cerrar. La ruta de Mantenimientos carga el componente bajo demanda para respetar el presupuesto de tamaño inicial. Validación: 21 pruebas del módulo satisfactorias en ChromeHeadless y compilación Angular SSR con 21 rutas prerenderizadas. No requiere migración.

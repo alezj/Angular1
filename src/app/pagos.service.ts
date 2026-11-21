@@ -3,6 +3,7 @@ import { from, Observable, throwError } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { StorageCacheService } from './storage-cache.service';
 import { SupabaseService } from './supabase.service';
+import { environment } from '../environments/environment';
 
 export interface Pago {
   id: number;
@@ -29,6 +30,7 @@ export interface ApiResponse<T> {
 @Injectable({ providedIn: 'root' })
 export class PagosService {
   private readonly cacheKey = 'angular1:pagos';
+  readonly refreshFromServer = environment.onlinePaymentSync;
 
   constructor(
     private readonly supabaseService: SupabaseService,
@@ -47,7 +49,7 @@ export class PagosService {
         return { success: true, data: (data || []) as Pago[] };
       })
     );
-    return this.cache.getOrFetch(this.cacheKey, fetch$);
+    return this.refreshFromServer ? fetch$ : this.cache.getOrFetch(this.cacheKey, fetch$);
   }
 
   crear(datos: Omit<Pago, 'id'>): Observable<ApiResponse<Pago>> {

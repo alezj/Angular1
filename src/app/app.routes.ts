@@ -12,7 +12,6 @@ import { Datos } from './datos/datos';
 import { Estados } from './estados/estados';
 import { Inicio } from './inicio/inicio';
 import { Inquilinos } from './inquilinos/inquilinos';
-import { Mantenimientos } from './mantenimientos/mantenimientos';
 import { Pagos } from './pagos/pagos';
 import { Propiedades } from './propiedades/propiedades';
 import { Pruebas } from './pruebas/pruebas';
@@ -34,7 +33,7 @@ export const routes: Routes = [
   { path: 'notarios', loadComponent: () => import('./notarios/notarios').then(m => m.Notarios), canActivate: [authGuard, permissionGuard('alquileres:read')] },
   { path: 'alquileres', component: Alquileres, canActivate: [authGuard] },
   { path: 'pagos', component: Pagos, canActivate: [authGuard] },
-  { path: 'mantenimientos', component: Mantenimientos, canActivate: [authGuard] },
+  { path: 'mantenimientos', loadComponent: () => import('./mantenimientos/mantenimientos').then(m => m.Mantenimientos), canActivate: [authGuard] },
   { path: 'estados', component: Estados, canActivate: [authGuard] },
   { path: 'correos', component: Correos, canActivate: [authGuard] },
   { path: 'datos', component: Datos, canActivate: [authGuard] },

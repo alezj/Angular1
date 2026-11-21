@@ -1,7 +1,8 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { timeout } from 'rxjs';
+import { EMPTY, catchError, exhaustMap, filter, fromEvent, merge, timeout, timer } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { Pago, PagosService } from '../pagos.service';
 import { Inquilino, InquilinosService } from '../inquilinos.service';
@@ -16,6 +17,7 @@ import { Propiedad, PropiedadesService } from '../propiedades.service';
   styleUrl: './pagos.css'
 })
 export class Pagos implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   pagos: Pago[] = [];
   cargando = true;
   error: string | null = null;
@@ -95,6 +97,22 @@ export class Pagos implements OnInit {
         this.cdr.markForCheck();
       }
     });
+
+    if (this.pagosService.refreshFromServer && typeof document !== 'undefined') {
+      merge(timer(30_000, 30_000), fromEvent(document, 'visibilitychange')).pipe(
+        filter(() => document.visibilityState === 'visible' && !this.cargando && !this.guardandoCobro),
+        exhaustMap(() => this.pagosService.obtenerPagos().pipe(
+          timeout({ first: 15000 }),
+          catchError(() => EMPTY)
+        )),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(({ data }) => {
+        if (this.guardandoCobro) return;
+        this.pagos = data;
+        this.error = null;
+        this.cdr.markForCheck();
+      });
+    }
   }
 
   private sumaEstado(estado: string): number { return this.pagosDelPeriodo.filter(p => this.estadoPago(p) === estado).reduce((t, p) => t + (Number(p.monto) || 0), 0); }

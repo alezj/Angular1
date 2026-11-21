@@ -4,6 +4,7 @@ import { of, Subject, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { EstadosService } from '../estados.service';
 import { ApiResponse, Mantenimiento, MantenimientosService } from '../mantenimientos.service';
+import { PropiedadesService } from '../propiedades.service';
 import { Mantenimientos } from './mantenimientos';
 
 const solicitud: Mantenimiento = {
@@ -17,6 +18,7 @@ describe('Tablero Kanban de mantenimientos', () => {
   let auth: jasmine.SpyObj<AuthService>;
   let estados: jasmine.SpyObj<EstadosService>;
   let respuesta: Subject<ApiResponse<Mantenimiento>>;
+  let propiedades: jasmine.SpyObj<PropiedadesService>;
 
   beforeEach(() => {
     service = jasmine.createSpyObj('MantenimientosService', [
@@ -34,8 +36,13 @@ describe('Tablero Kanban de mantenimientos', () => {
       { ID: 7, Descripcion: 'Finalizado', tabla: 'mantenimientos' },
       { ID: 8, Descripcion: 'Cancelado', tabla: 'mantenimientos' }
     ] }));
+    propiedades = jasmine.createSpyObj('PropiedadesService', ['obtenerPropiedades']);
+    propiedades.obtenerPropiedades.and.returnValue(of({ success: true, data: [
+      { id: 2, nombre: 'Casa de prueba', direccion: 'Calle de prueba', codigo: 'CASA-2',
+        estado: 1, precioMensual: 12000, notas: '' }
+    ] }));
     component = new Mantenimientos(service, { markForCheck: () => {} } as ChangeDetectorRef,
-      auth, estados);
+      auth, estados, propiedades);
     component.ngOnInit();
   });
 
@@ -118,6 +125,80 @@ describe('Tablero Kanban de mantenimientos', () => {
     expect(component.formularioAbierto).toBeFalse();
   });
 
+  describe('formulario de creación y edición', () => {
+    it('crea con una propiedad elegida y envía la descripción limpia sin identidad', () => {
+      service.crear.and.returnValue(of({ success: true, data: solicitud }));
+      component.nuevo();
+      expect(component.propiedades[0].nombre).toBe('Casa de prueba');
+      expect(component.formulario.fecha).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      component.formulario = { propiedadID: 2, descripcion: '  Reparar la llave  ',
+        fecha: '2026-11-21', costo: 1800.25, estado: 5 };
+      component.guardar();
+      expect(service.crear).toHaveBeenCalledOnceWith({ propiedadID: 2,
+        descripcion: 'Reparar la llave', fecha: '2026-11-21', costo: 1800.25, estado: 5 });
+      expect(component.formularioAbierto).toBeFalse();
+    });
+
+    it('permite conservar la propiedad no disponible y el estado anterior al editar', () => {
+      const anterior = { ...solicitud, propiedadID: 99, estado: 1 };
+      component.mantenimientos = [anterior];
+      service.actualizar.and.returnValue(of({ success: true, data: anterior }));
+      component.editar(anterior);
+      expect(component.propiedadNoDisponible).toBeTrue();
+      component.formulario.descripcion = 'Trabajo actualizado';
+      component.guardar();
+      expect(service.actualizar).toHaveBeenCalledWith(11, jasmine.objectContaining({
+        propiedadID: 99, estado: 1, descripcion: 'Trabajo actualizado'
+      }));
+      expect(service.actualizar.calls.mostRecent().args[1]).not.toEqual(jasmine.objectContaining({ id: 11 }));
+      expect(anterior.descripcion).toBe(solicitud.descripcion);
+    });
+
+    it('rechaza propiedades inventadas, fechas inexistentes y costos inválidos', () => {
+      component.nuevo();
+      component.formulario = { propiedadID: 999, descripcion: ' ', fecha: '2026-02-31',
+        costo: -1, estado: 999 };
+      component.guardar();
+      expect(Object.keys(component.erroresCampos).length).toBe(5);
+      expect(service.crear).not.toHaveBeenCalled();
+      component.formulario = { propiedadID: 2, descripcion: 'Reparar', fecha: '2026-11-21',
+        costo: 10.123, estado: 5 };
+      component.guardar();
+      expect(component.erroresCampos.costo).toContain('dos decimales');
+      expect(service.crear).not.toHaveBeenCalled();
+    });
+
+    it('bloquea guardados y cierre duplicados y conserva los datos tras un error', () => {
+      const guardado = new Subject<ApiResponse<Mantenimiento>>();
+      service.crear.and.returnValue(guardado);
+      component.nuevo();
+      component.formulario = { propiedadID: 2, descripcion: 'Reparar', fecha: '2026-11-21', costo: 0, estado: 5 };
+      component.guardar();
+      component.guardar();
+      component.cancelar();
+      expect(service.crear).toHaveBeenCalledTimes(1);
+      expect(component.formularioAbierto).toBeTrue();
+      guardado.error(new Error('Sin conexión'));
+      expect(component.formulario.descripcion).toBe('Reparar');
+      expect(component.guardando).toBeFalse();
+      expect(component.errorFormulario).toContain('No se pudo guardar');
+    });
+
+    it('permite reintentar la carga y descarta respuestas después de cerrar', () => {
+      propiedades.obtenerPropiedades.and.returnValue(throwError(() => new Error('Sin conexión')));
+      component.nuevo();
+      expect(component.errorPropiedades).toContain('No se pudieron cargar');
+      const carga = new Subject<any>();
+      propiedades.obtenerPropiedades.and.returnValue(carga);
+      component.cargarPropiedades();
+      expect(component.cargandoPropiedades).toBeTrue();
+      component.cancelar();
+      carga.next({ success: true, data: [{ id: 99 }] });
+      expect(component.propiedades.length).toBe(0);
+      expect(component.formularioAbierto).toBeFalse();
+    });
+  });
+
   describe('interacciones en pantalla', () => {
     let fixture: ComponentFixture<Mantenimientos>;
     beforeEach(async () => {
@@ -127,7 +208,8 @@ describe('Tablero Kanban de mantenimientos', () => {
           provideZonelessChangeDetection(),
           { provide: MantenimientosService, useValue: service },
           { provide: AuthService, useValue: auth },
-          { provide: EstadosService, useValue: estados }
+          { provide: EstadosService, useValue: estados },
+          { provide: PropiedadesService, useValue: propiedades }
         ]
       }).compileComponents();
       fixture = TestBed.createComponent(Mantenimientos);
@@ -236,6 +318,24 @@ describe('Tablero Kanban de mantenimientos', () => {
       await fixture.whenStable();
       expect(errores).not.toHaveBeenCalled();
       expect(service.obtenerMantenimientos).toHaveBeenCalledTimes(3);
+    });
+
+    it('presenta propiedad y descripción y mantiene el foco durante el guardado', async () => {
+      fixture.componentInstance.nuevo();
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const dialogo = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement;
+      expect(dialogo.querySelector('textarea[name="descripcion"]')).not.toBeNull();
+      expect(dialogo.querySelector('select[name="propiedad"]')?.textContent).toContain('Casa de prueba');
+      expect(document.activeElement?.id).toBe('maintenance-modal-title');
+      fixture.componentInstance.guardando = true;
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+      const tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+      document.dispatchEvent(tab);
+      expect(tab.defaultPrevented).toBeTrue();
+      expect(document.activeElement?.id).toBe('maintenance-modal-title');
     });
 
     it('presenta solo consulta cuando falta el permiso de gestión', () => {

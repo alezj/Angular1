@@ -69,24 +69,102 @@
 </section>
 
 <div class="maintenance-modal-backdrop" *ngIf="formularioAbierto" (click)="cancelar()">
-  <section class="maintenance-modal" role="dialog" aria-modal="true" aria-labelledby="maintenance-modal-title" (click)="$event.stopPropagation()">
-    <header class="tenant-modal-header">
-      <div>
-        <h2 id="maintenance-modal-title">{{ editandoId === null ? 'Nueva solicitud' : 'Editar solicitud' }}</h2>
-        <p>Registra el trabajo y su estado de seguimiento.</p>
+  <section #dialogoMantenimiento class="maintenance-modal" role="dialog" aria-modal="true"
+    aria-labelledby="maintenance-modal-title" aria-describedby="maintenance-modal-help"
+    [attr.aria-busy]="guardando" (click)="$event.stopPropagation()">
+    <header class="maintenance-dialog-header">
+      <div class="maintenance-dialog-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="m14 6 4 4M4 20l5-1 11-11a3 3 0 0 0-5-5L4 14Z" /></svg>
       </div>
-      <button class="icon-action" type="button" aria-label="Cerrar" title="Cerrar" (click)="cancelar()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12" /></svg></button>
+      <div class="maintenance-dialog-title">
+        <span class="maintenance-eyebrow">{{ editandoId === null ? 'NUEVO MANTENIMIENTO' : 'SOLICITUD #' + editandoId }}</span>
+        <h2 id="maintenance-modal-title" tabindex="-1">{{ editandoId === null ? 'Crear solicitud' : 'Editar mantenimiento' }}</h2>
+        <p id="maintenance-modal-help">Define dónde se realizará el trabajo y los detalles de su seguimiento.</p>
+      </div>
+      <button class="icon-action maintenance-close" type="button" aria-label="Cerrar formulario" [disabled]="guardando" (click)="cancelar()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12" /></svg>
+      </button>
     </header>
-    <form #solicitudForm="ngForm" (ngSubmit)="guardar()" class="maintenance-form">
-      <label><span>ID de propiedad</span><input class="filter-input" [(ngModel)]="formulario.propiedadID" name="propiedad" type="number" min="1" required></label>
-      <label><span>Fecha</span><input class="filter-input" [(ngModel)]="formulario.fecha" name="fecha" type="date" required></label>
-      <label class="maintenance-description"><span>Descripción</span><input class="filter-input" [(ngModel)]="formulario.descripcion" name="descripcion" required></label>
-      <label><span>Costo (RD$)</span><input class="filter-input" [(ngModel)]="formulario.costo" name="costo" type="number" min="0" step="0.01" required></label>
-      <label><span>Estado</span><select class="filter-select" [(ngModel)]="formulario.estado" name="estado"><option *ngFor="let estado of columnas; trackBy: identificarEstado" [ngValue]="estado.id">{{ estado.nombre }}</option></select></label>
-      <p class="error maintenance-description" role="alert" *ngIf="errorFormulario">{{ errorFormulario }}</p>
-      <footer class="tenant-form-actions">
-        <button class="filter-button secondary" type="button" [disabled]="guardando" (click)="cancelar()">Cancelar</button>
-        <button class="filter-button" type="submit" [disabled]="guardando || solicitudForm.invalid">{{ guardando ? 'Guardando…' : editandoId === null ? 'Crear solicitud' : 'Guardar cambios' }}</button>
+
+    <form #solicitudForm="ngForm" (ngSubmit)="guardar()" class="maintenance-form" novalidate>
+      <div class="maintenance-form-body">
+        <fieldset class="maintenance-form-section" [disabled]="guardando">
+          <legend><span aria-hidden="true">01</span> Propiedad</legend>
+          <label for="maintenance-property">Propiedad a intervenir <span class="required-mark">*</span></label>
+          <select id="maintenance-property" class="filter-select" [(ngModel)]="formulario.propiedadID" name="propiedad"
+            [disabled]="guardando || cargandoPropiedades" [attr.aria-invalid]="!!erroresCampos.propiedadID"
+            aria-describedby="maintenance-property-help maintenance-property-error" required>
+            <option [ngValue]="0" disabled>{{ cargandoPropiedades ? 'Cargando propiedades…' : 'Selecciona una propiedad' }}</option>
+            <option *ngIf="propiedadNoDisponible" [ngValue]="formulario.propiedadID">Propiedad #{{ formulario.propiedadID }} · No disponible en el catálogo</option>
+            <option *ngFor="let p of propiedades; trackBy: identificarSolicitud" [ngValue]="p.id">{{ nombrePropiedad(p) }}</option>
+          </select>
+          <small id="maintenance-property-help">Elige la propiedad por su código, nombre o dirección.</small>
+          <p id="maintenance-property-error" class="field-error" *ngIf="erroresCampos.propiedadID">{{ erroresCampos.propiedadID }}</p>
+          <div class="property-preview" *ngIf="propiedadSeleccionada as propiedad">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10H3ZM9 20v-7h6v7" /></svg>
+            <div><strong>{{ propiedad.nombre || 'Propiedad #' + propiedad.id }}</strong><span>{{ propiedad.direccion || 'Dirección sin registrar' }}</span></div>
+          </div>
+          <p class="maintenance-inline-notice" *ngIf="!cargandoPropiedades && propiedadNoDisponible && editandoId !== null">
+            Puedes conservar la propiedad asociada o seleccionar otra disponible.
+          </p>
+          <div class="maintenance-load-error" role="alert" *ngIf="errorPropiedades">
+            <p>{{ errorPropiedades }}</p><button class="filter-button secondary" type="button" (click)="cargarPropiedades()">Reintentar</button>
+          </div>
+          <p class="maintenance-inline-notice" *ngIf="!cargandoPropiedades && !errorPropiedades && propiedades.length === 0">
+            No hay propiedades disponibles. Registra una en Propiedades antes de crear la solicitud.
+          </p>
+        </fieldset>
+
+        <fieldset class="maintenance-form-section" [disabled]="guardando">
+          <legend><span aria-hidden="true">02</span> Detalles del trabajo</legend>
+          <label for="maintenance-description">Descripción <span class="required-mark">*</span></label>
+          <textarea id="maintenance-description" class="filter-input" [(ngModel)]="formulario.descripcion"
+            name="descripcion" rows="4" maxlength="2000" required #descripcion="ngModel"
+            placeholder="Describe el problema, el área afectada y el trabajo que se necesita realizar."
+            [attr.aria-invalid]="!!erroresCampos.descripcion || (descripcion.touched && descripcion.invalid)"
+            aria-describedby="maintenance-description-help maintenance-description-error"></textarea>
+          <div class="maintenance-field-help" id="maintenance-description-help"><span>Incluye los detalles que facilitarán la atención de la solicitud.</span><span>{{ formulario.descripcion.length }}/2000</span></div>
+          <p id="maintenance-description-error" class="field-error" *ngIf="erroresCampos.descripcion || (descripcion.touched && descripcion.invalid)">{{ erroresCampos.descripcion || 'Escribe la descripción del trabajo.' }}</p>
+        </fieldset>
+
+        <fieldset class="maintenance-form-section" [disabled]="guardando">
+          <legend><span aria-hidden="true">03</span> Programación y seguimiento</legend>
+          <div class="maintenance-field-grid">
+            <div class="maintenance-field">
+              <label for="maintenance-date">Fecha del mantenimiento <span class="required-mark">*</span></label>
+              <input id="maintenance-date" class="filter-input" [(ngModel)]="formulario.fecha" name="fecha" type="date" required #fecha="ngModel"
+                [attr.aria-invalid]="!!erroresCampos.fecha || (fecha.touched && fecha.invalid)" aria-describedby="maintenance-date-error">
+              <p id="maintenance-date-error" class="field-error" *ngIf="erroresCampos.fecha || (fecha.touched && fecha.invalid)">{{ erroresCampos.fecha || 'Selecciona la fecha del mantenimiento.' }}</p>
+            </div>
+            <div class="maintenance-field">
+              <label for="maintenance-cost">Costo (RD$) <span class="required-mark">*</span></label>
+              <input id="maintenance-cost" class="filter-input" [(ngModel)]="formulario.costo" name="costo" type="number" min="0" step="0.01" required #costo="ngModel"
+                [attr.aria-invalid]="!!erroresCampos.costo || (costo.touched && costo.invalid)" aria-describedby="maintenance-cost-help maintenance-cost-error">
+              <small id="maintenance-cost-help">Puedes dejar 0 si el costo todavía no se conoce.</small>
+              <p id="maintenance-cost-error" class="field-error" *ngIf="erroresCampos.costo || (costo.touched && costo.invalid)">{{ erroresCampos.costo || 'Ingresa un monto mayor o igual que cero.' }}</p>
+            </div>
+            <div class="maintenance-field maintenance-state-field">
+              <label for="maintenance-state">Estado de la solicitud <span class="required-mark">*</span></label>
+              <select id="maintenance-state" class="filter-select" [(ngModel)]="formulario.estado" name="estado" required
+                [attr.aria-invalid]="!!erroresCampos.estado" aria-describedby="maintenance-state-help maintenance-state-error">
+                <option *ngIf="!estadoDisponible(formulario.estado)" [ngValue]="formulario.estado">{{ nombreEstado(formulario.estado) }} · Estado anterior</option>
+                <option *ngFor="let estado of estados; trackBy: identificarEstado" [ngValue]="estado.id">{{ estado.nombre }}</option>
+              </select>
+              <small id="maintenance-state-help">Determina la columna de la solicitud en el tablero Kanban.</small>
+              <p id="maintenance-state-error" class="field-error" *ngIf="erroresCampos.estado">{{ erroresCampos.estado }}</p>
+            </div>
+          </div>
+        </fieldset>
+        <p class="maintenance-save-error" role="alert" *ngIf="errorFormulario">{{ errorFormulario }}</p>
+      </div>
+      <footer class="maintenance-form-footer">
+        <span>Los campos con <span class="required-mark">*</span> son obligatorios.</span>
+        <div class="maintenance-form-buttons">
+          <button class="filter-button secondary" type="button" [disabled]="guardando" (click)="cancelar()">Cancelar</button>
+          <button class="filter-button" type="submit" [disabled]="guardando || cargandoPropiedades || solicitudForm.invalid || formulario.propiedadID === 0">
+            {{ guardando ? 'Guardando…' : editandoId === null ? 'Crear solicitud' : 'Guardar cambios' }}
+          </button>
+        </div>
       </footer>
     </form>
   </section>

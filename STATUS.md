@@ -320,7 +320,7 @@
 
 ---
 
-*Last Updated: 2026-11-17*
+*Last Updated: 2026-11-21*
 *Status Document Version: 1.2*
 
 
@@ -356,3 +356,12 @@
 - ✅ Referencias estables de columnas y selector nativo en las tarjetas, sin tareas asíncronas de NgModel en el tablero.
 - ✅ Servidor local reiniciado sin HMR; verificado en Chrome con los datos existentes y consola sin errores repetitivos.
 - ✅ 15 pruebas y compilación Angular SSR satisfactorias. Sin cambios en datos de mantenimiento.
+
+
+## Actualización 2026-11-21 — Formulario de mantenimientos
+
+- ✅ Modal de creación/edición dividido en propiedad, descripción y seguimiento; adaptable a móvil.
+- ✅ Selector de propiedades con nombre/código/dirección, resumen y reintento de carga; preservación de asociaciones antiguas al editar.
+- ✅ Fecha inicial de Santo Domingo, descripción de varias líneas y validaciones de fecha, costo, propiedad y estado.
+- ✅ Protección de guardados duplicados, conservación de datos tras errores y navegación por teclado dentro del diálogo.
+- ✅ Carga bajo demanda de la ruta; 21 pruebas y compilación Angular SSR satisfactorias. Sin cambios de esquema ni datos.

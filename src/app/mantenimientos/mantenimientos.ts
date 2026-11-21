@@ -1,10 +1,11 @@
-import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Mantenimiento, MantenimientosService } from '../mantenimientos.service';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, of, Subscription } from 'rxjs';
 import { EstadosService } from '../estados.service';
 import { AuthService } from '../auth/auth.service';
+import { Propiedad, PropiedadesService } from '../propiedades.service';
 
 @Component({
   selector: 'app-mantenimientos',
@@ -12,7 +13,7 @@ import { AuthService } from '../auth/auth.service';
   templateUrl: './mantenimientos.html',
   styleUrl: './mantenimientos.css'
 })
-export class Mantenimientos implements OnInit {
+export class Mantenimientos implements OnInit, OnDestroy {
   estados = [
     { id: 5, nombre: 'Pendiente' },
     { id: 6, nombre: 'En proceso' },
@@ -30,13 +31,29 @@ export class Mantenimientos implements OnInit {
   formularioAbierto = false;
   guardando = false;
   errorFormulario: string | null = null;
+  propiedades: Propiedad[] = [];
+  cargandoPropiedades = false;
+  errorPropiedades: string | null = null;
+  erroresCampos: Partial<Record<keyof Omit<Mantenimiento, 'id'>, string>> = {};
+  private propiedadOriginalID: number | null = null;
+  private consultaPropiedades?: Subscription;
+  private focoAnterior: HTMLElement | null = null;
+  private elementoDialogo: HTMLElement | null = null;
+
+  @ViewChild('dialogoMantenimiento')
+  set dialogoMantenimiento(ref: ElementRef<HTMLElement> | undefined) {
+    this.elementoDialogo = ref?.nativeElement ?? null;
+    this.elementoDialogo?.querySelector<HTMLElement>('#maintenance-modal-title')?.focus();
+  }
+
   formulario = this.formularioVacio();
 
   constructor(
     private readonly mantenimientosService: MantenimientosService,
     private readonly cdr: ChangeDetectorRef,
     public readonly auth: AuthService,
-    private readonly estadosService: EstadosService
+    private readonly estadosService: EstadosService,
+    private readonly propiedadesService: PropiedadesService
   ) {}
 
   ngOnInit(): void {
@@ -91,7 +108,7 @@ export class Mantenimientos implements OnInit {
     return estado.id;
   }
 
-  identificarSolicitud(_index: number, mantenimiento: Mantenimiento): number {
+  identificarSolicitud(_index: number, mantenimiento: { id: number }): number {
     return mantenimiento.id;
   }
 
@@ -185,12 +202,32 @@ export class Mantenimientos implements OnInit {
   }
 
   guardar(): void {
-    if (!this.puedeGestionar || this.guardando || this.movimientosPendientes.size > 0) return;
+    if (!this.puedeGestionar || this.guardando || this.cargandoPropiedades || this.movimientosPendientes.size > 0) return;
     const datos = { ...this.formulario, descripcion: this.formulario.descripcion.trim() };
-    if (!Number.isInteger(datos.propiedadID) || datos.propiedadID < 1 || !datos.descripcion
-      || !datos.fecha || !Number.isFinite(datos.costo) || datos.costo < 0
-      || !this.estados.some(e => e.id === datos.estado)) {
-      this.errorFormulario = 'Completa la propiedad, fecha, descripción, costo y estado válidos.';
+    this.erroresCampos = {};
+    if (!Number.isInteger(datos.propiedadID) || datos.propiedadID < 1
+      || (!this.propiedades.some(p => p.id === datos.propiedadID)
+        && !(this.editandoId !== null && datos.propiedadID === this.propiedadOriginalID))) {
+      this.erroresCampos.propiedadID = 'Selecciona una propiedad disponible.';
+    }
+    if (!datos.descripcion || datos.descripcion.length > 2000) {
+      this.erroresCampos.descripcion = 'Escribe una descripción de hasta 2,000 caracteres.';
+    }
+    const fecha = new Date(`${datos.fecha}T00:00:00Z`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(datos.fecha) || !Number.isFinite(fecha.getTime())
+      || fecha.toISOString().slice(0, 10) !== datos.fecha) {
+      this.erroresCampos.fecha = 'Indica una fecha válida.';
+    }
+    if (!Number.isFinite(datos.costo) || datos.costo < 0
+      || Math.abs(datos.costo * 100 - Math.round(datos.costo * 100)) > 0.000001) {
+      this.erroresCampos.costo = 'Indica un costo mayor o igual que cero, con hasta dos decimales.';
+    }
+    if (!this.estadoDisponible(datos.estado)
+      && !(this.editandoId !== null && this.mantenimientos.some(m => m.id === this.editandoId && m.estado === datos.estado))) {
+      this.erroresCampos.estado = 'Selecciona un estado disponible.';
+    }
+    if (Object.keys(this.erroresCampos).length) {
+      this.errorFormulario = 'Revisa los campos señalados antes de guardar.';
       return;
     }
     this.guardando = true;
@@ -216,17 +253,18 @@ export class Mantenimientos implements OnInit {
   nuevo(): void {
     if (!this.puedeGestionar || this.guardando || this.movimientosPendientes.size > 0) return;
     this.cancelar();
-    this.formularioAbierto = true;
+    this.abrirFormulario();
   }
 
   editar(x: Mantenimiento): void {
     if (!this.puedeGestionar || this.guardando || this.movimientosPendientes.size > 0) return;
     this.cancelar();
     this.editandoId = x.id;
+    this.propiedadOriginalID = x.propiedadID;
     // Enviar solo los campos editables, sin copiar identidad ni auditoría.
     this.formulario = { propiedadID: x.propiedadID, descripcion: x.descripcion,
       fecha: x.fecha.substring(0, 10), costo: x.costo, estado: x.estado };
-    this.formularioAbierto = true;
+    this.abrirFormulario();
   }
 
   eliminar(id: number): void {
@@ -242,14 +280,86 @@ export class Mantenimientos implements OnInit {
   cancelar(): void {
     this.finalizarArrastre();
     if (this.guardando) return;
+    this.consultaPropiedades?.unsubscribe();
+    this.cargandoPropiedades = false;
     this.editandoId = null;
+    this.propiedadOriginalID = null;
+    this.erroresCampos = {};
+    this.errorPropiedades = null;
     this.formularioAbierto = false;
+    this.focoAnterior?.focus();
+    this.focoAnterior = null;
     this.errorFormulario = null;
     this.formulario = this.formularioVacio();
   }
 
   private formularioVacio(): Omit<Mantenimiento, 'id'> {
-    return { propiedadID: 0, descripcion: '', fecha: '', costo: 0, estado: this.estados[0].id };
+    const fecha = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Santo_Domingo', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).format(new Date());
+    return { propiedadID: 0, descripcion: '', fecha, costo: 0, estado: this.estados[0].id };
+  }
+
+  private abrirFormulario(): void {
+    this.focoAnterior = typeof document === 'undefined' ? null : document.activeElement as HTMLElement;
+    this.formularioAbierto = true;
+    this.cargarPropiedades();
+  }
+
+  cargarPropiedades(): void {
+    this.consultaPropiedades?.unsubscribe();
+    this.cargandoPropiedades = true;
+    this.propiedades = [];
+    this.errorPropiedades = null;
+    this.consultaPropiedades = this.propiedadesService.obtenerPropiedades().subscribe({
+      next: respuesta => {
+        this.cargandoPropiedades = false;
+        if (respuesta.success) this.propiedades = respuesta.data;
+        else this.errorPropiedades = 'No se pudieron cargar las propiedades.';
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.cargandoPropiedades = false;
+        this.errorPropiedades = 'No se pudieron cargar las propiedades. Intenta nuevamente.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  get propiedadSeleccionada(): Propiedad | undefined {
+    return this.propiedades.find(p => p.id === this.formulario.propiedadID);
+  }
+
+  get propiedadNoDisponible(): boolean {
+    return this.formulario.propiedadID > 0 && !this.propiedadSeleccionada;
+  }
+
+  nombrePropiedad(p: Propiedad): string {
+    return `${p.codigo?.trim() || '#' + p.id} · ${p.nombre?.trim() || 'Propiedad'}${p.direccion?.trim() ? ' — ' + p.direccion.trim() : ''}`;
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  mantenerFoco(event: KeyboardEvent): void {
+    if (!this.formularioAbierto || event.key !== 'Tab' || !this.elementoDialogo) return;
+    const controles = [...this.elementoDialogo.querySelectorAll<HTMLElement>(
+      'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)'
+    )];
+    const primero = controles[0];
+    const ultimo = controles[controles.length - 1];
+    if (!primero) {
+      event.preventDefault();
+      this.elementoDialogo.querySelector<HTMLElement>('#maintenance-modal-title')?.focus();
+      return;
+    }
+    if (event.shiftKey && (document.activeElement === primero || document.activeElement?.id === 'maintenance-modal-title')) {
+      event.preventDefault(); ultimo.focus();
+    } else if (!event.shiftKey && document.activeElement === ultimo) {
+      event.preventDefault(); primero.focus();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.consultaPropiedades?.unsubscribe();
   }
 
   nombreEstado(id: number): string {
